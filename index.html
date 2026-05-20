@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>نايف للأغذية - تحليل تكلفة البضائع (COGS)</title>
+    <!-- Favicon & Logo (شركة نايف) -->
+    <link rel="icon" href="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" type="image/jpeg">
+    <!-- مكتبات خارجية -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+        }
+
+        body {
+            background: #f4f7fc;
+            padding: 25px 20px;
+            color: #1e2a3a;
+        }
+
+        /* حاوية رئيسية */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            padding: 20px 28px 35px;
+        }
+
+        /* الهيدر مع اللوجو */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 18px;
+            margin-bottom: 28px;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-img {
+            width: 55px;
+            height: 55px;
+            object-fit: cover;
+            border-radius: 18px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+        .company-name {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #b13e3e;
+            letter-spacing: -0.5px;
+        }
+        .company-name small {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #2c6e9e;
+            display: block;
+        }
+        .report-title {
+            font-size: 1rem;
+            background: #f0f2f5;
+            padding: 8px 18px;
+            border-radius: 40px;
+            color: #2c3e4e;
+        }
+
+        /* منطقة رفع الملفات */
+        .upload-area {
+            background: #f8fafd;
+            border: 2px dashed #bdd3e8;
+            border-radius: 28px;
+            padding: 25px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: 0.2s;
+        }
+        .upload-label {
+            background: #1e4668;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-block;
+            transition: 0.2s;
+            border: none;
+            font-size: 0.95rem;
+        }
+        .upload-label:hover {
+            background: #0f2f48;
+            transform: scale(0.97);
+        }
+        #fileInput {
+            display: none;
+        }
+        .file-stats {
+            margin-top: 18px;
+            font-size: 0.85rem;
+            color: #2c6e9e;
+            background: #e9f0f5;
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 50px;
+        }
+        .error-msg {
+            color: #c0392b;
+            background: #ffe6e5;
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            margin-top: 12px;
+        }
+
+        /* لوحة التحكم */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            background: #ffffffea;
+            padding: 15px 0;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 2;
+            min-width: 220px;
+        }
+        .filter-group label {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #2c3e50;
+        }
+        select, button {
+            padding: 10px 16px;
+            border-radius: 60px;
+            border: 1px solid #ccd7e4;
+            background: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        select {
+            background-color: #fff;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: #b13e3e;
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 10px 28px;
+        }
+        .btn-primary:hover {
+            background: #8f2f2f;
+            transform: translateY(-2px);
+        }
+        .btn-outline {
+            background: white;
+            border: 1px solid #1e4668;
+            color: #1e4668;
+            font-weight: 500;
+        }
+        .btn-outline:hover {
+            background: #eef3fc;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* الجدول */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            margin-top: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 850px;
+        }
+        th {
+            background: #1e4668;
+            color: white;
+            padding: 14px 10px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e9edf2;
+            text-align: center;
+            background-color: #ffffff;
+        }
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+        .empty-row td {
+            text-align: center;
+            color: #6c7a89;
+            font-style: italic;
+            padding: 35px;
+        }
+
+        /* توقيع المطور (مصغر 25% + بدون خلفية) */
+        .developer-signature {
+            margin-top: 40px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 22px;
+        }
+        .signature-card-clean {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #2c5282;
+            text-decoration: none;
+            transition: 0.2s;
+            border: 1px solid #cbd5e0;
+            backdrop-filter: blur(2px);
+            transform: scale(0.85);  /* تصغير الحجم الكلي 15% إضافي للوصول لـ 25% أصغر من المعتاد */
+            transform-origin: center;
+            box-shadow: none;
+            background-color: rgba(255,255,240,0.5);
+        }
+        .signature-card-clean:hover {
+            background: #edf2f7;
+            transform: scale(0.88);
+            border-color: #b13e3e;
+        }
+        .signature-card-clean .name {
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #b13e3e;
+        }
+        .signature-card-clean .title {
+            font-size: 0.6rem;
+            opacity: 0.8;
+        }
+        /* إزالة الخلفية الملونة تمامًا كما هو مطلوب */
+        
+        @media (max-width: 680px) {
+            .app-container {
+                padding: 15px;
+            }
+            .company-name {
+                font-size: 1.2rem;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        .badge-info {
+            background: #eef2ff;
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            color: #1e4668;
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 20px;
+            color: #6c86a3;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <div class="logo-area">
+            <img class="logo-img" src="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" alt="Naif Logo" onerror="this.src='https://via.placeholder.com/55?text=NAIF'">
+            <div class="company-name">
+                شركة نايف للأغذية
+                <small>NAIF FOOD COMPANY</small>
+            </div>
+        </div>
+        <div class="report-title">📊 تقرير تحليل المخزون (COGS)</div>
+    </div>
+
+    <!-- رفع الملفات -->
+    <div class="upload-area">
+        <label for="fileInput" class="upload-label">📂 اختيار ملفات Excel (COGS) -多达 60 ملف</label>
+        <input type="file" id="fileInput" multiple accept=".xlsx, .xls, .xlsm, .csv" />
+        <div id="uploadStatus" class="file-stats">⏳ لم يتم تحميل أي ملفات بعد</div>
+        <div id="errorContainer" class="error-msg" style="display:none;"></div>
+    </div>
+
+    <!-- لوحة الفلترة والعرض -->
+    <div class="controls">
+        <div class="filter-group">
+            <label>🔍 اختر اسم الصنف (RMName):</label>
+            <select id="itemSelect" disabled>
+                <option value="">-- قم بتحميل الملفات أولاً --</option>
+            </select>
+        </div>
+        <div class="action-buttons">
+            <button id="generateReportBtn" class="btn-primary" disabled>📋 عرض التقرير</button>
+            <button id="exportExcelBtn" class="btn-outline" disabled>📎 تصدير إلى Excel</button>
+            <button id="exportPdfBtn" class="btn-outline" disabled>🖨️ تصدير إلى PDF</button>
+        </div>
+    </div>
+
+    <!-- حاوية الجدول -->
+    <div id="reportTableContainer" class="table-wrapper">
+        <table id="resultTable">
+            <thead id="tableHeader">
+                <tr><th>اسم المطعم</th><th>Start Qty</th><th>Recd. Qty</th><th>Tran. In Qty</th><th>Tran. Out Qty</th><th>Wast. Qty</th><th>Act. Usage</th><th>End Qty</th></tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr class="empty-row"><td colspan="8">📁 يرجى رفع ملفات Excel واختيار صنف ثم الضغط على عرض التقرير</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- توقيع المطور (مصغر 25% وبدون خلفية) -->
+    <div class="developer-signature">
+        <a href="https://yasser-q8.github.io/myprofile/#" class="signature-card-clean" target="_blank" rel="noopener noreferrer">
+            <span class="name">Yasser Elkhateeb</span>
+            <span class="title">مطور البرنامج | 67011143</span>
+        </a>
+    </div>
+    <footer>جميع الأرقام بالدينار الكويتي / الوحدات حسب نظام المخزون</footer>
+</div>
+
+<script>
+    // --------------------- المتغيرات العامة -------------------------
+    let allRestaurantsData = [];   // { restaurantName, items: [{ itemName, startQty, recdQty, tranInQty, tranOutQty, wastQty, actUsage, endQty }] }
+    let uniqueItemsSet = new Set();
+    let currentSelectedItem = "";
+    let currentReportData = [];     // لتخزين بيانات الجدول المعروضة بغرض التصدير
+    
+    // مراجع DOM
+    const fileInput = document.getElementById('fileInput');
+    const uploadStatusDiv = document.getElementById('uploadStatus');
+    const errorContainer = document.getElementById('errorContainer');
+    const itemSelect = document.getElementById('itemSelect');
+    const generateBtn = document.getElementById('generateReportBtn');
+    const exportExcelBtn = document.getElementById('exportExcelBtn');
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    const tableBody = document.getElementById('tableBody');
+    
+    // --------------------- دوال مساعدة لقراءة الملف -----------------
+    function showError(msg, isClear = false) {
+        if(isClear) errorContainer.style.display = 'none';
+        else {
+            errorContainer.innerHTML = `⚠️ ${msg}`;
+            errorContainer.style.display = 'block';
+            setTimeout(() => { errorContainer.style.display = 'none'; }, 5000);
+        }
+    }
+
+    // استخراج اسم المطعم من الخلية B14
+    function getRestaurantNameFromSheet(worksheet) {
+        try {
+            const cellB14 = worksheet['B14'];
+            if(cellB14 && cellB14.v) {
+                let name = String(cellB14.v).trim();
+                if(name.length > 0) return name;
+            }
+            // fallback: محاولة البحث عن أي نص في A6 أو B6 احتياطيًا ولكن حسب الطلب B14 هو الأساس
+            const cellA6 = worksheet['A6'];
+            if(cellA6 && cellA6.v && String(cellA6.v).includes("Kuwait")) return String(cellA6.v).trim();
+            return `مطعم (غير محدد)`;
+        } catch(e) {
+            return `مطعم (خطأ في التحديد)`;
+        }
+    }
+
+    // تحليل ورقة العمل: إيجاد صف العناوين واستخراج البيانات للأصناف
+    function parseItemsFromSheet(worksheet) {
+        // تحويل الورقة إلى مصفوفة ثنائية الأبعاد لتسهيل البحث
+        const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+        if(!sheetData || sheetData.length < 5) return [];
+        
+        // 1. البحث عن صف العناوين الذي يحتوي على "Start Qty" و "RMName" (أو "RMName")
+        let headerRowIndex = -1;
+        let headerRow = null;
+        for(let i = 0; i < sheetData.length; i++) {
+            const row = sheetData[i];
+            if(!row || row.length === 0) continue;
+            const rowStr = row.join(" ").toLowerCase();
+            if(rowStr.includes("start qty") && (rowStr.includes("rmname") || rowStr.includes("rm code"))) {
+                headerRowIndex = i;
+                headerRow = row;
+                break;
+            }
+        }
+        // محاولة بديلة: العثور على "Start Qty" فقط
+        if(headerRowIndex === -1) {
+            for(let i = 0; i < sheetData.length; i++) {
+                const row = sheetData[i];
+                if(row && row.some(cell => typeof cell === 'string' && cell.toLowerCase().includes("start qty"))) {
+                    headerRowIndex = i;
+                    headerRow = row;
+                    break;
+                }
+            }
+        }
+        if(headerRowIndex === -1 || !headerRow) {
+            console.warn("لم نعثر على صف العناوين الرئيسي");
+            return [];
+        }
+        
+        // تعيين فهارس الأعمدة المطلوبة
+        let colMap = {
+            itemNameIdx: -1,
+            startQtyIdx: -1,
+            recdQtyIdx: -1,
+            tranInIdx: -1,
+            tranOutIdx: -1,
+            wastQtyIdx: -1,
+            actUsageIdx: -1,
+            endQtyIdx: -1
+        };
+        
+        for(let c = 0; c < headerRow.length; c++) {
+            let cellVal = (headerRow[c] && typeof headerRow[c] === 'string') ? headerRow[c].trim() : (headerRow[c] ? String(headerRow[c]).trim() : "");
+            let lowerVal = cellVal.toLowerCase();
+            if(lowerVal.includes("rmname") || lowerVal === "rm name" || lowerVal.includes("الصنف") || (lowerVal.includes("item") && lowerVal.includes("name"))) {
+                colMap.itemNameIdx = c;
+            }
+            else if(lowerVal.includes("start qty") || (lowerVal.includes("بداية") && lowerVal.includes("كمية"))) colMap.startQtyIdx = c;
+            else if(lowerVal.includes("recd") || lowerVal.includes("received") || lowerVal.includes("وارد")) colMap.recdQtyIdx = c;
+            else if(lowerVal.includes("tran. in") || lowerVal.includes("tran in") || lowerVal.includes("تحويل داخلي وارد")) colMap.tranInIdx = c;
+            else if(lowerVal.includes("tran. out") || lowerVal.includes("tran out") || lowerVal.includes("تحويل داخلي صادر")) colMap.tranOutIdx = c;
+            else if(lowerVal.includes("wast") || lowerVal.includes("تالف") || lowerVal.includes("هالك")) colMap.wastQtyIdx = c;
+            else if(lowerVal.includes("act. usage") || lowerVal.includes("act usage") || lowerVal.includes("الاستخدام الفعلي")) colMap.actUsageIdx = c;
+            else if(lowerVal.includes("end qty") || lowerVal.includes("ending") || lowerVal.includes("الرصيد الختامي")) colMap.endQtyIdx = c;
+        }
+        // إذا لم نجد Act. Usage، نستخدم عمود "Usage Qty" كبديل؟ لكن الأفضل الاحتفاظ. في حال عدم وجود Act. Usage نترك 0
+        if(colMap.itemNameIdx === -1) {
+            // البحث عن عمود RMName بالاسم الدقيق
+            for(let c=0; c<headerRow.length;c++) {
+                let v = headerRow[c];
+                if(v && (v === "RMName" || v === "RM Name" || v === "اسم الصنف")) colMap.itemNameIdx = c;
+            }
+        }
+        // إذا لم نجد Start Qty نخرج فارغ
+        if(colMap.startQtyIdx === -1) return [];
+        
+        // بدء استخراج البيانات من الصف التالي للعنوان حتى نهاية البيانات غير الفارغة (حيث يوجد اسم الصنف)
+        const items = [];
+        for(let r = headerRowIndex + 1; r < sheetData.length; r++) {
+            const rowData = sheetData[r];
+            if(!rowData || rowData.length === 0) continue;
+            // التحقق من وجود اسم الصنف
+            let itemNameRaw = (colMap.itemNameIdx !== -1 && rowData[colMap.itemNameIdx]) ? String(rowData[colMap.itemNameIdx]).trim() : "";
+            if(itemNameRaw === "" || itemNameRaw === "0" || itemNameRaw === "-") continue;
+            // إذا كان الصف يبدو فارغاً (جميع الخلايا فارغة) نكسر الحلقة
+            let hasValue = rowData.some(cell => cell !== undefined && cell !== null && String(cell).trim() !== "");
+            if(!hasValue) break;
+            
+            // دالة استخراج الأرقام
+            const getNum = (idx) => {
+                if(idx === -1) return 0;
+                let val = rowData[idx];
+                if(val === undefined || val === null || val === "") return 0;
+                let num = parseFloat(String(val).replace(/[^0-9.-]/g, ''));
+                return isNaN(num) ? 0 : num;
+            };
+            
+            const startQty = getNum(colMap.startQtyIdx);
+            const recdQty = getNum(colMap.recdQtyIdx);
+            const tranIn = getNum(colMap.tranInIdx);
+            const tranOut = getNum(colMap.tranOutIdx);
+            const wast = getNum(colMap.wastQtyIdx);
+            const actUsage = getNum(colMap.actUsageIdx);
+            const endQty = getNum(colMap.endQtyIdx);
+            
+            items.push({
+                itemName: itemNameRaw,
+                startQty,
+                recdQty,
+                tranInQty: tranIn,
+                tranOutQty: tranOut,
+                wastQty: wast,
+                actUsage,
+                endQty
+            });
+        }
+        return items;
+    }
+    
+    // معالجة ملف واحد (Promise)
+    function processExcelFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                if(!firstSheet) return reject(new Error(`الملف ${file.name} لا يحتوي على بيانات`));
+                // استخراج اسم المطعم
+                let restaurantName = getRestaurantNameFromSheet(firstSheet);
+                if(!restaurantName || restaurantName === "") restaurantName = `فرع ${file.name.slice(0,12)}`;
+                // استخراج الأصناف
+                const items = parseItemsFromSheet(firstSheet);
+                if(items.length === 0) {
+                    console.warn(`لا توجد أصناف في ملف: ${file.name}`);
+                }
+                resolve({
+                    fileName: file.name,
+                    restaurantName: restaurantName,
+                    items: items
+                });
+            };
+            reader.onerror = () => reject(new Error(`خطأ في قراءة ${file.name}`));
+            reader.readAsArrayBuffer(file);
+        });
+    }
+    
+    // تحديث واجهة القائمة المنسدلة بناءً على uniqueItemsSet
+    function updateItemDropdown() {
+        const sortedItems = Array.from(uniqueItemsSet).sort();
+        itemSelect.innerHTML = '<option value="">-- اختر الصنف --</option>';
+        sortedItems.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item;
+            option.textContent = item;
+            itemSelect.appendChild(option);
+        });
+        if(sortedItems.length > 0) {
+            itemSelect.disabled = false;
+            generateBtn.disabled = false;
+            exportExcelBtn.disabled = false;
+            exportPdfBtn.disabled = false;
+        } else {
+            itemSelect.disabled = true;
+            generateBtn.disabled = true;
+            exportExcelBtn.disabled = true;
+            exportPdfBtn.disabled = true;
+        }
+    }
+    
+    // معالجة جميع الملفات المرفوعة
+    async function handleFiles(files) {
+        if(!files.length) return;
+        uploadStatusDiv.innerHTML = "⏳ جاري تحليل الملفات... قد يستغرق قليلاً";
+        showError("", true);
+        allRestaurantsData = [];
+        uniqueItemsSet.clear();
+        
+        const filePromises = Array.from(files).map(file => processExcelFile(file).catch(err => {
+            console.error(err);
+            showError(`⚠️ فشل في ملف: ${file.name} - ${err.message}`);
+            return null;
+        }));
+        
+        const results = await Promise.all(filePromises);
+        let validCount = 0;
+        for(const res of results) {
+            if(res && res.items.length) {
+                validCount++;
+                allRestaurantsData.push({
+                    restaurantName: res.restaurantName,
+                    items: res.items
+                });
+                // إضافة أسماء الأصناف إلى المجموعة
+                res.items.forEach(item => {
+                    if(item.itemName && item.itemName !== "") uniqueItemsSet.add(item.itemName);
+                });
+            } else if(res && res.items.length === 0 && res.restaurantName) {
+                // إضافة المطعم حتى لو لايحتوي أصناف؟ لا نضيف بدون أصناف لأنه لن يظهر في التقارير
+                console.log(`تم تخطي ${res.restaurantName} لعدم احتوائه على أصناف`);
+            }
+        }
+        
+        uploadStatusDiv.innerHTML = `✅ تم تحميل ${validCount} ملف بنجاح | إجمالي الأصناف الفريدة: ${uniqueItemsSet.size}`;
+        updateItemDropdown();
+        if(validCount === 0) {
+            tableBody.innerHTML = '<tr class="empty-row"><td colspan="8">⚠️ لم يتم العثور على بيانات صالحة في الملفات. تأكد من وجود أعمدة Start Qty و RMName.</td></tr>';
+        } else {
+            tableBody.innerHTML = '<tr class="empty-row"><td colspan="8">📌 اختر صنفاً من القائمة واضغط عرض التقرير.</td></tr>';
+        }
+        currentReportData = [];
+    }
+    
+    fileInput.addEventListener('change', (e) => {
+        if(e.target.files.length) handleFiles(e.target.files);
+        else uploadStatusDiv.innerHTML = "📂 لم يتم اختيار ملفات";
+    });
+    
+    // إنشاء التقرير بناءً على الصنف المختار
+    function generateReportForItem(itemName) {
+        if(!itemName || itemName.trim() === "") {
+            tableBody.innerHTML = '<tr class="empty-row"><td colspan="8">❌ يرجى اختيار صنف صالح</td></tr>';
+            return [];
+        }
+        const reportRows = [];
+        for(const restaurant of allRestaurantsData) {
+            const foundItem = restaurant.items.find(it => it.itemName === itemName);
+            if(foundItem) {
+                reportRows.push({
+                    restaurant: restaurant.restaurantName,
+                    startQty: foundItem.startQty,
+                    recdQty: foundItem.recdQty,
+                    tranInQty: foundItem.tranInQty,
+                    tranOutQty: foundItem.tranOutQty,
+                    wastQty: foundItem.wastQty,
+                    actUsage: foundItem.actUsage,
+                    endQty: foundItem.endQty
+                });
+            }
+        }
+        if(reportRows.length === 0) {
+            tableBody.innerHTML = `<tr class="empty-row"><td colspan="8">⚠️ لا توجد بيانات للصنف "${itemName}" في أي من المطاعم المحملة.</td></tr>`;
+            return [];
+        }
+        // عرض الجدول
+        let htmlRows = "";
+        for(const row of reportRows) {
+            htmlRows += `<tr>
+                <td style="font-weight:500; text-align:right;">${escapeHtml(row.restaurant)}</td>
+                <td>${formatNumber(row.startQty)}</td>
+                <td>${formatNumber(row.recdQty)}</td>
+                <td>${formatNumber(row.tranInQty)}</td>
+                <td>${formatNumber(row.tranOutQty)}</td>
+                <td>${formatNumber(row.wastQty)}</td>
+                <td>${formatNumber(row.actUsage)}</td>
+                <td>${formatNumber(row.endQty)}</td>
+            </tr>`;
+        }
+        tableBody.innerHTML = htmlRows;
+        return reportRows;
+    }
+    
+    function formatNumber(val) {
+        if(val === undefined || val === null) return "0.00";
+        let num = Number(val);
+        if(isNaN(num)) return "0.00";
+        return num.toFixed(2);
+    }
+    
+    function escapeHtml(str) {
+        if(!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if(m === '&') return '&amp;';
+            if(m === '<') return '&lt;';
+            if(m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // حدث زر عرض التقرير
+    generateBtn.addEventListener('click', () => {
+        const selected = itemSelect.value;
+        if(!selected) {
+            tableBody.innerHTML = '<tr class="empty-row"><td colspan="8">🔔 اختر صنفاً من القائمة أولاً</td></tr>';
+            return;
+        }
+        currentSelectedItem = selected;
+        const reportData = generateReportForItem(selected);
+        currentReportData = reportData;
+    });
+    
+    // تصدير إلى Excel (باستخدام SheetJS)
+    function exportToExcel() {
+        if(!currentReportData.length) {
+            if(!itemSelect.value) alert("لا توجد بيانات معروضة. قم باختيار صنف وعرض التقرير أولاً.");
+            else alert("لا توجد بيانات للصنف المختار");
+            return;
+        }
+        const sheetData = [
+            ["اسم المطعم", "Start Qty", "Recd. Qty", "Tran. In Qty", "Tran. Out Qty", "Wast. Qty", "Act. Usage", "End Qty"]
+        ];
+        for(const row of currentReportData) {
+            sheetData.push([
+                row.restaurant,
+                row.startQty,
+                row.recdQty,
+                row.tranInQty,
+                row.tranOutQty,
+                row.wastQty,
+                row.actUsage,
+                row.endQty
+            ]);
+        }
+        const ws = XLSX.utils.aoa_to_sheet(sheetData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, `تقرير_${currentSelectedItem}`);
+        XLSX.writeFile(wb, `COGS_Report_${currentSelectedItem}.xlsx`);
+    }
+    
+    // تصدير PDF باستخدام html2canvas + jsPDF
+    async function exportToPDF() {
+        if(!currentReportData.length) {
+            alert("لا توجد بيانات معروضة. قم بعرض التقرير أولاً");
+            return;
+        }
+        // إنشاء عنصر مؤقت للطباعة
+        const originalContainer = document.getElementById('reportTableContainer');
+        const cloneTable = originalContainer.cloneNode(true);
+        const wrapper = document.createElement('div');
+        wrapper.style.padding = '20px';
+        wrapper.style.backgroundColor = 'white';
+        wrapper.style.direction = 'rtl';
+        wrapper.style.width = '800px';
+        wrapper.appendChild(cloneTable);
+        // إضافة عنوان
+        const title = document.createElement('h3');
+        title.textContent = `تقرير تحليل الصنف: ${currentSelectedItem}`;
+        title.style.textAlign = 'center';
+        title.style.fontFamily = 'sans-serif';
+        title.style.marginBottom = '20px';
+        wrapper.insertBefore(title, wrapper.firstChild);
+        document.body.appendChild(wrapper);
+        try {
+            const canvas = await html2canvas(wrapper, { scale: 2, backgroundColor: '#ffffff' });
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('l', 'mm', 'a4');
+            const imgWidth = 280;
+            const pageHeight = 210;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let position = 0;
+            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+            pdf.save(`Report_${currentSelectedItem}.pdf`);
+        } catch(err) {
+            console.error(err);
+            alert("حدث خطأ أثناء إنشاء PDF");
+        } finally {
+            document.body.removeChild(wrapper);
+        }
+    }
+    
+    exportExcelBtn.addEventListener('click', exportToExcel);
+    exportPdfBtn.addEventListener('click', exportToPDF);
+    
+    // رسائل ترحيب
+    console.log("جاهز لتحليل 60 ملف وفقاً لهيكل COGS");
+</script>
+</body>
+</html>
