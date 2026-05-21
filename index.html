@@ -3,311 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>نايف للأغذية - تقرير COGS | بحث وفترة زمنية</title>
+    <title>نايف للأغذية - تقرير COGS | تحديد تلقائي للفترة</title>
     <link rel="icon" href="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" type="image/jpeg">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #f0f2f5;
-            padding: 25px 20px;
-            font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
-        }
-
-        .app-container {
-            max-width: 1500px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 32px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-            overflow: hidden;
-            padding: 0 28px 35px;
-        }
-
-        /* الشريط العلوي */
-        .top-bar {
-            background: #d32f2f;
-            margin: 0 -28px 0 -28px;
-            padding: 15px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .logo-img {
-            width: 55px;
-            height: 55px;
-            object-fit: cover;
-            border-radius: 18px;
-            border: 2px solid white;
-            background: white;
-        }
-        .company-name {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: white;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
-        }
-        .company-name small {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #ffefcf;
-            display: block;
-        }
-        .report-title-badge {
-            background: rgba(255,255,240,0.2);
-            padding: 8px 18px;
-            border-radius: 40px;
-            color: white;
-            font-weight: 500;
-        }
-
-        .upload-area {
-            background: #f8fafd;
-            border: 2px dashed #bdd3e8;
-            border-radius: 28px;
-            padding: 20px 20px;
-            text-align: center;
-            margin: 25px 0 25px;
-        }
-        .upload-label {
-            background: #1e4668;
-            color: white;
-            padding: 12px 32px;
-            border-radius: 60px;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-block;
-            transition: 0.2s;
-            border: none;
-        }
+        /* نفس الأنماط السابقة مع بعض التحسينات */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f0f2f5; padding: 25px 20px; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+        .app-container { max-width: 1500px; margin: 0 auto; background: white; border-radius: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); overflow: hidden; padding: 0 28px 35px; }
+        .top-bar { background: #d32f2f; margin: 0 -28px 0 -28px; padding: 15px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        .logo-img { width: 55px; height: 55px; object-fit: cover; border-radius: 18px; border: 2px solid white; }
+        .company-name { font-size: 1.6rem; font-weight: 800; color: white; }
+        .company-name small { font-size: 0.75rem; color: #ffefcf; display: block; }
+        .report-title-badge { background: rgba(255,255,240,0.2); padding: 8px 18px; border-radius: 40px; color: white; }
+        .upload-area { background: #f8fafd; border: 2px dashed #bdd3e8; border-radius: 28px; padding: 20px; text-align: center; margin: 25px 0; }
+        .upload-label { background: #1e4668; color: white; padding: 12px 32px; border-radius: 60px; cursor: pointer; display: inline-block; }
         .upload-label:hover { background: #0f2f48; }
         #fileInput { display: none; }
-        .file-stats {
-            margin-top: 16px;
-            font-size: 0.85rem;
-            color: #1e4668;
-            background: #e9f0f5;
-            display: inline-block;
-            padding: 6px 18px;
-            border-radius: 50px;
-        }
-        .error-msg {
-            color: #c0392b;
-            background: #ffe6e5;
-            padding: 8px 15px;
-            border-radius: 30px;
-            font-size: 0.9rem;
-            margin-top: 12px;
-            font-weight: 600;
-        }
-
-        /* فلترة التاريخ */
-        .date-filter {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            background: #fef7e0;
-            padding: 18px 20px;
-            border-radius: 32px;
-            margin-bottom: 25px;
-            align-items: flex-end;
-        }
-        .date-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .date-group label {
-            font-weight: 700;
-            font-size: 0.8rem;
-            color: #2c3e50;
-        }
-        .date-group input {
-            padding: 10px 14px;
-            border-radius: 30px;
-            border: 1px solid #ccd7e4;
-            background: white;
-            font-size: 0.9rem;
-        }
-        .btn-date-filter {
-            background: #2c6e9e;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .btn-date-filter:hover { background: #1e4668; }
-
-        /* البحث الديناميكي */
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            align-items: flex-end;
-            justify-content: space-between;
-            margin-bottom: 28px;
-        }
-        .filter-group {
-            flex: 3;
-            min-width: 260px;
-        }
-        .filter-group label {
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: #2c3e50;
-        }
-        .search-wrapper {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        #itemSearchInput {
-            flex: 1;
-            padding: 12px 18px;
-            border-radius: 60px;
-            border: 1px solid #ccd7e4;
-            font-size: 0.95rem;
-            outline: none;
-        }
-        .match-counter {
-            background: #eef2fa;
-            padding: 5px 14px;
-            border-radius: 40px;
-            font-size: 0.75rem;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-        }
-        button {
-            padding: 10px 24px;
-            border-radius: 60px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            border: none;
-        }
-        .btn-primary {
-            background: #b13e3e;
-            color: white;
-        }
-        .btn-primary:hover { background: #8f2f2f; transform: translateY(-2px);}
-        .btn-outline {
-            background: white;
-            border: 1px solid #1e4668;
-            color: #1e4668;
-        }
-        .btn-outline:hover { background: #eef3fc;}
-
-        /* الجدول */
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 20px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            margin: 20px 0;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-            min-width: 1100px;
-        }
-        th {
-            background: #1976D2;
-            color: white;
-            padding: 14px 8px;
-            font-weight: 700;
-            text-align: center;
-            font-size: 0.95rem;
-            border-bottom: 2px solid #1565C0;
-        }
-        th small {
-            display: block;
-            font-weight: 400;
-            font-size: 0.75rem;
-            color: #bbdefb;
-            margin-top: 4px;
-        }
-        td {
-            padding: 12px 8px;
-            border-bottom: 1px solid #e9edf2;
-            text-align: center;
-            font-family: 'Courier New', monospace;
-            font-size: 1.2rem;
-            font-weight: 500;
-        }
-        td:first-child {
-            font-size: 1.3rem;
-            font-weight: 700;
-            text-align: right;
-            padding-right: 15px;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        tr:hover td { background-color: #f8fafc; }
-        .empty-row td {
-            font-size: 1rem;
-            text-align: center;
-            color: #6c7a89;
-            font-style: italic;
-            padding: 40px;
-        }
-
-        /* توقيع المطور */
-        .developer-signature {
-            margin-top: 30px;
-            text-align: center;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 20px;
-        }
-        .signature-card-clean {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: transparent;
-            padding: 5px 10px;
-            border-radius: 40px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            color: #2c5282;
-            text-decoration: none;
-            border: 1px solid #cbd5e0;
-            transform: scale(0.85);
-            background-color: rgba(255,255,240,0.3);
-        }
-        .signature-card-clean .name {
-            font-weight: 700;
-            color: #b13e3e;
-        }
-        footer {
-            font-size: 0.7rem;
-            text-align: center;
-            margin-top: 10px;
-            color: #6c86a3;
-        }
-        @media (max-width: 700px) {
-            .app-container { padding: 0 15px 20px; }
-            .top-bar { margin: 0 -15px; padding: 12px 15px; }
-            td:first-child { font-size: 1.1rem; }
-            td { font-size: 1rem; }
-        }
+        .file-stats { margin-top: 16px; font-size: 0.85rem; background: #e9f0f5; display: inline-block; padding: 6px 18px; border-radius: 50px; }
+        .error-msg { color: #c0392b; background: #ffe6e5; padding: 8px 15px; border-radius: 30px; margin-top: 12px; display: none; }
+        .date-filter { display: flex; flex-wrap: wrap; gap: 20px; background: #fef7e0; padding: 18px 20px; border-radius: 32px; margin-bottom: 25px; align-items: flex-end; }
+        .date-group { display: flex; flex-direction: column; gap: 6px; }
+        .date-group label { font-weight: 700; font-size: 0.8rem; color: #2c3e50; }
+        .date-group input { padding: 10px 14px; border-radius: 30px; border: 1px solid #ccd7e4; }
+        .btn-date-filter { background: #2c6e9e; color: white; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; }
+        .auto-range-info { font-size: 0.75rem; color: #2c6e9e; background: #e9f0f5; padding: 4px 12px; border-radius: 20px; display: inline-block; }
+        .controls { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; }
+        .filter-group { flex: 3; min-width: 260px; }
+        .filter-group label { font-weight: 700; font-size: 0.85rem; }
+        .search-wrapper { display: flex; gap: 10px; align-items: center; }
+        #itemSearchInput { flex: 1; padding: 12px 18px; border-radius: 60px; border: 1px solid #ccd7e4; font-size: 0.95rem; }
+        .match-counter { background: #eef2fa; padding: 5px 14px; border-radius: 40px; font-size: 0.75rem; }
+        .action-buttons { display: flex; gap: 12px; }
+        button { padding: 10px 24px; border-radius: 60px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-primary { background: #b13e3e; color: white; }
+        .btn-outline { background: white; border: 1px solid #1e4668; color: #1e4668; }
+        .table-wrapper { overflow-x: auto; border-radius: 20px; border: 1px solid #e2e8f0; margin: 20px 0; }
+        table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+        th { background: #1976D2; color: white; padding: 14px 8px; font-size: 0.95rem; }
+        th small { display: block; font-size: 0.7rem; color: #bbdefb; margin-top: 4px; }
+        td { padding: 12px 8px; border-bottom: 1px solid #e9edf2; text-align: center; font-family: monospace; font-size: 1.2rem; }
+        td:first-child { font-size: 1.3rem; font-weight: 700; text-align: right; font-family: 'Segoe UI', sans-serif; }
+        .empty-row td { font-size: 1rem; color: #6c7a89; font-style: italic; padding: 40px; }
+        .developer-signature { margin-top: 30px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        .signature-card-clean { display: inline-flex; align-items: center; gap: 8px; background: transparent; padding: 5px 10px; border-radius: 40px; font-size: 0.7rem; border: 1px solid #cbd5e0; transform: scale(0.85); }
+        footer { font-size: 0.7rem; text-align: center; margin-top: 10px; color: #6c86a3; }
+        @media (max-width: 700px) { .app-container { padding: 0 15px 20px; } td:first-child { font-size: 1.1rem; } td { font-size: 1rem; } }
     </style>
 </head>
 <body>
@@ -315,36 +59,28 @@
     <div class="top-bar">
         <div class="logo-area">
             <img class="logo-img" src="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" alt="Naif Logo" onerror="this.src='https://via.placeholder.com/55?text=NAIF'">
-            <div class="company-name">
-                شركة نايف للأغذية
-                <small>NAIF FOOD COMPANY</small>
-            </div>
+            <div class="company-name">شركة نايف للأغذية <small>NAIF FOOD COMPANY</small></div>
         </div>
         <div class="report-title-badge">📊 تقرير تحليل المخزون (COGS)</div>
     </div>
 
     <div class="upload-area">
-        <label for="fileInput" class="upload-label">📂 رفع ملفات Excel </label>
+        <label for="fileInput" class="upload-label">📂 رفع ملفات Excel (أي عدد)</label>
         <input type="file" id="fileInput" multiple accept=".xlsx, .xls, .xlsm" />
         <div id="uploadStatus" class="file-stats">⏳ لم يتم رفع أي ملفات</div>
-        <div id="errorContainer" class="error-msg" style="display:none;"></div>
+        <div id="errorContainer" class="error-msg"></div>
     </div>
 
     <div class="date-filter">
-        <div class="date-group">
-            <label>📅 تاريخ البداية (من)</label>
-            <input type="date" id="startDate" value="">
-        </div>
-        <div class="date-group">
-            <label>📅 تاريخ النهاية (إلى)</label>
-            <input type="date" id="endDate" value="">
-        </div>
+        <div class="date-group"><label>📅 تاريخ البداية (من)</label><input type="date" id="startDate"></div>
+        <div class="date-group"><label>📅 تاريخ النهاية (إلى)</label><input type="date" id="endDate"></div>
         <button id="applyDateFilterBtn" class="btn-date-filter">تطبيق الفترة</button>
+        <div id="autoRangeInfo" class="auto-range-info"></div>
     </div>
 
     <div class="controls">
         <div class="filter-group">
-            <label>🔎 بحث ديناميكي عن الصنف (اكتب حرفاً):</label>
+            <label>🔎 بحث ديناميكي عن الصنف:</label>
             <div class="search-wrapper">
                 <input type="text" id="itemSearchInput" placeholder="مثال: برجر, زبدة..." autocomplete="off" list="itemDatalist" disabled>
                 <datalist id="itemDatalist"></datalist>
@@ -360,32 +96,15 @@
 
     <div id="reportTableContainer" class="table-wrapper">
         <table id="resultTable">
-            <thead>
-                <tr>
-                    <th>اسم المطعم<br><small>Restaurant</small></th>
-                    <th>تاريخ التقرير<br><small>Date</small></th>
-                    <th>رصيد أول<br><small>Start Qty</small></th>
-                    <th>الكمية المستلمة<br><small>Recd Qty</small></th>
-                    <th>المحول للداخل<br><small>Transfer In</small></th>
-                    <th>المحول للخارج<br><small>Transfer Out</small></th>
-                    <th>التوالف<br><small>Waste</small></th>
-                    <th>الاستخدام الفعلي<br><small>Act. Usage</small></th>
-                    <th>رصيد آخر<br><small>End Qty</small></th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                <tr class="empty-row"><td colspan="9">📁 قم برفع الملفات ثم حدد الفترة واختر صنفاً</td></tr>
-            </tbody>
+            <thead><tr><th>اسم المطعم<br><small>Restaurant</small></th><th>تاريخ التقرير<br><small>Date</small></th><th>رصيد أول<br><small>Start Qty</small></th><th>الكمية المستلمة<br><small>Recd Qty</small></th><th>المحول للداخل<br><small>Transfer In</small></th><th>المحول للخارج<br><small>Transfer Out</small></th><th>التوالف<br><small>Waste</small></th><th>الاستخدام الفعلي<br><small>Act. Usage</small></th><th>رصيد آخر<br><small>End Qty</small></th></tr></thead>
+            <tbody id="tableBody"><tr class="empty-row"><td colspan="9">📁 قم برفع الملفات وسيتم تحديد الفترة تلقائياً، ثم اختر صنفاً</td></tr></tbody>
         </table>
     </div>
 
     <div class="developer-signature">
-        <a href="https://yasser-q8.github.io/myprofile/#" class="signature-card-clean" target="_blank">
-            <span class="name">Yasser Elkhateeb</span>
-            <span class="title">مطور البرنامج | 67011143</span>
-        </a>
+        <a href="https://yasser-q8.github.io/myprofile/#" class="signature-card-clean" target="_blank"><span class="name">Yasser Elkhateeb</span><span class="title">مطور البرنامج | 67011143</span></a>
     </div>
-    <footer>جميع الأرقام بالدينار الكويتي </footer>
+    <footer>جميع الأرقام بالدينار الكويتي | تم تصغير التوقيع 25%</footer>
 </div>
 
 <script>
@@ -402,6 +121,7 @@
     const errorDiv = document.getElementById('errorContainer');
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
+    const autoRangeSpan = document.getElementById('autoRangeInfo');
     const applyDateBtn = document.getElementById('applyDateFilterBtn');
     const itemSearch = document.getElementById('itemSearchInput');
     const itemDatalist = document.getElementById('itemDatalist');
@@ -411,12 +131,7 @@
     const exportPdfBtn = document.getElementById('exportPdfBtn');
     const tableBody = document.getElementById('tableBody');
 
-    function showError(msg) {
-        errorDiv.innerHTML = `⚠️ ${msg}`;
-        errorDiv.style.display = 'block';
-        setTimeout(() => errorDiv.style.display = 'none', 8000);
-    }
-
+    function showError(msg) { errorDiv.innerHTML = `⚠️ ${msg}`; errorDiv.style.display = 'block'; setTimeout(() => errorDiv.style.display = 'none', 8000); }
     function extractReportDate(worksheet) {
         try {
             const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:Z100');
@@ -433,15 +148,10 @@
                 }
             }
             const a1 = worksheet['A1'];
-            if(a1 && a1.v) {
-                let s = String(a1.v);
-                let m = s.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
-                if(m) return m[0];
-            }
+            if(a1 && a1.v) { let m = String(a1.v).match(/(\d{1,2}\/\d{1,2}\/\d{4})/); if(m) return m[0]; }
         } catch(e) {}
         return null;
     }
-
     function parseDateFromText(dateStr) {
         if(!dateStr) return null;
         let parts = dateStr.match(/(\d{1,2})-([A-Za-z]{3})-(\d{4})/);
@@ -452,12 +162,9 @@
         }
         let slash = dateStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
         if(slash) return new Date(parseInt(slash[3]), parseInt(slash[1])-1, parseInt(slash[2]));
-        
         let d = new Date(dateStr);
-        if(!isNaN(d.getTime())) return d;
-        return null;
+        return isNaN(d.getTime()) ? null : d;
     }
-
     function getRestaurantName(worksheet) {
         try {
             const cell = worksheet['B14'];
@@ -467,66 +174,40 @@
         } catch(e) {}
         return "مطعم غير معروف";
     }
-
-    // خوارزمية قراءة الأعمدة المحسنة لتتجاهل المسافات وتدعم العربية والانجليزية
     function parseItemsFromSheet(worksheet) {
         const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
         if(!sheetData || sheetData.length < 2) return [];
-        
         let headerIdx = -1, headerRow = null;
         for(let i=0; i<sheetData.length; i++) {
             const row = sheetData[i];
             if(row) {
-                // إزالة كل المسافات للبحث بشكل دقيق
                 let rowStr = row.map(c => String(c).toLowerCase().replace(/\s+/g, '')).join("");
                 if(rowStr.includes("startqty") || rowStr.includes("رصيدأول") || rowStr.includes("rmname")) {
-                    headerIdx = i;
-                    headerRow = row;
-                    break;
+                    headerIdx = i; headerRow = row; break;
                 }
             }
         }
         if(headerIdx === -1) return [];
-
         let colMap = { item:-1, start:-1, recd:-1, tranIn:-1, tranOut:-1, wast:-1, act:-1, end:-1 };
         for(let c=0; c<headerRow.length; c++) {
             let v = headerRow[c] ? String(headerRow[c]).toLowerCase().replace(/[\s\.\-\_]/g, '') : "";
-            
-            if(v.includes("rmname") || v.includes("اسم") || v.includes("صنف") || v.includes("item")) colMap.item = c;
-            else if(v.includes("startqty") || v.includes("رصيدأول") || v.includes("opening")) colMap.start = c;
-            else if(v.includes("recd") || v.includes("مستلم") || v.includes("وارد") || v.includes("received")) colMap.recd = c;
-            else if(v.includes("tranin") || v.includes("محولللداخل") || v.includes("transferin")) colMap.tranIn = c;
-            else if(v.includes("tranout") || v.includes("محولللخارج") || v.includes("transferout")) colMap.tranOut = c;
-            else if(v.includes("wast") || v.includes("توالف") || v.includes("هالك")) colMap.wast = c;
-            else if(v.includes("actusage") || v.includes("استخدامفعلي") || v.includes("actual")) colMap.act = c;
-            else if(v.includes("endqty") || v.includes("رصيدآخر") || v.includes("نهاية") || v.includes("closing")) colMap.end = c;
+            if(v.includes("rmname") || v.includes("اسم") || v.includes("صنف")) colMap.item = c;
+            else if(v.includes("startqty") || v.includes("رصيدأول")) colMap.start = c;
+            else if(v.includes("recd") || v.includes("مستلم") || v.includes("وارد")) colMap.recd = c;
+            else if(v.includes("tranin") || v.includes("محولللداخل")) colMap.tranIn = c;
+            else if(v.includes("tranout") || v.includes("محولللخارج")) colMap.tranOut = c;
+            else if(v.includes("wast") || v.includes("توالف")) colMap.wast = c;
+            else if(v.includes("actusage") || v.includes("استخدامفعلي")) colMap.act = c;
+            else if(v.includes("endqty") || v.includes("رصيدآخر")) colMap.end = c;
         }
-
         const items = [];
         for(let r=headerIdx+1; r<sheetData.length; r++) {
             const row = sheetData[r];
             if(!row || row.every(cell => !cell || String(cell).trim() === "")) break;
-            
             let itemName = (colMap.item !== -1 && row[colMap.item]) ? String(row[colMap.item]).trim() : "";
             if(!itemName) continue;
-            
-            const getNum = (idx) => {
-                if(idx === -1) return 0;
-                let val = row[idx];
-                if(val === undefined || val === null) return 0;
-                let num = parseFloat(String(val).replace(/[^0-9.-]/g, ''));
-                return isNaN(num) ? 0 : num;
-            };
-            items.push({
-                itemName,
-                startQty: getNum(colMap.start),
-                recdQty: getNum(colMap.recd),
-                tranInQty: getNum(colMap.tranIn),
-                tranOutQty: getNum(colMap.tranOut),
-                wastQty: getNum(colMap.wast),
-                actUsage: getNum(colMap.act),
-                endQty: getNum(colMap.end)
-            });
+            const getNum = (idx) => { if(idx===-1) return 0; let val = row[idx]; if(val===undefined) return 0; let num = parseFloat(String(val).replace(/[^0-9.-]/g, '')); return isNaN(num)?0:num; };
+            items.push({ itemName, startQty: getNum(colMap.start), recdQty: getNum(colMap.recd), tranInQty: getNum(colMap.tranIn), tranOutQty: getNum(colMap.tranOut), wastQty: getNum(colMap.wast), actUsage: getNum(colMap.act), endQty: getNum(colMap.end) });
         }
         return items;
     }
@@ -558,44 +239,37 @@
         allRestaurantsData = [];
         uniqueItemsSet.clear();
         errorDiv.style.display = 'none';
-
         const promises = Array.from(files).map(f => processFile(f));
         const results = await Promise.all(promises);
         let valid = 0;
-        
         for(const res of results) {
             if(res && res.items.length) {
                 valid++;
-                allRestaurantsData.push({
-                    restaurantName: res.restaurant,
-                    reportDateRaw: res.reportDateRaw,
-                    reportDateObj: res.reportDateObj,
-                    items: res.items
-                });
+                allRestaurantsData.push({ restaurantName: res.restaurant, reportDateRaw: res.reportDateRaw, reportDateObj: res.reportDateObj, items: res.items });
                 res.items.forEach(it => { if(it.itemName) uniqueItemsSet.add(it.itemName); });
             }
         }
+        if (valid === 0) { showError("لم يتم العثور على جداول متوافقة."); uploadStatus.innerHTML = "❌ فشل القراءة"; return; }
+        uploadStatus.innerHTML = `✅ تم تحميل ${valid} ملف | إجمالي الأصناف: ${uniqueItemsSet.size}`;
         
-        if (valid === 0) {
-            showError("لم يتم العثور على أي جداول متوافقة في الملفات. تأكد من أن الملف يحتوي على أعمدة المخزون الصحيحة (Start Qty أو رصيد أول).");
-            uploadStatus.innerHTML = `❌ فشل القراءة`;
-        } else {
-            uploadStatus.innerHTML = `✅ تم تحميل ${valid} ملف | إجمالي الأصناف: ${uniqueItemsSet.size}`;
+        // تحديد الفترة التلقائية
+        let minDate = null, maxDate = null;
+        for(const res of allRestaurantsData) {
+            if(res.reportDateObj) {
+                if(!minDate || res.reportDateObj < minDate) minDate = res.reportDateObj;
+                if(!maxDate || res.reportDateObj > maxDate) maxDate = res.reportDateObj;
+            }
         }
-
-        if(uniqueItemsSet.size > 0) {
-            itemSearch.disabled = false;
-            generateBtn.disabled = false;
-            exportExcelBtn.disabled = false;
-            exportPdfBtn.disabled = false;
-            refreshSearch();
-        } else {
-            itemSearch.disabled = true;
-            generateBtn.disabled = true;
-            exportExcelBtn.disabled = true;
-            exportPdfBtn.disabled = true;
-        }
+        if(minDate && maxDate) {
+            const formatYMD = (d) => d.toISOString().slice(0,10);
+            startDateInput.value = formatYMD(minDate);
+            endDateInput.value = formatYMD(maxDate);
+            autoRangeSpan.innerHTML = `📅 المدى التلقائي: ${formatYMD(minDate)} → ${formatYMD(maxDate)}`;
+        } else autoRangeSpan.innerHTML = "⚠️ لم يتم العثور على تواريخ";
+        
+        itemSearch.disabled = false; generateBtn.disabled = false; exportExcelBtn.disabled = false; exportPdfBtn.disabled = false;
         applyDateFilter();
+        refreshSearch();
     }
 
     function applyDateFilter() {
@@ -603,294 +277,163 @@
         let end = endDateInput.value ? new Date(endDateInput.value) : null;
         if(start) start.setHours(0,0,0,0);
         if(end) end.setHours(23,59,59,999);
-        
         currentFilteredRestaurants = allRestaurantsData.filter(rest => {
             const d = rest.reportDateObj;
             if(start && (!d || d < start)) return false;
             if(end && (!d || d > end)) return false;
             return true;
         });
-        
-        updateFilteredItems();
-        refreshSearch();
-        
-        if(currentSelectedItem) {
-            generateReportForItem(currentSelectedItem);
-        } else {
-            if(allRestaurantsData.length > 0) {
-                tableBody.innerHTML = '<tr class="empty-row"><td colspan="9">✅ تم التحديث، اختر صنفاً من مربع البحث بالأعلى</td></tr>';
-            }
-        }
+        updateFilteredItems(); refreshSearch();
+        if(currentSelectedItem) generateReportForItem(currentSelectedItem);
+        else if(allRestaurantsData.length) tableBody.innerHTML = '<tr class="empty-row"><td colspan="9">✅ اختر صنفاً من مربع البحث</td></tr>';
     }
-
-    function updateFilteredItems() {
-        const set = new Set();
-        for(const rest of currentFilteredRestaurants) {
-            for(const it of rest.items) set.add(it.itemName);
-        }
-        window.filteredUniqueSet = set;
-    }
-
-    function getActiveSet() {
-        return (window.filteredUniqueSet && window.filteredUniqueSet.size) ? window.filteredUniqueSet : uniqueItemsSet;
-    }
-
+    function updateFilteredItems() { const set = new Set(); for(const rest of currentFilteredRestaurants) for(const it of rest.items) set.add(it.itemName); window.filteredUniqueSet = set; }
+    function getActiveSet() { return (window.filteredUniqueSet && window.filteredUniqueSet.size) ? window.filteredUniqueSet : uniqueItemsSet; }
     function refreshSearch() {
         const term = itemSearch.value.trim().toLowerCase();
         let itemsList = Array.from(getActiveSet());
         const matches = term === "" ? itemsList : itemsList.filter(i => i.toLowerCase().includes(term));
         itemDatalist.innerHTML = "";
-        matches.slice(0,100).forEach(v => {
-            const opt = document.createElement('option');
-            opt.value = v;
-            itemDatalist.appendChild(opt);
-        });
+        matches.slice(0,100).forEach(v => { let opt = document.createElement('option'); opt.value = v; itemDatalist.appendChild(opt); });
         matchSpan.textContent = `${matches.length} صنف مطابق`;
     }
-
     function generateReportForItem(itemName) {
         if(!itemName) return [];
         const exact = Array.from(getActiveSet()).find(i => i.toLowerCase() === itemName.toLowerCase());
-        if(!exact) {
-            tableBody.innerHTML = `<tr class="empty-row"><td colspan="9">❌ الصنف "${itemName}" غير موجود ضمن الفترة</td></tr>`;
-            return [];
-        }
+        if(!exact) { tableBody.innerHTML = `<tr class="empty-row"><td colspan="9">❌ الصنف غير موجود</td></tr>`; return []; }
         const rows = [];
         for(const rest of currentFilteredRestaurants) {
             const found = rest.items.find(it => it.itemName === exact);
-            if(found) {
-                rows.push({
-                    restaurant: rest.restaurantName,
-                    reportDate: rest.reportDateRaw || "غير محدد",
-                    startQty: found.startQty,
-                    recdQty: found.recdQty,
-                    tranInQty: found.tranInQty,
-                    tranOutQty: found.tranOutQty,
-                    wastQty: found.wastQty,
-                    actUsage: found.actUsage,
-                    endQty: found.endQty
-                });
-            }
+            if(found) rows.push({ restaurant: rest.restaurantName, reportDate: rest.reportDateRaw || "غير محدد", startQty: found.startQty, recdQty: found.recdQty, tranInQty: found.tranInQty, tranOutQty: found.tranOutQty, wastQty: found.wastQty, actUsage: found.actUsage, endQty: found.endQty });
         }
-        if(rows.length === 0) {
-            tableBody.innerHTML = `<tr class="empty-row"><td colspan="9">📭 لا توجد بيانات للصنف "${exact}" في الفترة المحددة</td></tr>`;
-        } else {
+        if(rows.length === 0) tableBody.innerHTML = `<tr class="empty-row"><td colspan="9">📭 لا توجد بيانات للصنف في الفترة</td></tr>`;
+        else {
             let html = "";
-            for(const r of rows) {
-                html += `<tr>
-                    <td style="text-align:right;">${escapeHtml(r.restaurant)}</td>
-                    <td>${escapeHtml(r.reportDate)}</td>
-                    <td>${formatZero(r.startQty)}</td>
-                    <td>${formatZero(r.recdQty)}</td>
-                    <td>${formatZero(r.tranInQty)}</td>
-                    <td>${formatZero(r.tranOutQty)}</td>
-                    <td>${formatZero(r.wastQty)}</td>
-                    <td>${formatZero(r.actUsage)}</td>
-                    <td>${formatZero(r.endQty)}</td>
-                </tr>`;
-            }
+            for(const r of rows) html += `<tr><td style="text-align:right;">${escapeHtml(r.restaurant)}</td><td>${escapeHtml(r.reportDate)}</td><td>${formatZero(r.startQty)}</td><td>${formatZero(r.recdQty)}</td><td>${formatZero(r.tranInQty)}</td><td>${formatZero(r.tranOutQty)}</td><td>${formatZero(r.wastQty)}</td><td>${formatZero(r.actUsage)}</td><td>${formatZero(r.endQty)}</td></tr>`;
             tableBody.innerHTML = html;
         }
         return rows;
     }
-
-    function formatZero(val) {
-        let num = Number(val);
-        if(isNaN(num) || num === 0) return "—";
-        return num.toFixed(2).replace(/\.00$/, '');
-    }
-
-    // ---------- التصدير ----------
+    function formatZero(val) { let num = Number(val); if(isNaN(num) || num === 0) return "—"; return num.toFixed(2).replace(/\.00$/, ''); }
     function exportToExcel() {
-        try {
-            if(!currentReportData || currentReportData.length === 0) {
-                alert("⚠️ لا توجد بيانات معروضة.");
-                return;
-            }
-            const sheetHeader = [
-                "اسم المطعم - Restaurant", "تاريخ التقرير - Date", "رصيد أول - Start Qty", 
-                "الكمية المستلمة - Recd Qty", "المحول للداخل - Transfer In", "المحول للخارج - Transfer Out", 
-                "التوالف - Waste", "الاستخدام الفعلي - Act. Usage", "رصيد آخر - End Qty"
-            ];
-            const pStart = startDateInput.value || "الكل";
-            const pEnd = endDateInput.value || "الكل";
-
-            const excelRows = [
-                ["شركة نايف للأغذية - NAIF FOOD COMPANY"],
-                ["تقرير تحليل المخزون (COGS)"],
-                [`الصنف المختار: ${currentSelectedItem}`],
-                [`الفترة: من ${pStart} إلى ${pEnd}`],
-                [], 
-                sheetHeader
-            ];
-
-            for(const row of currentReportData) {
-                excelRows.push([
-                    row.restaurant, row.reportDate, row.startQty, row.recdQty,
-                    row.tranInQty, row.tranOutQty, row.wastQty, row.actUsage, row.endQty
-                ]);
-            }
-            
-            const ws = XLSX.utils.aoa_to_sheet(excelRows);
-            ws['!cols'] = [{wch:28},{wch:18},{wch:15},{wch:18},{wch:16},{wch:16},{wch:12},{wch:18},{wch:14}];
-            ws['!merges'] = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
-                { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },
-                { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } },
-                { s: { r: 3, c: 0 }, e: { r: 3, c: 8 } }
-            ];
-
-            const wb = XLSX.utils.book_new();
-            let safeName = currentSelectedItem.replace(/[\\/*:?"<>|\[\]]/g, '_');
-            let sheetName = safeName.substring(0, 25);
-            XLSX.utils.book_append_sheet(wb, ws, `تقرير_${sheetName}`.substring(0,31));
-            XLSX.writeFile(wb, `COGS_${safeName}.xlsx`);
-        } catch (error) {
-            alert("حدث خطأ يمنع التصدير: " + error.message);
-        }
+        if(!currentReportData || !currentReportData.length) { alert("⚠️ لا توجد بيانات معروضة."); return; }
+        const pStart = startDateInput.value || "الكل", pEnd = endDateInput.value || "الكل";
+        const sheetHeader = ["اسم المطعم", "تاريخ التقرير", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج", "التوالف", "الاستخدام الفعلي", "رصيد آخر"];
+        const excelRows = [["شركة نايف للأغذية"], ["تقرير تحليل المخزون (COGS)"], [`الصنف: ${currentSelectedItem}`], [`الفترة: ${pStart} → ${pEnd}`], [], sheetHeader];
+        for(const row of currentReportData) excelRows.push([row.restaurant, row.reportDate, row.startQty, row.recdQty, row.tranInQty, row.tranOutQty, row.wastQty, row.actUsage, row.endQty]);
+        const ws = XLSX.utils.aoa_to_sheet(excelRows);
+        ws['!cols'] = [{wch:28},{wch:18},{wch:15},{wch:18},{wch:16},{wch:16},{wch:12},{wch:18},{wch:14}];
+        ws['!merges'] = [{s:{r:0,c:0},e:{r:0,c:8}},{s:{r:1,c:0},e:{r:1,c:8}},{s:{r:2,c:0},e:{r:2,c:8}},{s:{r:3,c:0},e:{r:3,c:8}}];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, `تقرير_${currentSelectedItem.substring(0,25)}`);
+        XLSX.writeFile(wb, `COGS_${currentSelectedItem.replace(/[\\/*:?"<>|]/g, '_')}.xlsx`);
     }
 
+    // ========================== تصدير PDF ==========================
+    // يتم هنا تحديد نهاية كل صفحة باستخدام const rowsPerPage = 15; (السطر الحاسم)
+    // وحلقة while التي تقطع البيانات كل rowsPerPage صف.
     async function exportToPDF() {
-        if(!currentReportData || currentReportData.length === 0) {
-            alert("⚠️ لا توجد بيانات معروضة.");
-            return;
-        }
-
-        const btnOriginalText = exportPdfBtn.innerHTML;
-        exportPdfBtn.innerHTML = "⏳ جاري إنشاء الـ PDF...";
+        if(!currentReportData || currentReportData.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
+        const btnText = exportPdfBtn.innerHTML;
+        exportPdfBtn.innerHTML = "⏳ جاري إنشاء PDF...";
         exportPdfBtn.disabled = true;
-
         try {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
-            
-            const rowsPerPageFirst = 12; 
-            const rowsPerPageNext = 18;  
-            const totalRows = currentReportData.length;
-            let currentIndex = 0;
-            let pageNum = 1;
-
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const margin = 10;
             const logoUrl = "https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg";
-
-            const tableHeaderHTML = `
-                <thead>
-                    <tr>
-                        <th style="background:#1976D2;color:white;padding:12px 8px;border:1px solid #1565C0;font-size:16px;">اسم المطعم<br><span style="font-size:12px;font-weight:400;color:#bbdefb;">Restaurant</span></th>
-                        <th style="background:#1976D2;color:white;padding:12px 8px;border:1px solid #1565C0;font-size:16px;">تاريخ التقرير<br><span style="font-size:12px;font-weight:400;color:#bbdefb;">Date</span></th>
-                        <th style="background:#1976D2;color:white;padding:12px 8px;border:1px solid #1565C0;font-size:16px;">رصيد أول<br><span style="font-size:12px;font-weight:400;color:#bbdefb;">Start Qty</span></th>
-                        <th style="background:#1976D2;color:white;padding:12px 8px;border:1px solid #1565C0;font-size:16px;">الكمية المستلمة<br><span style="font-size:12px;font-weight:400;color:#bbdefb;">Recd Qty</span></th>
-                        <th style="background:#1976D2;color:white;padding:12px 8px;border:1px solid #1565C0;font-size:16px;">المحول للداخل<br><span style="font-size:12px;font-weight:400;color:#bbdefb;">Transfer In</span></th>
-                        <th style="background:#1976D2;color:white;padding:12px 8px;border:1px solid #1565C0;font-size:16px;">المحول للخارج<br><span style="font-size:12px;font-weight:400;color:#bbdefb;">Transfer Out</span></th>
-                        <th style="background:#1976D2;color:white;padding:12px 8px;border:1px solid #1565C0;font-size:16px;">التوالف<br><span style="font-size:12px;font-weight:400;color:#bbdefb;">Waste</span></th>
-                        <th style="background:#1976D2;color:white;padding:12px 8px;border:1px solid #1565C0;font-size:16px;">الاستخدام الفعلي<br><span style="font-size:12px;font-weight:400;color:#bbdefb;">Act. Usage</span></th>
-                        <th style="background:#1976D2;color:white;padding:12px 8px;border:1px solid #1565C0;font-size:16px;">رصيد آخر<br><span style="font-size:12px;font-weight:400;color:#bbdefb;">End Qty</span></th>
-                    </tr>
-                </thead>
-            `;
-
             const pStart = startDateInput.value || "الكل";
             const pEnd = endDateInput.value || "الكل";
+            
+            // ***** هام: هذا السطر يحدد عدد الصفوف في كل صفحة، وبالتالي يحدد مكان نهاية الصفحة *****
+            const rowsPerPage = 12;   // <--- عدد الصفوف في الصفحة الواحدة (تعديله يغير مكان قطع الصفحة)
+            
+            const totalRows = currentReportData.length;
+            let currentIdx = 0;
+            let pageNum = 1;
+            const pdfWidth = pdf.internal.pageSize.getWidth();   // 297 مم (أفقي)
+            const margin = 10;
+            const contentWidth = pdfWidth - (margin * 2);
 
-            while (currentIndex < totalRows) {
-                const isFirstPage = (pageNum === 1);
-                const limit = isFirstPage ? rowsPerPageFirst : rowsPerPageNext;
-                const chunk = currentReportData.slice(currentIndex, currentIndex + limit);
-                
-                const pageDiv = document.createElement('div');
-                pageDiv.style.position = 'absolute';
-                pageDiv.style.left = '-9999px';
-                pageDiv.style.top = '0';
-                pageDiv.style.width = '1250px'; 
-                pageDiv.style.backgroundColor = '#ffffff';
-                pageDiv.style.padding = '20px';
-                pageDiv.style.direction = 'rtl';
-                pageDiv.style.fontFamily = "'Segoe UI', 'Tahoma', 'Arial', sans-serif";
+            while (currentIdx < totalRows) {   // هذه الحلقة تقسم البيانات إلى صفحات بناءً على rowsPerPage
+                const chunk = currentReportData.slice(currentIdx, currentIdx + rowsPerPage);
+                const container = document.createElement('div');
+                container.style.position = 'absolute';
+                container.style.left = '-9999px';
+                container.style.top = '0';
+                container.style.width = '1250px';
+                container.style.backgroundColor = 'white';
+                container.style.padding = '20px';
+                container.style.direction = 'rtl';
+                container.style.fontFamily = "'Segoe UI', 'Tahoma', 'Arial', sans-serif";
 
-                let headerHtml = "";
-                if (isFirstPage) {
-                    headerHtml = `
-                        <div style="text-align: center; margin-bottom: 25px; border-bottom: 3px solid #e2e8f0; padding-bottom: 20px;">
-                            <img src="${logoUrl}" crossorigin="anonymous" style="width: 80px; height: 80px; border-radius: 12px; margin-bottom: 10px;">
-                            <h2 style="margin: 0; color: #d32f2f; font-size: 26px;">شركة نايف للأغذية</h2>
-                            <h3 style="margin: 5px 0 15px 0; color: #1e4668; font-size: 18px;">NAIF FOOD COMPANY</h3>
-                            <div style="display: inline-block; background-color: #f8fafc; border: 1px solid #ccd7e4; padding: 12px 25px; border-radius: 15px;">
-                                <h3 style="margin: 0 0 8px 0; color: #333; font-size: 22px;">تقرير تحليل المخزون (COGS) - <span style="color: #d32f2f;">${currentSelectedItem}</span></h3>
-                                <div style="color: #555; font-size: 16px; font-weight: 600;">الفترة المحددة: من ${pStart} إلى ${pEnd}</div>
-                            </div>
+                // رأس الصفحة: يظهر اسم التقرير، الصنف، والفترة بوضوح في كل صفحة
+                const headerHtml = `
+                    <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
+                        ${pageNum === 1 ? `<img src="${logoUrl}" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 5px;"><br>` : ""}
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #d32f2f;">شركة نايف للأغذية</div>
+                        <div style="font-size: 1rem; color: #1e4668; margin-bottom: 8px;">NAIF FOOD COMPANY</div>
+                        <div style="background: #f0f6ff; padding: 8px 15px; border-radius: 30px; display: inline-block;">
+                            <span style="font-size: 1.1rem;">📊 <strong>تقرير تحليل المخزون (COGS)</strong></span><br>
+                            <span style="font-size: 0.95rem;">الصنف: <strong style="color:#b13e3e;">${escapeHtml(currentSelectedItem)}</strong> &nbsp; | &nbsp; الفترة: ${pStart} → ${pEnd}</span>
                         </div>
-                    `;
-                } else {
-                    headerHtml = `
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
-                            <div style="font-size: 16px; color: #1e4668;"><b>تقرير تحليل المخزون:</b> ${currentSelectedItem} | <b>الفترة:</b> ${pStart} إلى ${pEnd}</div>
-                            <div style="font-size: 14px; color: #666; font-weight:bold;">صفحة ${pageNum}</div>
-                        </div>
-                    `;
-                }
+                        ${pageNum > 1 ? `<div style="font-size: 0.8rem; color: #555; margin-top: 5px;">صفحة ${pageNum}</div>` : ""}
+                    </div>
+                `;
 
-                let tbodyHtml = "<tbody>";
+                // بناء الجدول مع تصغير اسم المطعم بنسبة 10% (1.3rem -> 1.17rem)
+                let tableRows = "";
                 for(const r of chunk) {
-                    tbodyHtml += `
+                    tableRows += `
                         <tr>
-                            <td style="padding:12px 8px;border:1px solid #e9edf2;text-align:right;font-weight:700;font-size:1.3rem;">${escapeHtml(r.restaurant)}</td>
-                            <td style="padding:12px 8px;border:1px solid #e9edf2;text-align:center;font-size:1.1rem;">${escapeHtml(r.reportDate)}</td>
-                            <td style="padding:12px 8px;border:1px solid #e9edf2;text-align:center;font-family:monospace;font-size:1.3rem;">${formatZero(r.startQty)}</td>
-                            <td style="padding:12px 8px;border:1px solid #e9edf2;text-align:center;font-family:monospace;font-size:1.3rem;">${formatZero(r.recdQty)}</td>
-                            <td style="padding:12px 8px;border:1px solid #e9edf2;text-align:center;font-family:monospace;font-size:1.3rem;">${formatZero(r.tranInQty)}</td>
-                            <td style="padding:12px 8px;border:1px solid #e9edf2;text-align:center;font-family:monospace;font-size:1.3rem;">${formatZero(r.tranOutQty)}</td>
-                            <td style="padding:12px 8px;border:1px solid #e9edf2;text-align:center;font-family:monospace;font-size:1.3rem;">${formatZero(r.wastQty)}</td>
-                            <td style="padding:12px 8px;border:1px solid #e9edf2;text-align:center;font-family:monospace;font-size:1.3rem;">${formatZero(r.actUsage)}</td>
-                            <td style="padding:12px 8px;border:1px solid #e9edf2;text-align:center;font-family:monospace;font-size:1.3rem;">${formatZero(r.endQty)}</td>
+                            <td style="padding: 10px 6px; border: 1px solid #ddd; text-align: right; font-weight: 700; font-size: 1.17rem;">${escapeHtml(r.restaurant)}</td>
+                            <td style="padding: 10px 6px; border: 1px solid #ddd; text-align: center;">${escapeHtml(r.reportDate)}</td>
+                            <td style="padding: 10px 6px; border: 1px solid #ddd; text-align: center; font-family: monospace; font-size: 1.2rem;">${formatZero(r.startQty)}</td>
+                            <td style="padding: 10px 6px; border: 1px solid #ddd; text-align: center; font-family: monospace; font-size: 1.2rem;">${formatZero(r.recdQty)}</td>
+                            <td style="padding: 10px 6px; border: 1px solid #ddd; text-align: center; font-family: monospace; font-size: 1.2rem;">${formatZero(r.tranInQty)}</td>
+                            <td style="padding: 10px 6px; border: 1px solid #ddd; text-align: center; font-family: monospace; font-size: 1.2rem;">${formatZero(r.tranOutQty)}</td>
+                            <td style="padding: 10px 6px; border: 1px solid #ddd; text-align: center; font-family: monospace; font-size: 1.2rem;">${formatZero(r.wastQty)}</td>
+                            <td style="padding: 10px 6px; border: 1px solid #ddd; text-align: center; font-family: monospace; font-size: 1.2rem;">${formatZero(r.actUsage)}</td>
+                            <td style="padding: 10px 6px; border: 1px solid #ddd; text-align: center; font-family: monospace; font-size: 1.2rem;">${formatZero(r.endQty)}</td>
                         </tr>
                     `;
                 }
-                tbodyHtml += "</tbody>";
 
-                pageDiv.innerHTML = `
-                    ${headerHtml}
+                const tableHtml = `
                     <table style="width: 100%; border-collapse: collapse; text-align: center;">
-                        ${tableHeaderHTML}
-                        ${tbodyHtml}
+                        <thead>
+                            <tr style="background: #1976D2; color: white;">
+                                <th style="padding: 10px 6px; border: 1px solid #1565C0; font-size: 0.9rem;">اسم المطعم<br><span style="font-size:0.7rem;">Restaurant</span></th>
+                                <th style="padding: 10px 6px; border: 1px solid #1565C0;">التاريخ<br><span style="font-size:0.7rem;">Date</span></th>
+                                <th style="padding: 10px 6px; border: 1px solid #1565C0;">رصيد أول<br><span style="font-size:0.7rem;">Start</span></th>
+                                <th style="padding: 10px 6px; border: 1px solid #1565C0;">مستلم<br><span style="font-size:0.7rem;">Recd</span></th>
+                                <th style="padding: 10px 6px; border: 1px solid #1565C0;">داخل<br><span style="font-size:0.7rem;">T.In</span></th>
+                                <th style="padding: 10px 6px; border: 1px solid #1565C0;">خارج<br><span style="font-size:0.7rem;">T.Out</span></th>
+                                <th style="padding: 10px 6px; border: 1px solid #1565C0;">توالف<br><span style="font-size:0.7rem;">Waste</span></th>
+                                <th style="padding: 10px 6px; border: 1px solid #1565C0;">استخدام فعلي<br><span style="font-size:0.7rem;">Act.Usage</span></th>
+                                <th style="padding: 10px 6px; border: 1px solid #1565C0;">رصيد آخر<br><span style="font-size:0.7rem;">End</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
                     </table>
                 `;
-                document.body.appendChild(pageDiv);
-
-                const canvas = await html2canvas(pageDiv, { scale: 1.5, useCORS: true, logging: false });
+                container.innerHTML = headerHtml + tableHtml;
+                document.body.appendChild(container);
+                const canvas = await html2canvas(container, { scale: 1.8, useCORS: true, logging: false, backgroundColor: '#ffffff' });
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                
-                const imgWidth = pdfWidth - (margin * 2);
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                
-                if (!isFirstPage) pdf.addPage();
-                pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
-
-                document.body.removeChild(pageDiv);
-
-                currentIndex += limit;
+                const imgHeight = (canvas.height * contentWidth) / canvas.width;
+                if (pageNum > 1) pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, imgHeight);
+                document.body.removeChild(container);
+                currentIdx += rowsPerPage;
                 pageNum++;
             }
-            
-            let safeName = currentSelectedItem.replace(/[\\/*:?"<>|\[\]]/g, '_').substring(0, 30);
-            pdf.save(`COGS_${safeName}.pdf`);
-
-        } catch(err) {
-            alert("حدث خطأ أثناء إنشاء PDF: " + err.message);
-        } finally {
-            exportPdfBtn.innerHTML = btnOriginalText;
-            exportPdfBtn.disabled = false;
-        }
+            pdf.save(`COGS_${currentSelectedItem.replace(/[\\/*:?"<>|]/g, '_')}.pdf`);
+        } catch(err) { console.error(err); alert("خطأ في PDF: " + err.message); }
+        finally { exportPdfBtn.innerHTML = btnText; exportPdfBtn.disabled = false; }
     }
 
-    // أحداث
-    fileInput.addEventListener('change', (e) => { 
-        if(e.target.files.length) {
-            handleFiles(e.target.files); 
-        }
-        // تصفير القيمة حتى يسمح برفع نفس الملف مرة أخرى إذا لزم الأمر
-        e.target.value = '';
-    });
+    // الأحداث
+    fileInput.addEventListener('change', (e) => { if(e.target.files.length) handleFiles(e.target.files); e.target.value = ''; });
     applyDateBtn.addEventListener('click', () => applyDateFilter());
     itemSearch.addEventListener('input', refreshSearch);
     generateBtn.addEventListener('click', () => {
@@ -901,14 +444,10 @@
     });
     exportExcelBtn.addEventListener('click', exportToExcel);
     exportPdfBtn.addEventListener('click', exportToPDF);
-
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;': m==='<'?'&lt;':'&gt;'); }
-
-    // تهيئة
-    itemSearch.disabled = true;
-    generateBtn.disabled = true;
-    exportExcelBtn.disabled = true;
-    exportPdfBtn.disabled = true;
+    
+    // تعطيل أولي
+    itemSearch.disabled = true; generateBtn.disabled = true; exportExcelBtn.disabled = true; exportPdfBtn.disabled = true;
     window.filteredUniqueSet = new Set();
 </script>
 </body>
