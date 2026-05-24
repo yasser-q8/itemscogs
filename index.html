@@ -9,7 +9,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        /* نفس الأنماط السابقة مع بعض التحسينات */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f0f2f5; padding: 25px 20px; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
         .app-container { max-width: 1500px; margin: 0 auto; background: white; border-radius: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); overflow: hidden; padding: 0 28px 35px; }
@@ -96,7 +95,7 @@
 
     <div id="reportTableContainer" class="table-wrapper">
         <table id="resultTable">
-            <thead><tr><th>اسم المطعم<br><small>Restaurant</small></th><th>تاريخ التقرير<br><small>Date</small></th><th>رصيد أول<br><small>Start Qty</small></th><th>الكمية المستلمة<br><small>Recd Qty</small></th><th>المحول للداخل<br><small>Transfer In</small></th><th>المحول للخارج<br><small>Transfer Out</small></th><th>التوالف<br><small>Waste</small></th><th>الاستخدام الفعلي<br><small>Act. Usage</small></th><th>رصيد آخر<br><small>End Qty</small></th></tr></thead>
+            <thead><tr><th>اسم المطعم<br><small>Restaurant</small></th><th>تاريخ التقرير<br><small>Date</small></th><th>رصيد أول<br><small>Start Qty</small></th><th>الكمية المستلمة<br><small>Recd Qty</small></th><th>المحول للداخل<br><small>Transfer In</small></th><th>المحول للخارج<br><small>Transfer Out</small></th><th>التوالف<br><small>Waste</small></th><th>كمية الاستخدام<br><small>Usage Qty</small></th><th>رصيد آخر<br><small>End Qty</small></th></tr></thead>
             <tbody id="tableBody"><tr class="empty-row"><td colspan="9">📁 قم برفع الملفات وسيتم تحديد الفترة تلقائياً، ثم اختر صنفاً</td></tr></tbody>
         </table>
     </div>
@@ -197,7 +196,7 @@
             else if(v.includes("tranin") || v.includes("محولللداخل")) colMap.tranIn = c;
             else if(v.includes("tranout") || v.includes("محولللخارج")) colMap.tranOut = c;
             else if(v.includes("wast") || v.includes("توالف")) colMap.wast = c;
-            else if(v.includes("actusage") || v.includes("استخدامفعلي")) colMap.act = c;
+            else if(v.includes("usageqty") || v.includes("استخدام")) colMap.act = c;
             else if(v.includes("endqty") || v.includes("رصيدآخر")) colMap.end = c;
         }
         const items = [];
@@ -315,23 +314,28 @@
         return rows;
     }
     function formatZero(val) { let num = Number(val); if(isNaN(num) || num === 0) return "—"; return num.toFixed(2).replace(/\.00$/, ''); }
+    
     function exportToExcel() {
         if(!currentReportData || !currentReportData.length) { alert("⚠️ لا توجد بيانات معروضة."); return; }
         const pStart = startDateInput.value || "الكل", pEnd = endDateInput.value || "الكل";
-        const sheetHeader = ["اسم المطعم", "تاريخ التقرير", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج", "التوالف", "الاستخدام الفعلي", "رصيد آخر"];
+        const sheetHeader = ["اسم المطعم", "تاريخ التقرير", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج", "التوالف", "كمية الاستخدام", "رصيد آخر"];
         const excelRows = [["شركة نايف للأغذية"], ["تقرير تحليل المخزون (COGS)"], [`الصنف: ${currentSelectedItem}`], [`الفترة: ${pStart} → ${pEnd}`], [], sheetHeader];
         for(const row of currentReportData) excelRows.push([row.restaurant, row.reportDate, row.startQty, row.recdQty, row.tranInQty, row.tranOutQty, row.wastQty, row.actUsage, row.endQty]);
         const ws = XLSX.utils.aoa_to_sheet(excelRows);
         ws['!cols'] = [{wch:28},{wch:18},{wch:15},{wch:18},{wch:16},{wch:16},{wch:12},{wch:18},{wch:14}];
         ws['!merges'] = [{s:{r:0,c:0},e:{r:0,c:8}},{s:{r:1,c:0},e:{r:1,c:8}},{s:{r:2,c:0},e:{r:2,c:8}},{s:{r:3,c:0},e:{r:3,c:8}}];
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, `تقرير_${currentSelectedItem.substring(0,25)}`);
-        XLSX.writeFile(wb, `COGS_${currentSelectedItem.replace(/[\\/*:?"<>|]/g, '_')}.xlsx`);
+        
+        // تنظيف اسم الصنف من الرموز الممنوعة في الإكسل وضمان ألا يتجاوز طول الاسم 31 حرفاً
+        const safeItemName = currentSelectedItem.replace(/[\\/*:?"<>|\[\]]/g, '_');
+        let safeSheetName = `تقرير_${safeItemName}`;
+        if(safeSheetName.length > 31) safeSheetName = safeSheetName.substring(0, 31);
+        
+        XLSX.utils.book_append_sheet(wb, ws, safeSheetName);
+        XLSX.writeFile(wb, `COGS_${safeItemName}.xlsx`);
     }
 
     // ========================== تصدير PDF ==========================
-    // يتم هنا تحديد نهاية كل صفحة باستخدام const rowsPerPage = 15; (السطر الحاسم)
-    // وحلقة while التي تقطع البيانات كل rowsPerPage صف.
     async function exportToPDF() {
         if(!currentReportData || currentReportData.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
         const btnText = exportPdfBtn.innerHTML;
@@ -344,17 +348,15 @@
             const pStart = startDateInput.value || "الكل";
             const pEnd = endDateInput.value || "الكل";
             
-            // ***** هام: هذا السطر يحدد عدد الصفوف في كل صفحة، وبالتالي يحدد مكان نهاية الصفحة *****
-            const rowsPerPage = 12;   // <--- عدد الصفوف في الصفحة الواحدة (تعديله يغير مكان قطع الصفحة)
-            
+            const rowsPerPage = 12;   
             const totalRows = currentReportData.length;
             let currentIdx = 0;
             let pageNum = 1;
-            const pdfWidth = pdf.internal.pageSize.getWidth();   // 297 مم (أفقي)
+            const pdfWidth = pdf.internal.pageSize.getWidth();
             const margin = 10;
             const contentWidth = pdfWidth - (margin * 2);
 
-            while (currentIdx < totalRows) {   // هذه الحلقة تقسم البيانات إلى صفحات بناءً على rowsPerPage
+            while (currentIdx < totalRows) {   
                 const chunk = currentReportData.slice(currentIdx, currentIdx + rowsPerPage);
                 const container = document.createElement('div');
                 container.style.position = 'absolute';
@@ -366,7 +368,6 @@
                 container.style.direction = 'rtl';
                 container.style.fontFamily = "'Segoe UI', 'Tahoma', 'Arial', sans-serif";
 
-                // رأس الصفحة: يظهر اسم التقرير، الصنف، والفترة بوضوح في كل صفحة
                 const headerHtml = `
                     <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
                         ${pageNum === 1 ? `<img src="${logoUrl}" style="width: 60px; height: 60px; border-radius: 10px; margin-bottom: 5px;"><br>` : ""}
@@ -380,7 +381,6 @@
                     </div>
                 `;
 
-                // بناء الجدول مع تصغير اسم المطعم بنسبة 10% (1.3rem -> 1.17rem)
                 let tableRows = "";
                 for(const r of chunk) {
                     tableRows += `
@@ -409,7 +409,7 @@
                                 <th style="padding: 10px 6px; border: 1px solid #1565C0;">داخل<br><span style="font-size:0.7rem;">T.In</span></th>
                                 <th style="padding: 10px 6px; border: 1px solid #1565C0;">خارج<br><span style="font-size:0.7rem;">T.Out</span></th>
                                 <th style="padding: 10px 6px; border: 1px solid #1565C0;">توالف<br><span style="font-size:0.7rem;">Waste</span></th>
-                                <th style="padding: 10px 6px; border: 1px solid #1565C0;">استخدام فعلي<br><span style="font-size:0.7rem;">Act.Usage</span></th>
+                                <th style="padding: 10px 6px; border: 1px solid #1565C0;">كمية الاستخدام<br><span style="font-size:0.7rem;">Usage Qty</span></th>
                                 <th style="padding: 10px 6px; border: 1px solid #1565C0;">رصيد آخر<br><span style="font-size:0.7rem;">End</span></th>
                             </tr>
                         </thead>
@@ -427,7 +427,8 @@
                 currentIdx += rowsPerPage;
                 pageNum++;
             }
-            pdf.save(`COGS_${currentSelectedItem.replace(/[\\/*:?"<>|]/g, '_')}.pdf`);
+            const safeItemNameForPdf = currentSelectedItem.replace(/[\\/*:?"<>|]/g, '_');
+            pdf.save(`COGS_${safeItemNameForPdf}.pdf`);
         } catch(err) { console.error(err); alert("خطأ في PDF: " + err.message); }
         finally { exportPdfBtn.innerHTML = btnText; exportPdfBtn.disabled = false; }
     }
