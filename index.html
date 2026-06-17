@@ -109,7 +109,6 @@
             display: none;
         }
 
-        /* TABS */
         .tabs-container {
             display: flex;
             gap: 6px;
@@ -132,10 +131,10 @@
             margin-bottom: -3px;
         }
         .tab-btn.active {
-            background: white;
-            color: #d32f2f;
-            border-bottom: 3px solid #d32f2f;
-            box-shadow: 0 -4px 12px rgba(211, 47, 47, 0.08);
+            background: #e3f0ff;
+            color: #0d47a1;
+            border-bottom: 4px solid #0d47a1;
+            box-shadow: 0 -4px 12px rgba(13, 71, 161, 0.15);
         }
         .tab-btn:hover:not(.active) {
             background: #e8edf5;
@@ -255,10 +254,6 @@
             border: 1px solid #1e4668;
             color: #1e4668;
         }
-        .btn-success {
-            background: #2e7d32;
-            color: white;
-        }
         .btn-outline:hover {
             background: #f0f4fc;
         }
@@ -275,7 +270,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1200px;
+            min-width: 700px;
         }
         th {
             background: #1976D2;
@@ -302,20 +297,17 @@
             text-align: right;
             font-family: 'Segoe UI', sans-serif;
         }
-        td:nth-child(2),
-        td:nth-child(3) {
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
         .empty-row td {
             font-size: 1rem;
             color: #6c7a89;
             font-style: italic;
             padding: 40px;
         }
+        .bold-end {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
 
-        /* restaurant tab */
         .restaurant-selector {
             display: flex;
             flex-wrap: wrap;
@@ -331,7 +323,7 @@
             font-size: 0.9rem;
             color: #1e4668;
         }
-        .restaurant-selector select {
+        .restaurant-selector input {
             padding: 12px 20px;
             border-radius: 30px;
             border: 1px solid #ccd7e4;
@@ -361,7 +353,7 @@
         }
 
         .table-wrapper.restaurant-items-table table {
-            min-width: 900px;
+            min-width: 700px;
         }
         .table-wrapper.restaurant-items-table th {
             background: #2e7d32;
@@ -372,21 +364,42 @@
             font-family: 'Segoe UI', sans-serif;
             font-size: 0.95rem;
         }
-        .group-row td {
-            background: #eef3f7;
-            font-weight: 700;
-            color: #1e4668;
-            text-align: center;
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 0.9rem;
-            border-bottom: 2px solid #b0c4d9;
-            padding: 6px 8px;
-        }
-        .group-row td:first-child {
-            text-align: center;
-        }
         .item-missing td {
             opacity: 0.5;
+        }
+
+        .total-row td {
+            background: #e3f0fa;
+            font-weight: 700;
+            border-top: 3px solid #0d47a1;
+            border-bottom: 2px solid #0d47a1;
+            padding: 10px 8px;
+            font-size: 1.05rem;
+        }
+        .total-row td:first-child {
+            text-align: center;
+            color: #0d47a1;
+            font-size: 0.95rem;
+        }
+
+        .restaurant-info-header {
+            background: #e8f0fe;
+            padding: 14px 24px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 40px;
+            font-size: 0.95rem;
+            border-right: 6px solid #2e7d32;
+        }
+        .restaurant-info-header span {
+            font-weight: 700;
+            color: #1e4668;
+        }
+        .restaurant-info-header .label {
+            font-weight: 400;
+            color: #555;
         }
 
         .special-note {
@@ -407,11 +420,11 @@
             bottom: 20px;
             left: 20px;
             z-index: 1000;
-            transform: scale(1.1);
+            transform: scale(0.9);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .developer-signature:hover {
-            transform: scale(1.2);
+            transform: scale(0.95);
         }
         .signature-card-clean {
             display: flex;
@@ -459,18 +472,19 @@
                 font-size: 0.9rem;
             }
             .developer-signature {
-                transform: scale(0.9);
+                transform: scale(0.8);
             }
             .tab-btn {
                 padding: 10px 16px;
                 font-size: 0.8rem;
             }
-            .restaurant-selector select {
+            .restaurant-selector input {
                 min-width: 160px;
             }
-        }
-        .highlight-item {
-            background: #e8f5e9;
+            .restaurant-info-header {
+                flex-direction: column;
+                gap: 8px;
+            }
         }
     </style>
 </head>
@@ -491,19 +505,17 @@
             <div id="errorContainer" class="error-msg"></div>
         </div>
 
-        <!-- TABS -->
         <div class="tabs-container" id="tabsContainer">
             <button class="tab-btn active" data-tab="tab1">📋 تقرير COGS</button>
-            <button class="tab-btn" data-tab="tab2" disabled>🍗 حركة المطعم (جميع الأصناف)</button>
+            <button class="tab-btn" data-tab="tab2" disabled>🍗 حركة المطعم (بالأكواد)</button>
         </div>
 
-        <!-- TAB 1: COGS -->
         <div id="tab1" class="tab-content active">
             <div class="date-filter">
                 <div class="date-group"><label>📅 تاريخ البداية (من) *</label><input type="date" id="startDate"></div>
                 <div class="date-group"><label>📅 تاريخ النهاية (إلى) *</label><input type="date" id="endDate"></div>
                 <button id="applyDateFilterBtn" class="btn-date-filter">تحديث الفترة الوصفية</button>
-                <div id="manualPeriodInfo" class="period-info">🗓️ اختر نطاقاً زمنياً (يظهر في التقارير)</div>
+                <div id="manualPeriodInfo" class="period-info">🗓️ اختر نطاقاً زمنياً</div>
             </div>
 
             <div class="controls">
@@ -538,31 +550,44 @@
                             <th>رصيد آخر<br><small>End</small></th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody"><tr class="empty-row"><td colspan="10">📁 قم برفع الملفات واختر صنفاً من القائمة</td></tr>
+                    <tbody id="tableBody"><tr class="empty-row"><td colspan="10">📁 قم برفع الملفات واختر صنفاً</td></tr>
                     </tbody>
                 </table>
             </div>
             <div id="specialNoteContainer" style="display: none;" class="special-note">
-                ⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف فقط لصنف الشاورما (شاورما دجاج) وإعادة حساب الرصيد النهائي.
+                ⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف فقط لصنف الشاورما.
             </div>
         </div>
 
-        <!-- TAB 2: RESTAURANT ITEMS (all fixed items) -->
         <div id="tab2" class="tab-content">
             <div class="restaurant-selector">
-                <label>🏢 اختر المطعم:</label>
-                <select id="restaurantSelect" disabled>
-                    <option value="">-- اختر مطعم --</option>
-                </select>
+                <label>🏢 اختر المطعم (بحث ديناميكي):</label>
+                <input type="text" id="restaurantSearchInput" placeholder="اكتب اسم المطعم..." autocomplete="off" list="restaurantDatalist" disabled>
+                <datalist id="restaurantDatalist"></datalist>
                 <button id="showRestaurantItemsBtn" class="btn-show" disabled>🔍 عرض الأصناف</button>
                 <span id="restaurantCountBadge" class="restaurant-count">0 مطعم متاح</span>
+            </div>
+
+            <div class="controls" style="margin-top:-10px;">
+                <div></div>
+                <div class="action-buttons">
+                    <button id="exportRestaurantExcelBtn" class="btn-outline" disabled>📎 تصدير Excel</button>
+                    <button id="exportRestaurantPdfBtn" class="btn-outline" disabled>🖨️ تصدير PDF</button>
+                </div>
+            </div>
+
+            <div id="restaurantInfoHeader" class="restaurant-info-header" style="display:none;">
+                <div><span class="label">🏢 المطعم:</span> <span id="headerRestaurantName">—</span></div>
+                <div><span class="label">👤 مدير المنطقة:</span> <span id="headerRegionManager">—</span></div>
+                <div><span class="label">👤 مدير التشغيل:</span> <span id="headerOpsManager">—</span></div>
+                <div><span class="label">📅 تاريخ التقرير:</span> <span id="headerReportDate">—</span></div>
             </div>
 
             <div class="table-wrapper restaurant-items-table">
                 <table>
                     <thead>
                         <tr>
-                            <th>الصنف<br><small>Item</small></th>
+                            <th>الصنف (الكود)<br><small>Item (Code)</small></th>
                             <th>رصيد أول<br><small>Start</small></th>
                             <th>مستلم<br><small>Recd</small></th>
                             <th>داخل<br><small>Trans In</small></th>
@@ -573,12 +598,12 @@
                         </tr>
                     </thead>
                     <tbody id="restaurantItemsBody">
-                        <tr class="empty-row"><td colspan="8">📂 قم برفع الملفات ثم اختر مطعماً لعرض الأصناف</td></tr>
+                        <tr class="empty-row"><td colspan="8">📂 قم برفع الملفات ثم اختر مطعماً</td></tr>
                     </tbody>
                 </table>
             </div>
             <div id="restaurantNoteContainer" style="display: none;" class="special-note">
-                ⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما (شاورما دجاج) عند ظهوره.
+                ⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما عند ظهوره.
             </div>
         </div>
 
@@ -594,109 +619,95 @@
 
     <script>
         // ================================================================
-        // 1. قائمة الأصناف الثابتة (مع المجموعات)
+        // 1. قائمة الأصناف مع الأكواد (حسب الطلب)
         // ================================================================
-        const ITEM_GROUPS = [{
-            groupName: 'أصابع فيليه',
-            items: [
-                { ar: 'اصابع فيليه', en: 'Chicken Finger Fillet' },
-                { ar: 'اصابع فيليه فلفل', en: 'Ch.Finger Fillet Spicy' }
+        const ITEM_GROUPS = [
+            // مجموعة 1
+            [
+                { ar: 'اصابع فيليه', en: 'Chicken Finger Fillet', code: 'K1015' },
+                { ar: 'اصابع فيليه فلفل', en: 'Ch.Finger Fillet Spicy', code: 'K1016' }
+            ],
+            // مجموعة 2
+            [
+                { ar: 'بيج فيلية', en: 'Chicken Big Fillet', code: 'K1035' },
+                { ar: 'بيج فيلية فلفل', en: 'Chicken Big Fillet Spicy', code: 'K1036' }
+            ],
+            // مجموعة 3
+            [
+                { ar: 'فيليه عادي', en: 'Chicken Fillet', code: 'K1008' },
+                { ar: 'فيليه فلفل', en: 'Chicken Fillet Spicy', code: 'K1009' },
+                { ar: 'فيليه مشوي', en: 'Grilled Chicken Fillet', code: 'K1049' }
+            ],
+            // مجموعة 4
+            [
+                { ar: 'جناح صغير عادي', en: 'Chicken Small Wings Nor', code: 'K1071' },
+                { ar: 'جناح صغير فلفل', en: 'Chicken Small Wings Spicy', code: 'K1072' },
+                { ar: 'جناح متبل', en: 'Chicken Wings', code: 'K1010' }
+            ],
+            // مجموعة 5
+            [
+                { ar: 'دجاج فرايد عادي', en: 'Chicken Fried', code: 'K1012' },
+                { ar: 'دجاج فرايد فلفل', en: 'Chicken Fried Spicy', code: 'K1013' },
+                { ar: 'قطع دجاج مشويه', en: 'Grilled Chicken Pc', code: 'K1076' }
+            ],
+            // مجموعة 6
+            [
+                { ar: 'دجاج تكا عادي', en: 'Chicken Tikka', code: 'K1006' },
+                { ar: 'تكا صدور', en: 'Chicken Tikka Brest', code: 'K1004' },
+                { ar: 'تكا فخذ', en: 'Chicken Tikka Thigh', code: 'K1005' }
+            ],
+            // مجموعة 7
+            [
+                { ar: 'قطع دجاج على الفحم', en: 'Grilled charcoal chicken pcs', code: 'K1055' }
+            ],
+            // مجموعة 8
+            [
+                { ar: 'فري مشوي', en: 'Grilled Quils', code: 'K1017' }
+            ],
+            // مجموعة 9
+            [
+                { ar: 'دجاج شواية ملكي', en: 'Royal Grilled Chicken', code: 'K1020' }
+            ],
+            // مجموعة 10
+            [
+                { ar: 'بنت الديك', en: 'Bint Al-Deek', code: 'K1014' },
+                { ar: 'فروج نايف', en: 'Rooster Junior', code: 'K1011' }
+            ],
+            // مجموعة 11
+            [
+                { ar: 'شيش طاووق', en: 'Sish Tawouk', code: 'K1003' }
+            ],
+            // مجموعة 12
+            [
+                { ar: 'كباب دجاج', en: 'Chicken Kabab', code: 'K1002' }
+            ],
+            // مجموعة 13
+            [
+                { ar: 'قطع دجاج جرل صغير', en: 'Grill Chicken Pc -Multi Taste', code: 'K1044' }
+            ],
+            // مجموعة 14
+            [
+                { ar: 'قطع دجاج فرايد صغير عادي', en: 'Happy Chicken Pc', code: 'K1042' },
+                { ar: 'قطع دجاج فرايد صغير فلفل', en: 'Happy Chicken Pc-Spicy', code: 'K1043' }
             ]
-        }, {
-            groupName: 'بيج فيلية',
-            items: [
-                { ar: 'بيج فيلية', en: 'Chicken Big Fillet' },
-                { ar: 'بيج فيلية فلفل', en: 'Chicken Big Fillet Spicy' }
-            ]
-        }, {
-            groupName: 'فيليه عادي / مشوي',
-            items: [
-                { ar: 'فيليه عادي', en: 'Chicken Fillet' },
-                { ar: 'فيليه فلفل', en: 'Chicken Fillet Spicy' },
-                { ar: 'فيليه مشوي', en: 'Grilled Chicken Fillet' }
-            ]
-        }, {
-            groupName: 'أجنحة',
-            items: [
-                { ar: 'جناح صغير عادي', en: 'Chicken Small Wings Nor' },
-                { ar: 'جناح صغير فلفل', en: 'Chicken Small Wings Spicy' },
-                { ar: 'جناح متبل', en: 'Chicken Wings' }
-            ]
-        }, {
-            groupName: 'دجاج فرايد ومشوي',
-            items: [
-                { ar: 'دجاج فرايد عادي', en: 'Chicken Fried' },
-                { ar: 'دجاج فرايد فلفل', en: 'Chicken Fried Spicy' },
-                { ar: 'قطع دجاج مشويه', en: 'Grilled Chicken Pc' }
-            ]
-        }, {
-            groupName: 'دجاج تكا',
-            items: [
-                { ar: 'دجاج تكا عادي', en: 'Chicken Tikka' },
-                { ar: 'تكا صدور', en: 'Chicken Tikka Brest' },
-                { ar: 'تكا فخذ', en: 'Chicken Tikka Thigh' }
-            ]
-        }, {
-            groupName: 'فحم / مشاوي',
-            items: [
-                { ar: 'قطع دجاج على الفحم', en: 'Grilled charcoal chicken pcs' }
-            ]
-        }, {
-            groupName: 'فري مشوي',
-            items: [
-                { ar: 'فري مشوي', en: 'Grilled Quils' }
-            ]
-        }, {
-            groupName: 'شواية ملكي',
-            items: [
-                { ar: 'دجاج شواية ملكي', en: 'Royal Grilled Chicken' }
-            ]
-        }, {
-            groupName: 'بنت الديك / فروج',
-            items: [
-                { ar: 'بنت الديك', en: 'Bint Al-Deek' },
-                { ar: 'فروج نايف', en: 'Rooster Junior' }
-            ]
-        }, {
-            groupName: 'شيش طاووق',
-            items: [
-                { ar: 'شيش طاووق', en: 'Sish Tawouk' }
-            ]
-        }, {
-            groupName: 'كباب دجاج',
-            items: [
-                { ar: 'كباب دجاج', en: 'Chicken Kabab' }
-            ]
-        }, {
-            groupName: 'جرل صغير',
-            items: [
-                { ar: 'قطع دجاج جرل صغير', en: 'Grill Chicken Pc -Multi Taste' }
-            ]
-        }, {
-            groupName: 'دجاج فرايد صغير',
-            items: [
-                { ar: 'قطع دجاج فرايد صغير عادي', en: 'Happy Chicken Pc' },
-                { ar: 'قطع دجاج فرايد صغير فلفل', en: 'Happy Chicken Pc-Spicy' }
-            ]
-        }];
+        ];
 
-        // بناء قائمة مسطحة مع احتفاظ بمعلومات المجموعة
+        // بناء قائمة مسطحة
         let FLAT_ITEMS = [];
-        ITEM_GROUPS.forEach((g, idx) => {
-            g.items.forEach(it => {
+        ITEM_GROUPS.forEach((group, idx) => {
+            group.forEach(it => {
                 FLAT_ITEMS.push({
                     groupIdx: idx,
-                    groupName: g.groupName,
                     ar: it.ar,
                     en: it.en,
-                    // مفتاح للبحث: يجمع العربي والإنجليزي
-                    searchKeys: [it.ar.toLowerCase(), it.en.toLowerCase()]
+                    code: it.code,
+                    display: `${it.ar} (${it.en}) [${it.code}]`
                 });
             });
         });
 
         // ================================================================
-        // 2. قاعدة بيانات المطاعم (نفس السابق)
+        // 2. قاعدة بيانات المطاعم
         // ================================================================
         const RESTAURANT_MASTER = new Map();
 
@@ -776,47 +787,74 @@
                     operationsManager: item.ops });
             }
             const synonyms = [
-                { ar: "مول 360", en: "360 Mall" }, { ar: "جمعية أبو فطيرة", en: "Abu Fatira Co-Op" }, { ar: "أبوحليفة",
-                    en: "Abu Halifa" },
-                { ar: "الاحمدي الصناعية", en: "Ahmadi Ind" }, { ar: "المطار", en: "Airport" }, { ar: "الري",
-                    en: "Al Rai" },
-                { ar: "الري -2", en: "Al Rai- 2" }, { ar: "مجمع الكوت", en: "AlKout" }, { ar: "مجمع الأفنيوز",
-                    en: "Avenues" },
-                { ar: "الضباعية", en: "Dabaya" }, { ar: "الدسمة", en: "Dasma" }, { ar: "الفحيحيل", en: "Fahaheel" },
-                { ar: "الفحيحيل -2", en: "Fahaheel- 2" }, { ar: "الفيحاء", en: "Faiha" }, { ar: "الفروانية",
-                    en: "Farwaniya" },
-                { ar: "الفنطاس", en: "Fintas" }, { ar: "هدية", en: "Hadiya" }, { ar: "هدية -2", en: "Hadiya- 2" },
-                { ar: "حولي بارك", en: "Hawally Park" }, { ar: "جابر الأحمد", en: "Jaber Al-Ahmed" }, { ar: "الجابرية تكا",
-                    en: "Jabriya 1 - Jabriya Tikka" },
-                { ar: "الجابرية بنت الديك", en: "Jabriya 2 - Jabriya BD" }, { ar: "الجهراء الصناعية",
-                    en: "Jahra 2 - Jahra Ind" },
-                { ar: "الجهراء ليالي الشرق", en: "Jahra Layaly Elsharq" }, { ar: "الجهراء مكة",
-                en: "Jahra Makkah" }, { ar: "الجهراء الزويخ", en: "Jahra1-Duwaik" },
-                { ar: "جليب الشيوخ", en: "Jleeb Al-Shiyoukh" }, { ar: "كبد", en: "Kabed" }, { ar: "الخيران أويا",
-                    en: "Khairan Oia" },
-                { ar: "الخيران أوتليت", en: "Khairan Outlet Mall" }, { ar: "خيطان الجديدة", en: "Khaitan New" },
+                { ar: "مول 360", en: "360 Mall" },
+                { ar: "جمعية أبو فطيرة", en: "Abu Fatira Co-Op" },
+                { ar: "أبوحليفة", en: "Abu Halifa" },
+                { ar: "الاحمدي الصناعية", en: "Ahmadi Ind" },
+                { ar: "المطار", en: "Airport" },
+                { ar: "الري", en: "Al Rai" },
+                { ar: "الري -2", en: "Al Rai- 2" },
+                { ar: "مجمع الكوت", en: "AlKout" },
+                { ar: "مجمع الأفنيوز", en: "Avenues" },
+                { ar: "الضباعية", en: "Dabaya" },
+                { ar: "الدسمة", en: "Dasma" },
+                { ar: "الفحيحيل", en: "Fahaheel" },
+                { ar: "الفحيحيل -2", en: "Fahaheel- 2" },
+                { ar: "الفيحاء", en: "Faiha" },
+                { ar: "الفروانية", en: "Farwaniya" },
+                { ar: "الفنطاس", en: "Fintas" },
+                { ar: "هدية", en: "Hadiya" },
+                { ar: "هدية -2", en: "Hadiya- 2" },
+                { ar: "حولي بارك", en: "Hawally Park" },
+                { ar: "جابر الأحمد", en: "Jaber Al-Ahmed" },
+                { ar: "الجابرية تكا", en: "Jabriya 1 - Jabriya Tikka" },
+                { ar: "الجابرية بنت الديك", en: "Jabriya 2 - Jabriya BD" },
+                { ar: "الجهراء الصناعية", en: "Jahra 2 - Jahra Ind" },
+                { ar: "الجهراء ليالي الشرق", en: "Jahra Layaly Elsharq" },
+                { ar: "الجهراء مكة", en: "Jahra Makkah" },
+                { ar: "الجهراء الزويخ", en: "Jahra1-Duwaik" },
+                { ar: "جليب الشيوخ", en: "Jleeb Al-Shiyoukh" },
+                { ar: "كبد", en: "Kabed" },
+                { ar: "الخيران أويا", en: "Khairan Oia" },
+                { ar: "الخيران أوتليت", en: "Khairan Outlet Mall" },
+                { ar: "خيطان الجديدة", en: "Khaitan New" },
                 { ar: "الخيول", en: "Khioul" },
-                { ar: "المنقف", en: "Mangaf" }, { ar: "مارينا مول", en: "Marina Mall" }, { ar: "مشرف", en: "Mishref" },
-                { ar: "العارضية الجديدة", en: "New Ardiya" }, { ar: "الفروانية الجديدة", en: "New Farwaniya" },
+                { ar: "المنقف", en: "Mangaf" },
+                { ar: "مارينا مول", en: "Marina Mall" },
+                { ar: "مشرف", en: "Mishref" },
+                { ar: "العارضية الجديدة", en: "New Ardiya" },
+                { ar: "الفروانية الجديدة", en: "New Farwaniya" },
                 { ar: "القادسية", en: "Qadsiya" },
-                { ar: "القيروان", en: "Qairawan" }, { ar: "القرين", en: "Qurain" }, { ar: "الرقعي", en: "Reggai" },
+                { ar: "القيروان", en: "Qairawan" },
+                { ar: "القرين", en: "Qurain" },
+                { ar: "الرقعي", en: "Reggai" },
                 { ar: "الرحاب", en: "Rehab" },
-                { ar: "الرقة", en: "Riqqa" }, { ar: "سعد العبدالله", en: "Saad Al Abdullah" }, { ar: "صباح الأحمد",
-                    en: "Sabah al Ahmed" },
-                { ar: "صباح السالم", en: "Sabah Salem" }, { ar: "صباح السالم العرين", en: "Sabah-Salem Alareen" },
+                { ar: "الرقة", en: "Riqqa" },
+                { ar: "سعد العبدالله", en: "Saad Al Abdullah" },
+                { ar: "صباح الأحمد", en: "Sabah al Ahmed" },
+                { ar: "صباح السالم", en: "Sabah Salem" },
+                { ar: "صباح السالم العرين", en: "Sabah-Salem Alareen" },
                 { ar: "صباح السالم العرين -2", en: "Sabah-Salem Alareen- 2" },
-                { ar: "النافورة", en: "Salmiya 1 - Nafura" }, { ar: "السندباد", en: "Salmiya 2 - Sindhibad" },
+                { ar: "النافورة", en: "Salmiya 1 - Nafura" },
+                { ar: "السندباد", en: "Salmiya 2 - Sindhibad" },
                 { ar: "شارع البحرين", en: "Salmiya 3 - Bahrain Street" },
-                { ar: "سيد ياسين", en: "Salmiya 4 - Sayed Yasin" }, { ar: "سيد ياسين -2",
-                    en: "Salmiya 4 - Sayed Yasin- 2" }, { ar: "سلوى", en: "Salwa" },
-                { ar: "الشرق", en: "Sharq" }, { ar: "الشرق -2", en: "Sharq- 2" }, { ar: "الشهداء", en: "Shuhada" },
+                { ar: "سيد ياسين", en: "Salmiya 4 - Sayed Yasin" },
+                { ar: "سيد ياسين -2", en: "Salmiya 4 - Sayed Yasin- 2" },
+                { ar: "سلوى", en: "Salwa" },
+                { ar: "الشرق", en: "Sharq" },
+                { ar: "الشرق -2", en: "Sharq- 2" },
+                { ar: "الشهداء", en: "Shuhada" },
                 { ar: "الشويخ", en: "Shuwaikh" },
-                { ar: "أسواق القرين", en: "Souq Qurain" }, { ar: "أسواق القرين -2", en: "Souq Qurain- 2" },
+                { ar: "أسواق القرين", en: "Souq Qurain" },
+                { ar: "أسواق القرين -2", en: "Souq Qurain- 2" },
                 { ar: "جمعية الصليبية", en: "Sulaibiya CO-OP" },
-                { ar: "جمعية الصليبية -2", en: "Sulaibiya CO-OP- 2" }, { ar: "الصليبخات", en: "Sulebhikat" },
+                { ar: "جمعية الصليبية -2", en: "Sulaibiya CO-OP- 2" },
+                { ar: "الصليبخات", en: "Sulebhikat" },
                 { ar: "الصليبخات -2", en: "Sulebhikat- 2" },
-                { ar: "الصليبية", en: "Suleibiya" }, { ar: "الوفرة", en: "Wafra" }, { ar: "غرب أبو فطيرة",
-                    en: "West Abu Fatira" }, { ar: "الزهراء", en: "Zahra" }
+                { ar: "الصليبية", en: "Suleibiya" },
+                { ar: "الوفرة", en: "Wafra" },
+                { ar: "غرب أبو فطيرة", en: "West Abu Fatira" },
+                { ar: "الزهراء", en: "Zahra" }
             ];
             for (const syn of synonyms) {
                 const stdData = RESTAURANT_MASTER.get(syn.ar);
@@ -856,11 +894,13 @@
         }
 
         // ================================================================
-        // 3. قراءة الملفات (نفس السابق)
+        // 3. قراءة الملفات
         // ================================================================
         let allRestaurantsData = [];
         let currentSelectedItem = "";
         let currentReportData = [];
+        let currentRestaurantData = null;
+        let currentRestaurantItems = [];
 
         const fileInput = document.getElementById('fileInput');
         const uploadStatus = document.getElementById('uploadStatus');
@@ -877,13 +917,20 @@
         const tableBody = document.getElementById('tableBody');
         const specialNoteContainer = document.getElementById('specialNoteContainer');
 
-        // Tab 2
-        const restaurantSelect = document.getElementById('restaurantSelect');
+        const restaurantSearchInput = document.getElementById('restaurantSearchInput');
+        const restaurantDatalist = document.getElementById('restaurantDatalist');
         const showRestaurantItemsBtn = document.getElementById('showRestaurantItemsBtn');
         const restaurantItemsBody = document.getElementById('restaurantItemsBody');
         const restaurantCountBadge = document.getElementById('restaurantCountBadge');
         const restaurantNoteContainer = document.getElementById('restaurantNoteContainer');
+        const exportRestaurantExcelBtn = document.getElementById('exportRestaurantExcelBtn');
+        const exportRestaurantPdfBtn = document.getElementById('exportRestaurantPdfBtn');
         const tab2Btn = document.querySelector('[data-tab="tab2"]');
+        const restaurantInfoHeader = document.getElementById('restaurantInfoHeader');
+        const headerRestaurantName = document.getElementById('headerRestaurantName');
+        const headerRegionManager = document.getElementById('headerRegionManager');
+        const headerOpsManager = document.getElementById('headerOpsManager');
+        const headerReportDate = document.getElementById('headerReportDate');
 
         // دوال مساعدة
         function formatZero(val) {
@@ -971,17 +1018,30 @@
                 }
             }
             if (headerIdx === -1) return [];
-            let colMap = { item: -1, start: -1, recd: -1, tranIn: -1, tranOut: -1, wast: -1, act: -1, end: -1 };
+            let colMap = { item: -1, start: -1, recd: -1, tranIn: -1, tranOut: -1, wast: -1, act: -1, end: -1, code: -1 };
             for (let c = 0; c < headerRow.length; c++) {
                 let v = headerRow[c] ? String(headerRow[c]).toLowerCase().replace(/[\s\.\-\_]/g, '') : "";
-                if (v.includes("rmname") || v.includes("اسم") || v.includes("صنف")) colMap.item = c;
-                else if (v.includes("startqty") || v.includes("رصيدأول")) colMap.start = c;
-                else if (v.includes("recd") || v.includes("مستلم") || v.includes("وارد")) colMap.recd = c;
-                else if (v.includes("tranin") || v.includes("محولللداخل")) colMap.tranIn = c;
-                else if (v.includes("tranout") || v.includes("محولللخارج")) colMap.tranOut = c;
-                else if (v.includes("wast") || v.includes("توالف")) colMap.wast = c;
-                else if (v.includes("usageqty") || v.includes("استخدام")) colMap.act = c;
-                else if (v.includes("endqty") || v.includes("رصيدآخر")) colMap.end = c;
+                // كشف عمود الكود
+                if (v.includes("code") || v.includes("sku") || v.includes("كود") || v.includes("productcode") || v
+                    .includes("itemcode")) {
+                    colMap.code = c;
+                } else if (v.includes("rmname") || v.includes("اسم") || v.includes("صنف") || v.includes("itemname")) {
+                    colMap.item = c;
+                } else if (v.includes("startqty") || v.includes("رصيدأول") || v.includes("start")) {
+                    colMap.start = c;
+                } else if (v.includes("recd") || v.includes("مستلم") || v.includes("وارد") || v.includes("received")) {
+                    colMap.recd = c;
+                } else if (v.includes("tranin") || v.includes("محولللداخل") || v.includes("transferin")) {
+                    colMap.tranIn = c;
+                } else if (v.includes("tranout") || v.includes("محولللخارج") || v.includes("transferout")) {
+                    colMap.tranOut = c;
+                } else if (v.includes("wast") || v.includes("توالف") || v.includes("waste")) {
+                    colMap.wast = c;
+                } else if (v.includes("usageqty") || v.includes("استخدام") || v.includes("usage")) {
+                    colMap.act = c;
+                } else if (v.includes("endqty") || v.includes("رصيدآخر") || v.includes("end")) {
+                    colMap.end = c;
+                }
             }
             const items = [];
             for (let r = headerIdx + 1; r < sheetData.length; r++) {
@@ -989,10 +1049,12 @@
                 if (!row || row.every(cell => !cell || String(cell).trim() === "")) break;
                 let itemName = (colMap.item !== -1 && row[colMap.item]) ? String(row[colMap.item]).trim() : "";
                 if (!itemName) continue;
+                let itemCode = (colMap.code !== -1 && row[colMap.code]) ? String(row[colMap.code]).trim() : "";
                 const getNum = (idx) => { if (idx === -1) return 0; let val = row[idx]; if (val === undefined) return 0;
                     let num = parseFloat(String(val).replace(/[^0-9.-]/g, '')); return isNaN(num) ? 0 : num; };
                 items.push({
                     itemName,
+                    itemCode,
                     startQty: getNum(colMap.start),
                     recdQty: getNum(colMap.recd),
                     tranInQty: getNum(colMap.tranIn),
@@ -1049,13 +1111,13 @@
             }
             if (valid === 0) { showError("لم يتم العثور على جداول متوافقة.");
                 uploadStatus.innerHTML = "❌ فشل القراءة"; return; }
-            uploadStatus.innerHTML = `✅ تم تحميل ${valid} ملف | إجمالي الأصناف في الملفات: ${allRestaurantsData.reduce((acc,r)=>acc+r.items.length,0)}`;
-            // تفعيل التاب الثاني وقائمة المطاعم
+            uploadStatus.innerHTML = `✅ تم تحميل ${valid} ملف | إجمالي الأصناف: ${allRestaurantsData.reduce((acc,r)=>acc+r.items.length,0)}`;
             tab2Btn.disabled = false;
-            populateRestaurantSelect();
-            restaurantSelect.disabled = false;
+            populateRestaurantDatalist();
+            restaurantSearchInput.disabled = false;
             showRestaurantItemsBtn.disabled = false;
-            // تفعيل البحث في التاب الأول
+            exportRestaurantExcelBtn.disabled = false;
+            exportRestaurantPdfBtn.disabled = false;
             itemSearch.disabled = false;
             generateBtn.disabled = false;
             exportExcelBtn.disabled = false;
@@ -1064,28 +1126,24 @@
         }
 
         // ================================================================
-        // 4. البحث الديناميكي (يعتمد على FLAT_ITEMS)
+        // 4. البحث الديناميكي للأصناف (تاب 1)
         // ================================================================
         function refreshSearch() {
             const term = itemSearch.value.trim().toLowerCase();
             let matches = [];
             if (term === "") {
-                // عرض جميع الأصناف مع فواصل المجموعات
-                matches = FLAT_ITEMS.map(it => ({ ...it, display: `${it.ar} (${it.en})` }));
+                matches = FLAT_ITEMS.map(it => ({ ...it }));
             } else {
                 matches = FLAT_ITEMS.filter(it =>
-                    it.ar.includes(term) || it.en.toLowerCase().includes(term)
-                ).map(it => ({ ...it, display: `${it.ar} (${it.en})` }));
+                    it.ar.includes(term) || it.en.toLowerCase().includes(term) || it.code.toLowerCase().includes(term)
+                );
             }
-            // بناء datalist مع فواصل المجموعات
             let optionsHtml = '';
             let lastGroup = -1;
             for (let i = 0; i < matches.length; i++) {
                 const it = matches[i];
                 if (it.groupIdx !== lastGroup) {
-                    // إضافة فاصل
-                    const groupName = ITEM_GROUPS[it.groupIdx].groupName;
-                    optionsHtml += `<option value="——— ${groupName} ———" disabled></option>`;
+                    optionsHtml += `<option value="——— ${'————————————————————'} ———" disabled></option>`;
                     lastGroup = it.groupIdx;
                 }
                 optionsHtml += `<option value="${it.display}"></option>`;
@@ -1095,35 +1153,203 @@
         }
 
         // ================================================================
-        // 5. توليد تقرير COGS (تاب 1)
+        // 5. البحث الديناميكي للمطاعم (تاب 2)
         // ================================================================
-        function findItemInRestaurantData(itemDisplay, restData) {
-            // استخراج الأسماء من العرض
-            const match = itemDisplay.match(/^(.*) \((.*)\)$/);
-            let arName = itemDisplay,
-                enName = '';
-            if (match) {
-                arName = match[1].trim();
-                enName = match[2].trim();
-            } else {
-                arName = itemDisplay;
+        function populateRestaurantDatalist() {
+            const restaurants = allRestaurantsData.map(r => r.restaurantDisplay).filter((v, i, a) => a.indexOf(v) === i);
+            restaurantDatalist.innerHTML = '';
+            for (const name of restaurants.sort()) {
+                const opt = document.createElement('option');
+                opt.value = name;
+                restaurantDatalist.appendChild(opt);
             }
+            restaurantCountBadge.textContent = `${restaurants.length} مطعم متاح`;
+        }
+
+        // ================================================================
+        // 6. المطابقة باستخدام الكود أولاً (دقة 100%)
+        // ================================================================
+        function findMatchingItem(flatItem, restData) {
+            // 1. مطابقة الكود (الأكثر دقة)
+            if (flatItem.code) {
+                for (let it of restData.items) {
+                    if (it.itemCode && it.itemCode.trim() === flatItem.code) {
+                        return it;
+                    }
+                }
+            }
+
+            // 2. مطابقة الاسم التامة (كحل احتياطي)
+            const arName = flatItem.ar.trim();
+            const enName = flatItem.en.trim();
+            for (let it of restData.items) {
+                let name = it.itemName.trim();
+                if (name === arName || name === enName) {
+                    return it;
+                }
+            }
+
+            // 3. مطابقة جزئية (كحل أخير)
             const lowerAr = arName.toLowerCase();
             const lowerEn = enName.toLowerCase();
-            // البحث في عناصر المطعم
             for (let it of restData.items) {
-                const name = it.itemName.toLowerCase();
-                if (name.includes(lowerAr) || name.includes(lowerEn) || name.includes(arName) || name.includes(enName)) {
+                let name = it.itemName.toLowerCase();
+                if (name.includes(lowerAr) || name.includes(lowerEn)) {
                     return it;
                 }
             }
             return null;
         }
 
+        function showRestaurantItems() {
+            const selected = restaurantSearchInput.value.trim();
+            if (!selected) {
+                restaurantItemsBody.innerHTML =
+                `<tr class="empty-row"><td colspan="8">⚠️ الرجاء اختيار مطعم من القائمة</td></tr>`;
+                restaurantNoteContainer.style.display = 'none';
+                restaurantInfoHeader.style.display = 'none';
+                currentRestaurantData = null;
+                currentRestaurantItems = [];
+                return;
+            }
+            const restData = allRestaurantsData.find(r => r.restaurantDisplay === selected);
+            if (!restData) {
+                restaurantItemsBody.innerHTML =
+                `<tr class="empty-row"><td colspan="8">❌ لا توجد بيانات لهذا المطعم</td></tr>`;
+                restaurantNoteContainer.style.display = 'none';
+                restaurantInfoHeader.style.display = 'none';
+                currentRestaurantData = null;
+                currentRestaurantItems = [];
+                return;
+            }
+            currentRestaurantData = restData;
+
+            restaurantInfoHeader.style.display = 'flex';
+            headerRestaurantName.textContent = restData.restaurantDisplay;
+            headerRegionManager.textContent = restData.regionManager;
+            headerOpsManager.textContent = restData.opsManager;
+            headerReportDate.textContent = restData.reportDateRaw || 'غير محدد';
+
+            let html = '';
+            let hasShawarma = false;
+            const allRows = [];
+            let currentGroup = -1;
+            let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0 };
+
+            for (let idx = 0; idx < FLAT_ITEMS.length; idx++) {
+                const it = FLAT_ITEMS[idx];
+                const groupIdx = it.groupIdx;
+
+                if (groupIdx !== currentGroup && currentGroup !== -1) {
+                    html += `<tr class="total-row">
+                        <td style="text-align:center;">🔹 إجمالي المجموعة</td>
+                        <td>${formatZero(groupTotals.start)}</td>
+                        <td>${formatZero(groupTotals.recd)}</td>
+                        <td>${formatZero(groupTotals.tranIn)}</td>
+                        <td>${formatZero(groupTotals.tranOut)}</td>
+                        <td>${formatZero(groupTotals.wast)}</td>
+                        <td>${formatZero(groupTotals.usage)}</td>
+                        <td class="bold-end">${formatZero(groupTotals.end)}</td>
+                    </tr>`;
+                    groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0 };
+                }
+                currentGroup = groupIdx;
+
+                const found = findMatchingItem(it, restData);
+                const displayName = found ? found.itemName : `${it.ar} (غير موجود)`;
+                const isShaw = isShawarmaItem(displayName);
+                if (isShaw) hasShawarma = true;
+                const rowClass = found ? '' : 'item-missing';
+                const shawIcon = isShaw ? ' 🔥' : '';
+
+                let startQty = found ? found.startQty : null;
+                let recdQty = found ? found.recdQty : null;
+                let tranInQty = found ? found.tranInQty : null;
+                let tranOutQty = found ? found.tranOutQty : null;
+                let wastQty = found ? found.wastQty : null;
+                let usageQty = found ? found.actUsage : null;
+                let endQty = found ? found.endQty : null;
+
+                if (found && isShaw) {
+                    const adjusted = applyShawarmaBonusAndRecalcEndQty(displayName, found);
+                    wastQty = adjusted.wast;
+                    usageQty = adjusted.usage;
+                    endQty = adjusted.endQty;
+                }
+
+                if (found) {
+                    groupTotals.start += (startQty || 0);
+                    groupTotals.recd += (recdQty || 0);
+                    groupTotals.tranIn += (tranInQty || 0);
+                    groupTotals.tranOut += (tranOutQty || 0);
+                    groupTotals.wast += (wastQty || 0);
+                    groupTotals.usage += (usageQty || 0);
+                    groupTotals.end += (endQty || 0);
+                }
+
+                const codeDisplay = found ? ` (${found.itemCode || it.code})` : ` (${it.code})`;
+                const rowData = {
+                    restaurant: restData.restaurantDisplay,
+                    region: restData.regionManager,
+                    ops: restData.opsManager,
+                    item: displayName,
+                    code: found ? found.itemCode : it.code,
+                    start: startQty,
+                    recd: recdQty,
+                    tranIn: tranInQty,
+                    tranOut: tranOutQty,
+                    wast: wastQty,
+                    usage: usageQty,
+                    end: endQty,
+                    found: !!found,
+                    isShaw: isShaw,
+                    groupIdx: groupIdx
+                };
+                allRows.push(rowData);
+
+                html += `<tr class="${rowClass}">
+                    <td style="text-align:right;">${escapeHtml(displayName)} ${codeDisplay}${shawIcon}</td>
+                    <td>${found ? formatZero(startQty) : '—'}</td>
+                    <td>${found ? formatZero(recdQty) : '—'}</td>
+                    <td>${found ? formatZero(tranInQty) : '—'}</td>
+                    <td>${found ? formatZero(tranOutQty) : '—'}</td>
+                    <td>${found ? formatZero(wastQty) : '—'}</td>
+                    <td>${found ? formatZero(usageQty) : '—'}</td>
+                    <td class="bold-end">${found ? formatZero(endQty) : '—'}</td>
+                </tr>`;
+            }
+
+            if (currentGroup !== -1) {
+                html += `<tr class="total-row">
+                    <td style="text-align:center;">🔹 إجمالي المجموعة</td>
+                    <td>${formatZero(groupTotals.start)}</td>
+                    <td>${formatZero(groupTotals.recd)}</td>
+                    <td>${formatZero(groupTotals.tranIn)}</td>
+                    <td>${formatZero(groupTotals.tranOut)}</td>
+                    <td>${formatZero(groupTotals.wast)}</td>
+                    <td>${formatZero(groupTotals.usage)}</td>
+                    <td class="bold-end">${formatZero(groupTotals.end)}</td>
+                </tr>`;
+            }
+
+            restaurantItemsBody.innerHTML = html;
+            currentRestaurantItems = allRows;
+
+            if (hasShawarma) {
+                restaurantNoteContainer.style.display = 'block';
+                restaurantNoteContainer.innerHTML =
+                    '⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما (شاورما دجاج) عند ظهوره.';
+            } else {
+                restaurantNoteContainer.style.display = 'none';
+            }
+        }
+
+        // ================================================================
+        // 7. توليد تقرير COGS (تاب 1) - باستخدام الكود
+        // ================================================================
         function generateReportForItem(itemDisplay) {
             if (!itemDisplay) return [];
-            // تحقق من أن العنصر موجود في القائمة (قد يكون اختيار فاصل)
-            const match = FLAT_ITEMS.find(it => `${it.ar} (${it.en})` === itemDisplay);
+            const match = FLAT_ITEMS.find(it => it.display === itemDisplay);
             if (!match) {
                 tableBody.innerHTML = `<tr class="empty-row"><td colspan="10">❌ الصنف غير معروف</td></tr>`;
                 specialNoteContainer.style.display = 'none';
@@ -1132,7 +1358,7 @@
             currentSelectedItem = itemDisplay;
             const rows = [];
             for (const rest of allRestaurantsData) {
-                const found = findItemInRestaurantData(itemDisplay, rest);
+                const found = findMatchingItem(match, rest);
                 if (found) {
                     const { wast: newWast, usage: newUsage, endQty: newEnd } = applyShawarmaBonusAndRecalcEndQty(found
                         .itemName, found);
@@ -1152,7 +1378,8 @@
                 }
             }
             if (rows.length === 0) {
-                tableBody.innerHTML = `<tr class="empty-row"><td colspan="10">📭 لا توجد بيانات للصنف في الملفات المرفوعة</td></tr>`;
+                tableBody.innerHTML =
+                `<tr class="empty-row"><td colspan="10">📭 لا توجد بيانات للصنف في الملفات المرفوعة</td></tr>`;
                 specialNoteContainer.style.display = 'none';
             } else {
                 let html = "";
@@ -1167,30 +1394,22 @@
                         <td>${formatZero(r.tranOutQty)}</td>
                         <td>${formatZero(r.wastQty)}</td>
                         <td>${formatZero(r.actUsage)}</td>
-                        <td>${formatZero(r.endQty)}</td>
+                        <td class="bold-end">${formatZero(r.endQty)}</td>
                     </tr>`;
                 }
                 tableBody.innerHTML = html;
             }
-            // ملاحظة الشاورما
-            const isShaw = isShawarmaItem(itemDisplay);
-            if (isShaw) {
-                specialNoteContainer.style.display = 'block';
-            } else {
-                specialNoteContainer.style.display = 'none';
-            }
+            const isShaw = isShawarmaItem(match.ar);
+            specialNoteContainer.style.display = isShaw ? 'block' : 'none';
             currentReportData = rows;
             return rows;
         }
 
         // ================================================================
-        // 6. تصدير Excel و PDF (معدل قليلاً للتعامل مع العرض الجديد)
+        // 8. تصدير Excel و PDF للتاب 1 (مختصر)
         // ================================================================
         function exportToExcel() {
-            if (!currentReportData || currentReportData.length === 0) {
-                alert("⚠️ لا توجد بيانات معروضة لتصديرها.");
-                return;
-            }
+            if (!currentReportData || currentReportData.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
             try {
                 const fromDate = startDateInput.value || "غير محدد";
                 const toDate = endDateInput.value || "غير محدد";
@@ -1214,38 +1433,29 @@
                 }
                 if (isShawarmaItem(currentSelectedItem)) {
                     excelRows.push([]);
-                    excelRows.push(["ملاحظة:", "تم إضافة نسبة 20% على كميات التوالف فقط لصنف الشاورما (شاورما دجاج) بناءً على طلب الإدارة، مع بقاء كمية الاستخدام كما هي."]);
+                    excelRows.push(["ملاحظة:", "تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما."]);
                 }
                 const ws = XLSX.utils.aoa_to_sheet(excelRows);
                 ws['!cols'] = [{ wch: 28 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 18 }, { wch: 16 },
-                { wch: 16 }, { wch: 12 }, { wch: 18 }, { wch: 14 }];
+                { wch: 16 }, { wch: 12 }, { wch: 18 }, { wch: 14 }
+                ];
                 ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 10 } },
                 { s: { r: 2, c: 0 }, e: { r: 2, c: 10 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: 10 } }
                 ];
                 const wb = XLSX.utils.book_new();
                 let sheetName = currentSelectedItem.replace(/[\\/*:?"<>|[\]]/g, '_');
                 if (sheetName.length > 31) sheetName = sheetName.substring(0, 31);
-                if (sheetName.trim() === "") sheetName = "تقرير";
                 XLSX.utils.book_append_sheet(wb, ws, sheetName);
-                const fileName =
-                `COGS_${currentSelectedItem.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 50)}.xlsx`;
-                XLSX.writeFile(wb, fileName);
-            } catch (err) {
-                console.error(err);
-                alert("فشل تصدير Excel: " + err.message);
-            }
+                XLSX.writeFile(wb, `COGS_${sheetName}.xlsx`);
+            } catch (err) { alert("فشل تصدير Excel: " + err.message); }
         }
 
         async function exportToPDF() {
             if (!currentReportData || currentReportData.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
-            if (!startDateInput.value || !endDateInput.value) {
-                alert("❌ الرجاء إدخال تاريخ البداية وتاريخ النهاية قبل تصدير تقرير PDF.");
-                startDateInput.focus();
-                return;
-            }
+            if (!startDateInput.value || !endDateInput.value) { alert("❌ الرجاء إدخال التاريخ."); return; }
             exportPdfBtn.disabled = true;
             const originalText = exportPdfBtn.innerHTML;
-            exportPdfBtn.innerHTML = "⏳ جاري إنشاء PDF...";
+            exportPdfBtn.innerHTML = "⏳ جاري...";
             try {
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
@@ -1253,8 +1463,8 @@
                     toDate = endDateInput.value;
                 let currentIdx = 0,
                     pageNum = 1;
-                const rowsPerPage = 15;
-                const margin = 10;
+                const rowsPerPage = 15,
+                    margin = 10;
                 const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
                 while (currentIdx < currentReportData.length) {
                     const chunk = currentReportData.slice(currentIdx, currentIdx + rowsPerPage);
@@ -1268,39 +1478,19 @@
                     container.style.direction = 'rtl';
                     container.style.fontFamily = "'Segoe UI', Tahoma, Arial";
                     let logoHtml = pageNum === 1 ?
-                        `<img src="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" style="width: 55px; border-radius: 12px;"><br>` :
+                        `<img src="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" style="width:55px;border-radius:12px;"><br>` :
                         "";
                     const headerHtml =
                         `<div style="text-align:center;"><div>${logoHtml}<div style="font-size:1.6rem;font-weight:bold;color:#d32f2f;">شركة نايف للأغذية</div><div style="font-size:0.9rem;">NAIF FOOD COMPANY</div><div style="background:#f0f6ff;padding:5px 15px;border-radius:30px;margin:10px auto;display:inline-block;"><strong>تقرير COGS</strong> | الصنف: ${escapeHtml(currentSelectedItem)}<br>الفترة: ${fromDate} → ${toDate}</div>${pageNum>1?`<div>صفحة ${pageNum}</div>`:''}</div>`;
                     let tableRows = "";
                     for (const r of chunk) {
-                        tableRows += `<tr>
-                            <td style="border:1px solid #ccc;padding:8px;">${escapeHtml(r.restaurantDisplay)}</td>
-                            <td style="border:1px solid #ccc;padding:8px;">${escapeHtml(r.regionManager)}</td>
-                            <td style="border:1px solid #ccc;padding:8px;">${escapeHtml(r.opsManager)}</td>
-                            <td style="border:1px solid #ccc;padding:8px;">${escapeHtml(r.reportDate)}</td>
-                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.startQty)}</td>
-                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.recdQty)}</td>
-                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.tranInQty)}</td>
-                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.tranOutQty)}</td>
-                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.wastQty)}</td>
-                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.actUsage)}</td>
-                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.endQty)}</td>
-                        </tr>`;
+                        tableRows += `<tr><td style="border:1px solid #ccc;padding:8px;">${escapeHtml(r.restaurantDisplay)}</td><td style="border:1px solid #ccc;padding:8px;">${escapeHtml(r.regionManager)}</td><td style="border:1px solid #ccc;padding:8px;">${escapeHtml(r.opsManager)}</td><td style="border:1px solid #ccc;padding:8px;">${escapeHtml(r.reportDate)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(r.startQty)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(r.recdQty)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(r.tranInQty)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(r.tranOutQty)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(r.wastQty)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(r.actUsage)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZero(r.endQty)}</td></tr>`;
                     }
                     let tableHtml =
-                        `<table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
-                        <thead><tr style="background:#1976D2;color:#fff;">
-                            <th>المطعم</th><th>مدير المنطقة</th><th>مدير التشغيل</th><th>تاريخ التقرير</th>
-                            <th>بداية</th><th>مستلم</th><th>داخل</th><th>خارج</th><th>توالف</th><th>استخدام</th><th>نهاية</th>
-                        </tr></thead>
-                        <tbody>${tableRows}</tbody>
-                    </table>`;
-                    let noteHtml = "";
-                    if (isShawarmaItem(currentSelectedItem)) {
-                        noteHtml =
-                            `<div style="background:#fff3cd; border-right:4px solid #ffc107; padding:10px; margin-top:15px; border-radius:8px; font-size:0.8rem; color:#856404;">⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف فقط لصنف الشاورما (شاورما دجاج) بناءً على طلب الإدارة، مع بقاء كمية الاستخدام كما هي وإعادة حساب الرصيد النهائي.</div>`;
-                    }
+                        `<table style="width:100%;border-collapse:collapse;font-size:0.8rem;"><thead><tr style="background:#1976D2;color:#fff;"><th>المطعم</th><th>مدير المنطقة</th><th>مدير التشغيل</th><th>تاريخ التقرير</th><th>بداية</th><th>مستلم</th><th>داخل</th><th>خارج</th><th>توالف</th><th>استخدام</th><th>نهاية</th></tr></thead><tbody>${tableRows}</tbody></table>`;
+                    let noteHtml = isShawarmaItem(currentSelectedItem) ?
+                        `<div style="background:#fff3cd;border-right:4px solid #ffc107;padding:10px;margin-top:15px;border-radius:8px;font-size:0.8rem;color:#856404;">⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.</div>` :
+                        "";
                     container.innerHTML = headerHtml + tableHtml + noteHtml;
                     document.body.appendChild(container);
                     const canvas = await html2canvas(container, { scale: 1.8, useCORS: true, backgroundColor: '#ffffff' });
@@ -1318,96 +1508,261 @@
         }
 
         // ================================================================
-        // 7. التاب الثاني: حركة المطعم (جميع الأصناف مع فواصل المجموعات)
+        // 9. تصدير Excel و PDF للتاب 2 (مع الإجماليات)
         // ================================================================
-        function populateRestaurantSelect() {
-            const restaurants = allRestaurantsData.map(r => r.restaurantDisplay).filter((v, i, a) => a.indexOf(v) === i);
-            restaurantSelect.innerHTML = '<option value="">-- اختر مطعم --</option>';
-            for (const name of restaurants.sort()) {
-                const opt = document.createElement('option');
-                opt.value = name;
-                opt.textContent = name;
-                restaurantSelect.appendChild(opt);
-            }
-            restaurantCountBadge.textContent = `${restaurants.length} مطعم متاح`;
-        }
+        function exportRestaurantExcel() {
+            if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
+            try {
+                const fromDate = startDateInput.value || "غير محدد";
+                const toDate = endDateInput.value || "غير محدد";
+                const sheetHeader = ["الصنف (الكود)", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج", "التوالف",
+                    "كمية الاستخدام", "رصيد آخر"
+                ];
+                const excelRows = [
+                    ["شركة نايف للأغذية"],
+                    ["تقرير حركة أصناف المطعم"],
+                    [`المطعم: ${currentRestaurantData.restaurantDisplay}`],
+                    [`مدير المنطقة: ${currentRestaurantData.regionManager}`],
+                    [`مدير التشغيل: ${currentRestaurantData.opsManager}`],
+                    [`تاريخ التقرير: ${currentRestaurantData.reportDateRaw || 'غير محدد'}`],
+                    [`الفترة الوصفية: ${fromDate} → ${toDate}`],
+                    [],
+                    sheetHeader
+                ];
 
-        function showRestaurantItems() {
-            const selected = restaurantSelect.value;
-            if (!selected) {
-                restaurantItemsBody.innerHTML = `<tr class="empty-row"><td colspan="8">⚠️ الرجاء اختيار مطعم</td></tr>`;
-                restaurantNoteContainer.style.display = 'none';
-                return;
-            }
-            const restData = allRestaurantsData.find(r => r.restaurantDisplay === selected);
-            if (!restData) {
-                restaurantItemsBody.innerHTML = `<tr class="empty-row"><td colspan="8">❌ لا توجد بيانات لهذا المطعم</td></tr>`;
-                restaurantNoteContainer.style.display = 'none';
-                return;
-            }
+                let currentGroup = -1;
+                let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0 };
 
-            let html = '';
-            let hasShawarma = false;
-            let lastGroup = -1;
-            for (let idx = 0; idx < FLAT_ITEMS.length; idx++) {
-                const it = FLAT_ITEMS[idx];
-                if (it.groupIdx !== lastGroup) {
-                    // إضافة صف فاصل للمجموعة
-                    const groupName = ITEM_GROUPS[it.groupIdx].groupName;
-                    html += `<tr class="group-row"><td colspan="8" style="text-align:center;">——— ${groupName} ———</td></tr>`;
-                    lastGroup = it.groupIdx;
+                for (let i = 0; i < currentRestaurantItems.length; i++) {
+                    const row = currentRestaurantItems[i];
+                    const flatItem = FLAT_ITEMS[i];
+                    if (!flatItem) continue;
+
+                    if (flatItem.groupIdx !== currentGroup && currentGroup !== -1) {
+                        excelRows.push([
+                            "🔹 إجمالي المجموعة",
+                            groupTotals.start,
+                            groupTotals.recd,
+                            groupTotals.tranIn,
+                            groupTotals.tranOut,
+                            groupTotals.wast,
+                            groupTotals.usage,
+                            groupTotals.end
+                        ]);
+                        groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0 };
+                    }
+                    currentGroup = flatItem.groupIdx;
+
+                    if (row.found) {
+                        groupTotals.start += (row.start || 0);
+                        groupTotals.recd += (row.recd || 0);
+                        groupTotals.tranIn += (row.tranIn || 0);
+                        groupTotals.tranOut += (row.tranOut || 0);
+                        groupTotals.wast += (row.wast || 0);
+                        groupTotals.usage += (row.usage || 0);
+                        groupTotals.end += (row.end || 0);
+                    }
+
+                    excelRows.push([
+                        `${row.item} (${row.code})`,
+                        row.found ? row.start : '',
+                        row.found ? row.recd : '',
+                        row.found ? row.tranIn : '',
+                        row.found ? row.tranOut : '',
+                        row.found ? row.wast : '',
+                        row.found ? row.usage : '',
+                        row.found ? row.end : ''
+                    ]);
                 }
-                // البحث عن الصنف في بيانات المطعم
-                const found = findItemInRestaurantData(`${it.ar} (${it.en})`, restData);
-                const displayName = found ? found.itemName : `${it.ar} (غير موجود)`;
-                const isShaw = isShawarmaItem(displayName);
-                if (isShaw) hasShawarma = true;
-                const rowClass = found ? '' : 'item-missing';
-                const shawIcon = isShaw ? ' 🔥' : '';
-                html += `<tr class="${rowClass}">
-                    <td style="text-align:right;">${escapeHtml(displayName)}${shawIcon}</td>
-                    <td>${found ? formatZero(found.startQty) : '—'}</td>
-                    <td>${found ? formatZero(found.recdQty) : '—'}</td>
-                    <td>${found ? formatZero(found.tranInQty) : '—'}</td>
-                    <td>${found ? formatZero(found.tranOutQty) : '—'}</td>
-                    <td>${found ? formatZero(found.wastQty) : '—'}</td>
-                    <td>${found ? formatZero(found.actUsage) : '—'}</td>
-                    <td>${found ? formatZero(found.endQty) : '—'}</td>
-                </tr>`;
-            }
-            restaurantItemsBody.innerHTML = html;
-            if (hasShawarma) {
-                restaurantNoteContainer.style.display = 'block';
-                restaurantNoteContainer.innerHTML =
-                    '⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما (شاورما دجاج) عند ظهوره في هذه القائمة.';
-            } else {
-                restaurantNoteContainer.style.display = 'none';
-            }
+
+                if (currentGroup !== -1) {
+                    excelRows.push([
+                        "🔹 إجمالي المجموعة",
+                        groupTotals.start,
+                        groupTotals.recd,
+                        groupTotals.tranIn,
+                        groupTotals.tranOut,
+                        groupTotals.wast,
+                        groupTotals.usage,
+                        groupTotals.end
+                    ]);
+                }
+
+                if (currentRestaurantItems.some(r => r.isShaw)) {
+                    excelRows.push([]);
+                    excelRows.push(["ملاحظة:", "تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما."]);
+                }
+
+                const ws = XLSX.utils.aoa_to_sheet(excelRows);
+                ws['!cols'] = [{ wch: 35 }, { wch: 15 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 18 },
+                { wch: 14 }
+                ];
+                ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } },
+                { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: 7 } },
+                { s: { r: 4, c: 0 }, e: { r: 4, c: 7 } }, { s: { r: 5, c: 0 }, e: { r: 5, c: 7 } },
+                { s: { r: 6, c: 0 }, e: { r: 6, c: 7 } }
+                ];
+                const wb = XLSX.utils.book_new();
+                const sheetName =
+                    `حركة_${currentRestaurantData.restaurantDisplay.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 25)}`;
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                XLSX.writeFile(wb,
+                    `Restaurant_Items_${currentRestaurantData.restaurantDisplay.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 30)}.xlsx`
+                    );
+            } catch (err) { alert("فشل تصدير Excel: " + err.message); }
+        }
+
+        async function exportRestaurantPDF() {
+            if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
+            if (!startDateInput.value || !endDateInput.value) { alert("❌ الرجاء إدخال التاريخ."); return; }
+            exportRestaurantPdfBtn.disabled = true;
+            const originalText = exportRestaurantPdfBtn.innerHTML;
+            exportRestaurantPdfBtn.innerHTML = "⏳ جاري...";
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+                const fromDate = startDateInput.value,
+                    toDate = endDateInput.value;
+                const rowsPerPage = 12,
+                    margin = 10;
+                const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
+                const allRows = currentRestaurantItems;
+                let pageNum = 1;
+                let startIdx = 0;
+
+                while (startIdx < allRows.length) {
+                    const container = document.createElement('div');
+                    container.style.position = 'absolute';
+                    container.style.left = '-9999px';
+                    container.style.top = '0';
+                    container.style.width = '1100px';
+                    container.style.backgroundColor = 'white';
+                    container.style.padding = '20px';
+                    container.style.direction = 'rtl';
+                    container.style.fontFamily = "'Segoe UI', Tahoma, Arial";
+
+                    let logoHtml = pageNum === 1 ?
+                        `<img src="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" style="width:55px;border-radius:12px;"><br>` :
+                        "";
+                    const infoHtml =
+                        `<div style="text-align:center;font-size:0.9rem;background:#f0f6fe;padding:10px;border-radius:12px;margin:6px 0 12px 0;"><div><strong>المطعم:</strong> ${escapeHtml(currentRestaurantData.restaurantDisplay)}</div><div><strong>مدير المنطقة:</strong> ${escapeHtml(currentRestaurantData.regionManager)} &nbsp;|&nbsp; <strong>مدير التشغيل:</strong> ${escapeHtml(currentRestaurantData.opsManager)}</div><div><strong>تاريخ التقرير:</strong> ${escapeHtml(currentRestaurantData.reportDateRaw || 'غير محدد')} &nbsp;|&nbsp; <strong>الفترة:</strong> ${fromDate} → ${toDate}</div></div>`;
+                    const headerHtml =
+                        `<div style="text-align:center;"><div>${logoHtml}<div style="font-size:1.6rem;font-weight:bold;color:#d32f2f;">شركة نايف للأغذية</div><div style="font-size:0.9rem;">NAIF FOOD COMPANY</div><div style="font-size:1.1rem;font-weight:700;color:#2e7d32;margin-top:4px;">تقرير حركة أصناف المطعم</div>${infoHtml}${pageNum>1?`<div style="font-size:0.8rem;color:#888;">صفحة ${pageNum}</div>`:''}</div>`;
+
+                    let tableRows = "";
+                    let currentGroup = -1;
+                    let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0 };
+                    let visibleCount = 0;
+
+                    for (let i = 0; i < allRows.length; i++) {
+                        const r = allRows[i];
+                        const flatItem = FLAT_ITEMS[i];
+                        if (!flatItem) continue;
+
+                        const isVisible = (i >= startIdx && visibleCount < rowsPerPage);
+                        if (isVisible) visibleCount++;
+
+                        if (flatItem.groupIdx !== currentGroup && currentGroup !== -1) {
+                            let shouldAddTotal = false;
+                            for (let j = startIdx; j < Math.min(startIdx + rowsPerPage, allRows.length); j++) {
+                                if (FLAT_ITEMS[j] && FLAT_ITEMS[j].groupIdx === currentGroup) {
+                                    shouldAddTotal = true;
+                                    break;
+                                }
+                            }
+                            if (shouldAddTotal) {
+                                tableRows +=
+                                    `<tr style="background:#e3f0fa;font-weight:700;border-top:3px solid #0d47a1;"><td style="border:1px solid #ccc;padding:6px;text-align:center;">🔹 إجمالي المجموعة</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.start)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.recd)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranIn)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranOut)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.wast)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.usage)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZero(groupTotals.end)}</td></tr>`;
+                            }
+                            groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0 };
+                        }
+                        currentGroup = flatItem.groupIdx;
+
+                        if (r.found) {
+                            groupTotals.start += (r.start || 0);
+                            groupTotals.recd += (r.recd || 0);
+                            groupTotals.tranIn += (r.tranIn || 0);
+                            groupTotals.tranOut += (r.tranOut || 0);
+                            groupTotals.wast += (r.wast || 0);
+                            groupTotals.usage += (r.usage || 0);
+                            groupTotals.end += (r.end || 0);
+                        }
+
+                        if (isVisible) {
+                            const isShaw = r.isShaw ? ' 🔥' : '';
+                            tableRows += `<tr>
+                                <td style="border:1px solid #ccc;padding:6px;text-align:right;">${escapeHtml(r.item)} (${r.code})${isShaw}</td>
+                                <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.start):'—'}</td>
+                                <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.recd):'—'}</td>
+                                <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.tranIn):'—'}</td>
+                                <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.tranOut):'—'}</td>
+                                <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.wast):'—'}</td>
+                                <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.usage):'—'}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${r.found?formatZero(r.end):'—'}</td>
+                            </tr>`;
+                        }
+                    }
+
+                    if (currentGroup !== -1) {
+                        let shouldAddTotal = false;
+                        for (let j = startIdx; j < Math.min(startIdx + rowsPerPage, allRows.length); j++) {
+                            if (FLAT_ITEMS[j] && FLAT_ITEMS[j].groupIdx === currentGroup) {
+                                shouldAddTotal = true;
+                                break;
+                            }
+                        }
+                        if (shouldAddTotal) {
+                            tableRows +=
+                                `<tr style="background:#e3f0fa;font-weight:700;border-top:3px solid #0d47a1;"><td style="border:1px solid #ccc;padding:6px;text-align:center;">🔹 إجمالي المجموعة</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.start)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.recd)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranIn)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranOut)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.wast)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.usage)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZero(groupTotals.end)}</td></tr>`;
+                        }
+                    }
+
+                    const tableHtml =
+                        `<table style="width:100%;border-collapse:collapse;font-size:0.75rem;margin-top:6px;"><thead><tr style="background:#2e7d32;color:#fff;"><th style="padding:8px;">الصنف (الكود)</th><th style="padding:8px;">بداية</th><th style="padding:8px;">مستلم</th><th style="padding:8px;">داخل</th><th style="padding:8px;">خارج</th><th style="padding:8px;">توالف</th><th style="padding:8px;">استخدام</th><th style="padding:8px;">نهاية</th></tr></thead><tbody>${tableRows}</tbody></table>`;
+
+                    let noteHtml = currentRestaurantItems.some(r => r.isShaw) ?
+                        `<div style="background:#fff3cd;border-right:4px solid #ffc107;padding:10px;margin-top:15px;border-radius:8px;font-size:0.8rem;color:#856404;">⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.</div>` :
+                        "";
+
+                    container.innerHTML = headerHtml + tableHtml + noteHtml;
+                    document.body.appendChild(container);
+                    const canvas = await html2canvas(container, { scale: 1.8, useCORS: true, backgroundColor: '#ffffff' });
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const imgHeight = (canvas.height * contentWidth) / canvas.width;
+                    if (pageNum > 1) pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, imgHeight);
+                    document.body.removeChild(container);
+                    startIdx += rowsPerPage;
+                    pageNum++;
+                }
+                pdf.save(
+                    `Restaurant_Items_${currentRestaurantData.restaurantDisplay.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 30)}.pdf`
+                    );
+            } catch (e) { alert("خطأ في PDF: " + e.message); } finally { exportRestaurantPdfBtn.innerHTML =
+                    originalText;
+                exportRestaurantPdfBtn.disabled = false; }
         }
 
         // ================================================================
-        // 8. الأحداث وضبط التواريخ الافتراضية
+        // 10. الأحداث
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
-            // ضبط التاريخ الافتراضي: بداية الشهر الحالي، والنهاية = أمس
             const now = new Date();
             const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
             const yesterday = new Date(now);
             yesterday.setDate(now.getDate() - 1);
-
-            function formatDate(d) {
-                const y = d.getFullYear();
-                const m = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
+            const formatDate = (d) => {
+                const y = d.getFullYear(),
+                    m = String(d.getMonth() + 1).padStart(2, '0'),
+                    day = String(d.getDate()).padStart(2, '0');
                 return `${y}-${m}-${day}`;
-            }
+            };
             startDateInput.value = formatDate(firstDay);
             endDateInput.value = formatDate(yesterday);
             document.getElementById('manualPeriodInfo').innerHTML =
-                `📅 الفترة المختارة (وصفية): ${startDateInput.value} → ${endDateInput.value}`;
+                `📅 الفترة المختارة: ${startDateInput.value} → ${endDateInput.value}`;
         });
 
-        // تبديل التابات
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const tabId = this.dataset.tab;
@@ -1418,55 +1773,39 @@
             });
         });
 
-        // رفع الملفات
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length) handleFiles(e.target.files);
-            e.target.value = '';
-        });
-
-        // تطبيق الفترة
+        fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFiles(e.target.files);
+            e.target.value = ''; });
         applyDateBtn.addEventListener('click', () => {
             document.getElementById('manualPeriodInfo').innerHTML =
-                `📅 الفترة المختارة (وصفية): ${startDateInput.value || "بداية"} → ${endDateInput.value || "نهاية"}`;
+                `📅 الفترة المختارة: ${startDateInput.value || "بداية"} → ${endDateInput.value || "نهاية"}`;
             if (currentSelectedItem) generateReportForItem(currentSelectedItem);
         });
-
-        // البحث الديناميكي
         itemSearch.addEventListener('input', refreshSearch);
-
-        // زر عرض التقرير
         generateBtn.addEventListener('click', () => {
             const selected = itemSearch.value.trim();
-            if (!selected) {
-                tableBody.innerHTML = '<tr class="empty-row"><td colspan="10">⚠️ أدخل اسم الصنف أو اختر من القائمة</td></tr>';
-                specialNoteContainer.style.display = 'none';
-                return;
-            }
+            if (!selected) { tableBody.innerHTML =
+                    '<tr class="empty-row"><td colspan="10">⚠️ أدخل اسم الصنف</td></tr>';
+                specialNoteContainer.style.display = 'none'; return; }
             generateReportForItem(selected);
         });
-
-        // تصدير
         exportExcelBtn.addEventListener('click', exportToExcel);
         exportPdfBtn.addEventListener('click', exportToPDF);
-
-        // تاب 2
         showRestaurantItemsBtn.addEventListener('click', showRestaurantItems);
+        exportRestaurantExcelBtn.addEventListener('click', exportRestaurantExcel);
+        exportRestaurantPdfBtn.addEventListener('click', exportRestaurantPDF);
 
-        // عند تغيير المطعم يمكن عرض فوري (اختياري)
-        restaurantSelect.addEventListener('change', function() {
-            // يمكن تفعيل عرض تلقائي، لكن نتركه للزر
-        });
-
-        // حالة أولية
         itemSearch.disabled = true;
         generateBtn.disabled = true;
         exportExcelBtn.disabled = true;
         exportPdfBtn.disabled = true;
         tab2Btn.disabled = true;
-        restaurantSelect.disabled = true;
+        restaurantSearchInput.disabled = true;
         showRestaurantItemsBtn.disabled = true;
+        exportRestaurantExcelBtn.disabled = true;
+        exportRestaurantPdfBtn.disabled = true;
+        restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ Naif COGS v3.0 – قائمة ثابتة، تواريخ افتراضية، فواصل المجموعات');
+        console.log('✅ Naif COGS v8.0 – مطابقة دقيقة باستخدام الأكواد (K1015...K1043) مع إجماليات المجموعات');
     </script>
 </body>
 </html>
