@@ -270,7 +270,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 700px;
+            min-width: 800px;
         }
         th {
             background: #1976D2;
@@ -289,7 +289,7 @@
             border-bottom: 1px solid #e9edf2;
             text-align: center;
             font-family: monospace;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
         }
         td:first-child {
             font-size: 1rem;
@@ -353,7 +353,7 @@
         }
 
         .table-wrapper.restaurant-items-table table {
-            min-width: 700px;
+            min-width: 800px;
         }
         .table-wrapper.restaurant-items-table th {
             background: #2e7d32;
@@ -549,9 +549,10 @@
                             <th>توالف<br><small>Waste</small></th>
                             <th>استخدام<br><small>Usage</small></th>
                             <th>رصيد آخر<br><small>End</small></th>
+                            <th>رصيد آخر بالقطعة<br><small>End qty per piece</small></th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody"><tr class="empty-row"><td colspan="10">📁 قم برفع الملفات واختر صنفاً</td></tr>
+                    <tbody id="tableBody"><tr class="empty-row"><td colspan="11">📁 قم برفع الملفات واختر صنفاً</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -589,7 +590,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>الصنف (الكود)<br><small>Item (Code)</small></th>
+                            <th>الصنف<br><small>Item</small></th>
                             <th>رصيد أول<br><small>Start</small></th>
                             <th>مستلم<br><small>Recd</small></th>
                             <th>داخل<br><small>Trans In</small></th>
@@ -597,10 +598,11 @@
                             <th>توالف<br><small>Waste</small></th>
                             <th>استخدام<br><small>Usage</small></th>
                             <th>رصيد آخر<br><small>End</small></th>
+                            <th>رصيد آخر بالقطعة<br><small>End qty per piece</small></th>
                         </tr>
                     </thead>
                     <tbody id="restaurantItemsBody">
-                        <tr class="empty-row"><td colspan="8">📂 قم برفع الملفات ثم اختر مطعماً</td></tr>
+                        <tr class="empty-row"><td colspan="9">📂 قم برفع الملفات ثم اختر مطعماً</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -621,81 +623,84 @@
 
     <script>
         // ================================================================
-        // 1. قائمة الأصناف الثابتة مع الأكواد (للتاب الثاني فقط)
+        // 1. قائمة الأصناف الثابتة مع الأكواد ومعاملات التحويل (للتاب الثاني والتحويل)
         // ================================================================
         const ITEM_GROUPS = [
             // مجموعة 1
             [
-                { ar: 'اصابع فيليه', en: 'Chicken Finger Fillet', code: 'K1015' },
-                { ar: 'اصابع فيليه فلفل', en: 'Ch.Finger Fillet Spicy', code: 'K1016' }
+                { ar: 'اصابع فيليه', en: 'Chicken Finger Fillet', code: 'K1015', factor: 50 },
+                { ar: 'اصابع فيليه فلفل', en: 'Ch.Finger Fillet Spicy', code: 'K1016', factor: 25 }
             ],
             // مجموعة 2
             [
-                { ar: 'بيج فيلية', en: 'Chicken Big Fillet', code: 'K1035' },
-                { ar: 'بيج فيلية فلفل', en: 'Chicken Big Fillet Spicy', code: 'K1036' }
+                { ar: 'بيج فيلية', en: 'Chicken Big Fillet', code: 'K1035', factor: 10 },
+                { ar: 'بيج فيلية فلفل', en: 'Chicken Big Fillet Spicy', code: 'K1036', factor: 10 }
             ],
             // مجموعة 3
             [
-                { ar: 'فيليه عادي', en: 'Chicken Fillet', code: 'K1008' },
-                { ar: 'فيليه فلفل', en: 'Chicken Fillet Spicy', code: 'K1009' },
-                { ar: 'فيليه مشوي', en: 'Grilled Chicken Fillet', code: 'K1049' }
+                { ar: 'فيليه عادي', en: 'Chicken Fillet', code: 'K1008', factor: 25 },
+                { ar: 'فيليه فلفل', en: 'Chicken Fillet Spicy', code: 'K1009', factor: 10 },
+                { ar: 'فيليه مشوي', en: 'Grilled Chicken Fillet', code: 'K1049', factor: 5 }
             ],
             // مجموعة 4
             [
-                { ar: 'جناح صغير عادي', en: 'Chicken Small Wings Nor', code: 'K1071' },
-                { ar: 'جناح صغير فلفل', en: 'Chicken Small Wings Spicy', code: 'K1072' },
-                { ar: 'جناح متبل', en: 'Chicken Wings', code: 'K1010' }
+                { ar: 'جناح صغير عادي', en: 'Chicken Small Wings Nor', code: 'K1071', factor: 60 },
+                { ar: 'جناح صغير فلفل', en: 'Chicken Small Wings Spicy', code: 'K1072', factor: 60 },
+                { ar: 'جناح متبل', en: 'Chicken Wings', code: 'K1010', factor: 60 }
             ],
             // مجموعة 5
             [
-                { ar: 'دجاج فرايد عادي', en: 'Chicken Fried', code: 'K1012' },
-                { ar: 'دجاج فرايد فلفل', en: 'Chicken Fried Spicy', code: 'K1013' },
-                { ar: 'قطع دجاج مشويه', en: 'Grilled Chicken Pc', code: 'K1076' }
+                { ar: 'دجاج فرايد عادي', en: 'Chicken Fried', code: 'K1012', factor: 18 },
+                { ar: 'دجاج فرايد فلفل', en: 'Chicken Fried Spicy', code: 'K1013', factor: 18 },
+                { ar: 'قطع دجاج مشويه', en: 'Grilled Chicken Pc', code: 'K1076', factor: 18 }
             ],
             // مجموعة 6
             [
-                { ar: 'دجاج تكا عادي', en: 'Chicken Tikka', code: 'K1006' },
-                { ar: 'تكا صدور', en: 'Chicken Tikka Brest', code: 'K1004' },
-                { ar: 'تكا فخذ', en: 'Chicken Tikka Thigh', code: 'K1005' }
+                { ar: 'دجاج تكا عادي', en: 'Chicken Tikka', code: 'K1006', factor: 8 },
+                { ar: 'تكا صدور', en: 'Chicken Tikka Brest', code: 'K1004', factor: 8 },
+                { ar: 'تكا فخذ', en: 'Chicken Tikka Thigh', code: 'K1005', factor: 8 }
             ],
             // مجموعة 7
             [
-                { ar: 'قطع دجاج على الفحم', en: 'Grilled charcoal chicken pcs', code: 'K1055' }
+                { ar: 'قطع دجاج على الفحم', en: 'Grilled charcoal chicken pcs', code: 'K1055', factor: 16 }
             ],
             // مجموعة 8
             [
-                { ar: 'فري مشوي', en: 'Grilled Quils', code: 'K1017' }
+                { ar: 'فري مشوي', en: 'Grilled Quils', code: 'K1017', factor: 9 }
             ],
             // مجموعة 9
             [
-                { ar: 'دجاج شواية ملكي', en: 'Royal Grilled Chicken', code: 'K1020' }
+                { ar: 'دجاج شواية ملكي', en: 'Royal Grilled Chicken', code: 'K1020', factor: 5 }
             ],
             // مجموعة 10
             [
-                { ar: 'بنت الديك', en: 'Bint Al-Deek', code: 'K1014' },
-                { ar: 'فروج نايف', en: 'Rooster Junior', code: 'K1011' }
+                { ar: 'بنت الديك', en: 'Bint Al-Deek', code: 'K1014', factor: 5 },
+                { ar: 'فروج نايف', en: 'Rooster Junior', code: 'K1011', factor: 5 }
             ],
             // مجموعة 11
             [
-                { ar: 'شيش طاووق', en: 'Sish Tawouk', code: 'K1003' }
+                { ar: 'شيش طاووق', en: 'Sish Tawouk', code: 'K1003', factor: 60 }
             ],
             // مجموعة 12
             [
-                { ar: 'كباب دجاج', en: 'Chicken Kabab', code: 'K1002' }
+                { ar: 'كباب دجاج', en: 'Chicken Kabab', code: 'K1002', factor: 2 }
             ],
             // مجموعة 13
             [
-                { ar: 'قطع دجاج جرل صغير', en: 'Grill Chicken Pc -Multi Taste', code: 'K1044' }
+                { ar: 'قطع دجاج جرل صغير', en: 'Grill Chicken Pc -Multi Taste', code: 'K1044', factor: 1 }
             ],
             // مجموعة 14
             [
-                { ar: 'قطع دجاج فرايد صغير عادي', en: 'Happy Chicken Pc', code: 'K1042' },
-                { ar: 'قطع دجاج فرايد صغير فلفل', en: 'Happy Chicken Pc-Spicy', code: 'K1043' }
+                { ar: 'قطع دجاج فرايد صغير عادي', en: 'Happy Chicken Pc', code: 'K1042', factor: 1 },
+                { ar: 'قطع دجاج فرايد صغير فلفل', en: 'Happy Chicken Pc-Spicy', code: 'K1043', factor: 1 }
             ]
         ];
 
-        // بناء قائمة مسطحة للتاب الثاني
+        // بناء قائمة مسطحة للتاب الثاني وخريطة للتحويل (اسم -> عامل)
         let FLAT_ITEMS = [];
+        let conversionMapByCode = {};
+        let conversionMapByName = {};
+
         ITEM_GROUPS.forEach((group, idx) => {
             group.forEach(it => {
                 FLAT_ITEMS.push({
@@ -703,10 +708,36 @@
                     ar: it.ar,
                     en: it.en,
                     code: it.code,
-                    display: `${it.ar} (${it.en}) [${it.code}]`
+                    factor: it.factor,
+                    display: `${it.ar} (${it.en})`
                 });
+                conversionMapByCode[it.code] = it.factor;
+                // إضافة الاسمين العربي والإنجليزي للخريطة (للتاب الأول)
+                conversionMapByName[it.ar.trim().toLowerCase()] = it.factor;
+                conversionMapByName[it.en.trim().toLowerCase()] = it.factor;
             });
         });
+
+        // دالة للحصول على معامل التحويل من اسم الصنف (للاستخدام في التاب الأول)
+        function getConversionFactorFromName(itemName) {
+            if (!itemName) return null;
+            const lower = itemName.trim().toLowerCase();
+            // محاولة المطابقة التامة
+            if (conversionMapByName[lower]) return conversionMapByName[lower];
+            // محاولة البحث الجزئي (لأن الأسماء في الملفات قد تحتوي على كلمات إضافية)
+            for (let key in conversionMapByName) {
+                if (lower.includes(key) || key.includes(lower)) {
+                    return conversionMapByName[key];
+                }
+            }
+            return null;
+        }
+
+        // دالة للحصول على معامل التحويل من الكود
+        function getConversionFactorFromCode(code) {
+            if (!code) return null;
+            return conversionMapByCode[code.trim()] || null;
+        }
 
         // ================================================================
         // 2. قاعدة بيانات المطاعم
@@ -942,6 +973,12 @@
             return num.toFixed(2).replace(/\.00$/, '');
         }
 
+        function formatZeroInt(val) {
+            let num = Number(val);
+            if (isNaN(num) || num === 0) return "—";
+            return Math.round(num);
+        }
+
         function escapeHtml(str) {
             if (!str) return '';
             return String(str).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
@@ -1147,24 +1184,27 @@
         }
 
         // ================================================================
-        // 5. توليد تقرير COGS (التاب الأول) - البحث عن الصنف في بيانات المطاعم
+        // 5. توليد تقرير COGS (التاب الأول) - مع عمود التحويل
         // ================================================================
         function generateReportForItem(itemName) {
             if (!itemName) return [];
-            // البحث عن الصنف في uniqueItemsSet
             const exact = Array.from(uniqueItemsSet).find(i => i.toLowerCase() === itemName.toLowerCase());
             if (!exact) {
-                tableBody.innerHTML = `<tr class="empty-row"><td colspan="10">❌ الصنف غير موجود</td></tr>`;
+                tableBody.innerHTML = `<tr class="empty-row"><td colspan="11">❌ الصنف غير موجود</td></tr>`;
                 specialNoteContainer.style.display = 'none';
                 return [];
             }
             currentSelectedItem = exact;
             const rows = [];
+            // الحصول على معامل التحويل لهذا الصنف (إذا كان ضمن القائمة المحددة)
+            let factor = getConversionFactorFromName(exact);
+
             for (const rest of allRestaurantsData) {
                 const found = rest.items.find(it => it.itemName === exact);
                 if (found) {
                     const { wast: newWast, usage: newUsage, endQty: newEnd } = applyShawarmaBonusAndRecalcEndQty(exact,
                         found);
+                    const convertedEnd = factor !== null ? (newEnd * factor) : null;
                     rows.push({
                         restaurantDisplay: rest.restaurantDisplay,
                         regionManager: rest.regionManager,
@@ -1176,13 +1216,14 @@
                         tranOutQty: found.tranOutQty,
                         wastQty: newWast,
                         actUsage: newUsage,
-                        endQty: newEnd
+                        endQty: newEnd,
+                        convertedEnd: convertedEnd
                     });
                 }
             }
             if (rows.length === 0) {
                 tableBody.innerHTML =
-                `<tr class="empty-row"><td colspan="10">📭 لا توجد بيانات للصنف في الملفات المرفوعة</td></tr>`;
+                `<tr class="empty-row"><td colspan="11">📭 لا توجد بيانات للصنف في الملفات المرفوعة</td></tr>`;
                 specialNoteContainer.style.display = 'none';
             } else {
                 let html = "";
@@ -1198,6 +1239,7 @@
                         <td>${formatZero(r.wastQty)}</td>
                         <td>${formatZero(r.actUsage)}</td>
                         <td class="bold-end">${formatZero(r.endQty)}</td>
+                        <td class="bold-end">${r.convertedEnd !== null ? formatZeroInt(r.convertedEnd) : '—'}</td>
                     </tr>`;
                 }
                 tableBody.innerHTML = html;
@@ -1209,7 +1251,7 @@
         }
 
         // ================================================================
-        // 6. تصدير Excel و PDF للتاب الأول
+        // 6. تصدير Excel و PDF للتاب الأول (مع العمود الجديد)
         // ================================================================
         function exportToExcel() {
             if (!currentReportData || currentReportData.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -1217,7 +1259,7 @@
                 const fromDate = startDateInput.value || "غير محدد";
                 const toDate = endDateInput.value || "غير محدد";
                 const sheetHeader = ["اسم المطعم", "مدير المنطقة", "مدير التشغيل", "تاريخ التقرير", "رصيد أول", "الكمية المستلمة",
-                    "المحول للداخل", "المحول للخارج", "التوالف", "كمية الاستخدام", "رصيد آخر"
+                    "المحول للداخل", "المحول للخارج", "التوالف", "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة"
                 ];
                 const excelRows = [
                     ["شركة نايف للأغذية"],
@@ -1231,7 +1273,8 @@
                     excelRows.push([
                         row.restaurantDisplay, row.regionManager, row.opsManager, row.reportDate,
                         row.startQty, row.recdQty, row.tranInQty, row.tranOutQty,
-                        row.wastQty, row.actUsage, row.endQty
+                        row.wastQty, row.actUsage, row.endQty,
+                        row.convertedEnd !== null ? Math.round(row.convertedEnd) : ''
                     ]);
                 }
                 if (isShawarmaItem(currentSelectedItem)) {
@@ -1240,10 +1283,10 @@
                 }
                 const ws = XLSX.utils.aoa_to_sheet(excelRows);
                 ws['!cols'] = [{ wch: 28 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 18 }, { wch: 16 },
-                { wch: 16 }, { wch: 12 }, { wch: 18 }, { wch: 14 }
+                { wch: 16 }, { wch: 12 }, { wch: 18 }, { wch: 14 }, { wch: 18 }
                 ];
-                ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 10 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 10 } },
-                { s: { r: 2, c: 0 }, e: { r: 2, c: 10 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: 10 } }
+                ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 11 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 11 } },
+                { s: { r: 2, c: 0 }, e: { r: 2, c: 11 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: 11 } }
                 ];
                 const wb = XLSX.utils.book_new();
                 let sheetName = currentSelectedItem.replace(/[\\/*:?"<>|[\]]/g, '_');
@@ -1266,7 +1309,7 @@
                     toDate = endDateInput.value;
                 let currentIdx = 0,
                     pageNum = 1;
-                const rowsPerPage = 15,
+                const rowsPerPage = 14,
                     margin = 10;
                 const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
                 while (currentIdx < currentReportData.length) {
@@ -1275,7 +1318,7 @@
                     container.style.position = 'absolute';
                     container.style.left = '-9999px';
                     container.style.top = '0';
-                    container.style.width = '1350px';
+                    container.style.width = '1450px';
                     container.style.backgroundColor = 'white';
                     container.style.padding = '20px';
                     container.style.direction = 'rtl';
@@ -1287,10 +1330,23 @@
                         `<div style="text-align:center;"><div>${logoHtml}<div style="font-size:1.6rem;font-weight:bold;color:#d32f2f;">شركة نايف للأغذية</div><div style="font-size:0.9rem;">NAIF FOOD COMPANY</div><div style="background:#f0f6ff;padding:5px 15px;border-radius:30px;margin:10px auto;display:inline-block;"><strong>تقرير COGS</strong> | الصنف: ${escapeHtml(currentSelectedItem)}<br>الفترة: ${fromDate} → ${toDate}</div>${pageNum>1?`<div>صفحة ${pageNum}</div>`:''}</div>`;
                     let tableRows = "";
                     for (const r of chunk) {
-                        tableRows += `<tr><td style="border:1px solid #ccc;padding:8px;">${escapeHtml(r.restaurantDisplay)}</td><td style="border:1px solid #ccc;padding:8px;">${escapeHtml(r.regionManager)}</td><td style="border:1px solid #ccc;padding:8px;">${escapeHtml(r.opsManager)}</td><td style="border:1px solid #ccc;padding:8px;">${escapeHtml(r.reportDate)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(r.startQty)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(r.recdQty)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(r.tranInQty)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(r.tranOutQty)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(r.wastQty)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(r.actUsage)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZero(r.endQty)}</td></tr>`;
+                        tableRows += `<tr>
+                            <td style="border:1px solid #ccc;padding:6px;">${escapeHtml(r.restaurantDisplay)}</td>
+                            <td style="border:1px solid #ccc;padding:6px;">${escapeHtml(r.regionManager)}</td>
+                            <td style="border:1px solid #ccc;padding:6px;">${escapeHtml(r.opsManager)}</td>
+                            <td style="border:1px solid #ccc;padding:6px;">${escapeHtml(r.reportDate)}</td>
+                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.startQty)}</td>
+                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.recdQty)}</td>
+                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.tranInQty)}</td>
+                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.tranOutQty)}</td>
+                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.wastQty)}</td>
+                            <td style="border:1px solid #ccc;text-align:center;">${formatZero(r.actUsage)}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZero(r.endQty)}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${r.convertedEnd !== null ? Math.round(r.convertedEnd) : '—'}</td>
+                        </tr>`;
                     }
                     let tableHtml =
-                        `<table style="width:100%;border-collapse:collapse;font-size:0.8rem;"><thead><tr style="background:#1976D2;color:#fff;"><th>المطعم</th><th>مدير المنطقة</th><th>مدير التشغيل</th><th>تاريخ التقرير</th><th>بداية</th><th>مستلم</th><th>داخل</th><th>خارج</th><th>توالف</th><th>استخدام</th><th>نهاية</th></tr></thead><tbody>${tableRows}</tbody></table>`;
+                        `<table style="width:100%;border-collapse:collapse;font-size:0.75rem;"><thead><tr style="background:#1976D2;color:#fff;"><th>المطعم</th><th>مدير المنطقة</th><th>مدير التشغيل</th><th>تاريخ التقرير</th><th>بداية</th><th>مستلم</th><th>داخل</th><th>خارج</th><th>توالف</th><th>استخدام</th><th>نهاية</th><th>نهاية بالقطعة</th></tr></thead><tbody>${tableRows}</tbody></table>`;
                     let noteHtml = isShawarmaItem(currentSelectedItem) ?
                         `<div style="background:#fff3cd;border-right:4px solid #ffc107;padding:10px;margin-top:15px;border-radius:8px;font-size:0.8rem;color:#856404;">⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.</div>` :
                         "";
@@ -1311,7 +1367,7 @@
         }
 
         // ================================================================
-        // 7. التاب الثاني: المطاعم والأصناف المحددة
+        // 7. التاب الثاني: المطاعم والأصناف المحددة (مع التحويل والتجميع)
         // ================================================================
         function populateRestaurantDatalist() {
             const restaurants = allRestaurantsData.map(r => r.restaurantDisplay).filter((v, i, a) => a.indexOf(v) === i);
@@ -1358,7 +1414,7 @@
             const selected = restaurantSearchInput.value.trim();
             if (!selected) {
                 restaurantItemsBody.innerHTML =
-                `<tr class="empty-row"><td colspan="8">⚠️ الرجاء اختيار مطعم من القائمة</td></tr>`;
+                `<tr class="empty-row"><td colspan="9">⚠️ الرجاء اختيار مطعم من القائمة</td></tr>`;
                 restaurantNoteContainer.style.display = 'none';
                 restaurantInfoHeader.style.display = 'none';
                 currentRestaurantData = null;
@@ -1368,7 +1424,7 @@
             const restData = allRestaurantsData.find(r => r.restaurantDisplay === selected);
             if (!restData) {
                 restaurantItemsBody.innerHTML =
-                `<tr class="empty-row"><td colspan="8">❌ لا توجد بيانات لهذا المطعم</td></tr>`;
+                `<tr class="empty-row"><td colspan="9">❌ لا توجد بيانات لهذا المطعم</td></tr>`;
                 restaurantNoteContainer.style.display = 'none';
                 restaurantInfoHeader.style.display = 'none';
                 currentRestaurantData = null;
@@ -1387,7 +1443,7 @@
             let hasShawarma = false;
             const allRows = [];
             let currentGroup = -1;
-            let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0 };
+            let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0, convertedEnd: 0 };
 
             for (let idx = 0; idx < FLAT_ITEMS.length; idx++) {
                 const it = FLAT_ITEMS[idx];
@@ -1403,8 +1459,10 @@
                         <td>${formatZero(groupTotals.wast)}</td>
                         <td>${formatZero(groupTotals.usage)}</td>
                         <td class="bold-end">${formatZero(groupTotals.end)}</td>
+                        <td class="bold-end">${formatZeroInt(groupTotals.convertedEnd)}</td>
                     </tr>`;
-                    groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0 };
+                    groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
+                    convertedEnd: 0 };
                 }
                 currentGroup = groupIdx;
 
@@ -1422,12 +1480,18 @@
                 let wastQty = found ? found.wastQty : null;
                 let usageQty = found ? found.actUsage : null;
                 let endQty = found ? found.endQty : null;
+                let convertedEnd = null;
 
                 if (found && isShaw) {
                     const adjusted = applyShawarmaBonusAndRecalcEndQty(displayName, found);
                     wastQty = adjusted.wast;
                     usageQty = adjusted.usage;
                     endQty = adjusted.endQty;
+                }
+
+                if (found && endQty !== null) {
+                    const factor = it.factor || 1;
+                    convertedEnd = endQty * factor;
                 }
 
                 if (found) {
@@ -1438,15 +1502,14 @@
                     groupTotals.wast += (wastQty || 0);
                     groupTotals.usage += (usageQty || 0);
                     groupTotals.end += (endQty || 0);
+                    groupTotals.convertedEnd += (convertedEnd || 0);
                 }
 
-                const codeDisplay = found ? ` (${found.itemCode || it.code})` : ` (${it.code})`;
                 const rowData = {
                     restaurant: restData.restaurantDisplay,
                     region: restData.regionManager,
                     ops: restData.opsManager,
                     item: displayName,
-                    code: found ? found.itemCode : it.code,
                     start: startQty,
                     recd: recdQty,
                     tranIn: tranInQty,
@@ -1454,6 +1517,7 @@
                     wast: wastQty,
                     usage: usageQty,
                     end: endQty,
+                    convertedEnd: convertedEnd,
                     found: !!found,
                     isShaw: isShaw,
                     groupIdx: groupIdx
@@ -1461,7 +1525,7 @@
                 allRows.push(rowData);
 
                 html += `<tr class="${rowClass}">
-                    <td style="text-align:right;">${escapeHtml(displayName)} ${codeDisplay}${shawIcon}</td>
+                    <td style="text-align:right;">${escapeHtml(displayName)}${shawIcon}</td>
                     <td>${found ? formatZero(startQty) : '—'}</td>
                     <td>${found ? formatZero(recdQty) : '—'}</td>
                     <td>${found ? formatZero(tranInQty) : '—'}</td>
@@ -1469,6 +1533,7 @@
                     <td>${found ? formatZero(wastQty) : '—'}</td>
                     <td>${found ? formatZero(usageQty) : '—'}</td>
                     <td class="bold-end">${found ? formatZero(endQty) : '—'}</td>
+                    <td class="bold-end">${found && convertedEnd !== null ? formatZeroInt(convertedEnd) : '—'}</td>
                 </tr>`;
             }
 
@@ -1482,6 +1547,7 @@
                     <td>${formatZero(groupTotals.wast)}</td>
                     <td>${formatZero(groupTotals.usage)}</td>
                     <td class="bold-end">${formatZero(groupTotals.end)}</td>
+                    <td class="bold-end">${formatZeroInt(groupTotals.convertedEnd)}</td>
                 </tr>`;
             }
 
@@ -1498,15 +1564,15 @@
         }
 
         // ================================================================
-        // 8. تصدير Excel و PDF للتاب الثاني (مع الإجماليات)
+        // 8. تصدير Excel و PDF للتاب الثاني (مع العمود الجديد والتجميع)
         // ================================================================
         function exportRestaurantExcel() {
             if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
             try {
                 const fromDate = startDateInput.value || "غير محدد";
                 const toDate = endDateInput.value || "غير محدد";
-                const sheetHeader = ["الصنف (الكود)", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج", "التوالف",
-                    "كمية الاستخدام", "رصيد آخر"
+                const sheetHeader = ["الصنف", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج", "التوالف",
+                    "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة"
                 ];
                 const excelRows = [
                     ["شركة نايف للأغذية"],
@@ -1521,7 +1587,8 @@
                 ];
 
                 let currentGroup = -1;
-                let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0 };
+                let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
+                convertedEnd: 0 };
 
                 for (let i = 0; i < currentRestaurantItems.length; i++) {
                     const row = currentRestaurantItems[i];
@@ -1537,9 +1604,11 @@
                             groupTotals.tranOut,
                             groupTotals.wast,
                             groupTotals.usage,
-                            groupTotals.end
+                            groupTotals.end,
+                            Math.round(groupTotals.convertedEnd)
                         ]);
-                        groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0 };
+                        groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
+                        convertedEnd: 0 };
                     }
                     currentGroup = flatItem.groupIdx;
 
@@ -1551,17 +1620,19 @@
                         groupTotals.wast += (row.wast || 0);
                         groupTotals.usage += (row.usage || 0);
                         groupTotals.end += (row.end || 0);
+                        groupTotals.convertedEnd += (row.convertedEnd || 0);
                     }
 
                     excelRows.push([
-                        `${row.item} (${row.code})`,
+                        row.item,
                         row.found ? row.start : '',
                         row.found ? row.recd : '',
                         row.found ? row.tranIn : '',
                         row.found ? row.tranOut : '',
                         row.found ? row.wast : '',
                         row.found ? row.usage : '',
-                        row.found ? row.end : ''
+                        row.found ? row.end : '',
+                        row.found && row.convertedEnd !== null ? Math.round(row.convertedEnd) : ''
                     ]);
                 }
 
@@ -1574,7 +1645,8 @@
                         groupTotals.tranOut,
                         groupTotals.wast,
                         groupTotals.usage,
-                        groupTotals.end
+                        groupTotals.end,
+                        Math.round(groupTotals.convertedEnd)
                     ]);
                 }
 
@@ -1584,13 +1656,13 @@
                 }
 
                 const ws = XLSX.utils.aoa_to_sheet(excelRows);
-                ws['!cols'] = [{ wch: 35 }, { wch: 15 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 18 },
-                { wch: 14 }
+                ws['!cols'] = [{ wch: 32 }, { wch: 15 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 18 },
+                { wch: 14 }, { wch: 18 }
                 ];
-                ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } },
-                { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: 7 } },
-                { s: { r: 4, c: 0 }, e: { r: 4, c: 7 } }, { s: { r: 5, c: 0 }, e: { r: 5, c: 7 } },
-                { s: { r: 6, c: 0 }, e: { r: 6, c: 7 } }
+                ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },
+                { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: 8 } },
+                { s: { r: 4, c: 0 }, e: { r: 4, c: 8 } }, { s: { r: 5, c: 0 }, e: { r: 5, c: 8 } },
+                { s: { r: 6, c: 0 }, e: { r: 6, c: 8 } }
                 ];
                 const wb = XLSX.utils.book_new();
                 const sheetName =
@@ -1613,7 +1685,7 @@
                 const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
                 const fromDate = startDateInput.value,
                     toDate = endDateInput.value;
-                const rowsPerPage = 12,
+                const rowsPerPage = 11,
                     margin = 10;
                 const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
                 const allRows = currentRestaurantItems;
@@ -1625,7 +1697,7 @@
                     container.style.position = 'absolute';
                     container.style.left = '-9999px';
                     container.style.top = '0';
-                    container.style.width = '1100px';
+                    container.style.width = '1200px';
                     container.style.backgroundColor = 'white';
                     container.style.padding = '20px';
                     container.style.direction = 'rtl';
@@ -1641,7 +1713,8 @@
 
                     let tableRows = "";
                     let currentGroup = -1;
-                    let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0 };
+                    let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
+                    convertedEnd: 0 };
                     let visibleCount = 0;
 
                     for (let i = 0; i < allRows.length; i++) {
@@ -1662,9 +1735,10 @@
                             }
                             if (shouldAddTotal) {
                                 tableRows +=
-                                    `<tr style="background:#e3f0fa;font-weight:700;border-top:3px solid #0d47a1;"><td style="border:1px solid #ccc;padding:6px;text-align:center;">🔹 إجمالي المجموعة</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.start)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.recd)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranIn)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranOut)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.wast)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.usage)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZero(groupTotals.end)}</td></tr>`;
+                                    `<tr style="background:#e3f0fa;font-weight:700;border-top:3px solid #0d47a1;"><td style="border:1px solid #ccc;padding:6px;text-align:center;">🔹 إجمالي المجموعة</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.start)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.recd)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranIn)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranOut)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.wast)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.usage)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZero(groupTotals.end)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZeroInt(groupTotals.convertedEnd)}</td></tr>`;
                             }
-                            groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0 };
+                            groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
+                            convertedEnd: 0 };
                         }
                         currentGroup = flatItem.groupIdx;
 
@@ -1676,12 +1750,13 @@
                             groupTotals.wast += (r.wast || 0);
                             groupTotals.usage += (r.usage || 0);
                             groupTotals.end += (r.end || 0);
+                            groupTotals.convertedEnd += (r.convertedEnd || 0);
                         }
 
                         if (isVisible) {
                             const isShaw = r.isShaw ? ' 🔥' : '';
                             tableRows += `<tr>
-                                <td style="border:1px solid #ccc;padding:6px;text-align:right;">${escapeHtml(r.item)} (${r.code})${isShaw}</td>
+                                <td style="border:1px solid #ccc;padding:6px;text-align:right;">${escapeHtml(r.item)}${isShaw}</td>
                                 <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.start):'—'}</td>
                                 <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.recd):'—'}</td>
                                 <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.tranIn):'—'}</td>
@@ -1689,6 +1764,7 @@
                                 <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.wast):'—'}</td>
                                 <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.usage):'—'}</td>
                                 <td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${r.found?formatZero(r.end):'—'}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${r.found && r.convertedEnd !== null ? Math.round(r.convertedEnd) : '—'}</td>
                             </tr>`;
                         }
                     }
@@ -1703,12 +1779,12 @@
                         }
                         if (shouldAddTotal) {
                             tableRows +=
-                                `<tr style="background:#e3f0fa;font-weight:700;border-top:3px solid #0d47a1;"><td style="border:1px solid #ccc;padding:6px;text-align:center;">🔹 إجمالي المجموعة</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.start)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.recd)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranIn)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranOut)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.wast)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.usage)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZero(groupTotals.end)}</td></tr>`;
+                                `<tr style="background:#e3f0fa;font-weight:700;border-top:3px solid #0d47a1;"><td style="border:1px solid #ccc;padding:6px;text-align:center;">🔹 إجمالي المجموعة</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.start)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.recd)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranIn)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranOut)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.wast)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.usage)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZero(groupTotals.end)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZeroInt(groupTotals.convertedEnd)}</td></tr>`;
                         }
                     }
 
                     const tableHtml =
-                        `<table style="width:100%;border-collapse:collapse;font-size:0.75rem;margin-top:6px;"><thead><tr style="background:#2e7d32;color:#fff;"><th style="padding:8px;">الصنف (الكود)</th><th style="padding:8px;">بداية</th><th style="padding:8px;">مستلم</th><th style="padding:8px;">داخل</th><th style="padding:8px;">خارج</th><th style="padding:8px;">توالف</th><th style="padding:8px;">استخدام</th><th style="padding:8px;">نهاية</th></tr></thead><tbody>${tableRows}</tbody></table>`;
+                        `<table style="width:100%;border-collapse:collapse;font-size:0.7rem;margin-top:6px;"><thead><tr style="background:#2e7d32;color:#fff;"><th style="padding:6px;">الصنف</th><th style="padding:6px;">بداية</th><th style="padding:6px;">مستلم</th><th style="padding:6px;">داخل</th><th style="padding:6px;">خارج</th><th style="padding:6px;">توالف</th><th style="padding:6px;">استخدام</th><th style="padding:6px;">نهاية</th><th style="padding:6px;">نهاية بالقطعة</th></tr></thead><tbody>${tableRows}</tbody></table>`;
 
                     let noteHtml = currentRestaurantItems.some(r => r.isShaw) ?
                         `<div style="background:#fff3cd;border-right:4px solid #ffc107;padding:10px;margin-top:15px;border-radius:8px;font-size:0.8rem;color:#856404;">⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.</div>` :
@@ -1774,7 +1850,7 @@
         generateBtn.addEventListener('click', () => {
             const selected = itemSearch.value.trim();
             if (!selected) { tableBody.innerHTML =
-                    '<tr class="empty-row"><td colspan="10">⚠️ أدخل اسم الصنف</td></tr>';
+                    '<tr class="empty-row"><td colspan="11">⚠️ أدخل اسم الصنف</td></tr>';
                 specialNoteContainer.style.display = 'none'; return; }
             generateReportForItem(selected);
         });
@@ -1796,7 +1872,7 @@
         exportRestaurantPdfBtn.disabled = true;
         restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ COGS v9 – التاب الأول: جميع الأصناف من الملفات، التاب الثاني: الأصناف المحددة بالأكواد مع الإجماليات');
+        console.log('✅ COGS v10 – تم إضافة عمود "رصيد آخر بالقطعة" مع معاملات التحويل والتجميع');
     </script>
 </body>
 </html>
