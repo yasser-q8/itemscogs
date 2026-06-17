@@ -540,16 +540,16 @@
                     <thead>
                         <tr>
                             <th>اسم المطعم<br><small>Restaurant</small></th>
-                            <th>مدير المنطقة<br><small>Region Mgr</small></th>
-                            <th>مدير التشغيل<br><small>Ops Mgr</small></th>
-                            <th>رصيد أول<br><small>Start</small></th>
-                            <th>مستلم<br><small>Recd</small></th>
-                            <th>داخل<br><small>Trans In</small></th>
-                            <th>خارج<br><small>Trans Out</small></th>
-                            <th>توالف<br><small>Waste</small></th>
-                            <th>استخدام<br><small>Usage</small></th>
-                            <th>رصيد آخر<br><small>End</small></th>
-                            <th>رصيد آخر بالقطعة<br><small>End qty per piece</small></th>
+                            <th>مدير المنطقة<br><small>Region Manager</small></th>
+                            <th>مدير التشغيل<br><small>Operations Manager</small></th>
+                            <th>رصيد أول<br><small>Start Qty</small></th>
+                            <th>الكمية المستلمة<br><small>Received Qty</small></th>
+                            <th>المحول للداخل<br><small>Transfer In</small></th>
+                            <th>المحول للخارج<br><small>Transfer Out</small></th>
+                            <th>التوالف<br><small>Waste</small></th>
+                            <th>كمية الاستخدام<br><small>Usage Qty</small></th>
+                            <th>رصيد آخر<br><small>End Qty</small></th>
+                            <th>رصيد آخر بالقطعة<br><small>End Qty per piece</small></th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"><tr class="empty-row"><td colspan="11">📁 قم برفع الملفات واختر صنفاً</td></tr>
@@ -591,14 +591,14 @@
                     <thead>
                         <tr>
                             <th>الصنف<br><small>Item</small></th>
-                            <th>رصيد أول<br><small>Start</small></th>
-                            <th>مستلم<br><small>Recd</small></th>
-                            <th>داخل<br><small>Trans In</small></th>
-                            <th>خارج<br><small>Trans Out</small></th>
-                            <th>توالف<br><small>Waste</small></th>
-                            <th>استخدام<br><small>Usage</small></th>
-                            <th>رصيد آخر<br><small>End</small></th>
-                            <th>رصيد آخر بالقطعة<br><small>End qty per piece</small></th>
+                            <th>رصيد أول<br><small>Start Qty</small></th>
+                            <th>الكمية المستلمة<br><small>Received Qty</small></th>
+                            <th>المحول للداخل<br><small>Transfer In</small></th>
+                            <th>المحول للخارج<br><small>Transfer Out</small></th>
+                            <th>التوالف<br><small>Waste</small></th>
+                            <th>كمية الاستخدام<br><small>Usage Qty</small></th>
+                            <th>رصيد آخر<br><small>End Qty</small></th>
+                            <th>رصيد آخر بالقطعة<br><small>End Qty per piece</small></th>
                         </tr>
                     </thead>
                     <tbody id="restaurantItemsBody">
@@ -1251,23 +1251,29 @@
         }
 
         // ================================================================
-        // 6. تصدير Excel و PDF للتاب الأول (مع العمود الجديد)
+        // 6. تصدير Excel و PDF للتاب الأول (مع عناوين سطرين)
         // ================================================================
         function exportToExcel() {
             if (!currentReportData || currentReportData.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
             try {
                 const fromDate = startDateInput.value || "غير محدد";
                 const toDate = endDateInput.value || "غير محدد";
-                const sheetHeader = ["اسم المطعم", "مدير المنطقة", "مدير التشغيل", "تاريخ التقرير", "رصيد أول", "الكمية المستلمة",
+                // عناوين سطرين
+                const headerArabic = ["اسم المطعم", "مدير المنطقة", "مدير التشغيل", "تاريخ التقرير", "رصيد أول", "الكمية المستلمة",
                     "المحول للداخل", "المحول للخارج", "التوالف", "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة"
                 ];
+                const headerEnglish = ["Restaurant", "Region Manager", "Operations Manager", "Report Date", "Start Qty",
+                    "Received Qty", "Transfer In", "Transfer Out", "Waste", "Usage Qty", "End Qty", "End Qty per piece"
+                ];
+
                 const excelRows = [
                     ["شركة نايف للأغذية"],
                     ["تقرير تحليل المخزون (COGS)"],
                     [`الصنف: ${currentSelectedItem}`],
                     [`الفترة الوصفية: ${fromDate} → ${toDate}`],
                     [],
-                    sheetHeader
+                    headerArabic,
+                    headerEnglish
                 ];
                 for (const row of currentReportData) {
                     excelRows.push([
@@ -1285,6 +1291,7 @@
                 ws['!cols'] = [{ wch: 28 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 18 }, { wch: 16 },
                 { wch: 16 }, { wch: 12 }, { wch: 18 }, { wch: 14 }, { wch: 18 }
                 ];
+                // دمج خلايا العناوين العلوية (الصفوف 0-3)
                 ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 11 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 11 } },
                 { s: { r: 2, c: 0 }, e: { r: 2, c: 11 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: 11 } }
                 ];
@@ -1346,7 +1353,21 @@
                         </tr>`;
                     }
                     let tableHtml =
-                        `<table style="width:100%;border-collapse:collapse;font-size:0.75rem;"><thead><tr style="background:#1976D2;color:#fff;"><th>المطعم</th><th>مدير المنطقة</th><th>مدير التشغيل</th><th>تاريخ التقرير</th><th>بداية</th><th>مستلم</th><th>داخل</th><th>خارج</th><th>توالف</th><th>استخدام</th><th>نهاية</th><th>نهاية بالقطعة</th></tr></thead><tbody>${tableRows}</tbody></table>`;
+                        `<table style="width:100%;border-collapse:collapse;font-size:0.75rem;">
+                        <thead>
+                            <tr style="background:#1976D2;color:#fff;">
+                                <th>اسم المطعم</th><th>مدير المنطقة</th><th>مدير التشغيل</th><th>تاريخ التقرير</th>
+                                <th>رصيد أول</th><th>الكمية المستلمة</th><th>المحول للداخل</th><th>المحول للخارج</th>
+                                <th>التوالف</th><th>كمية الاستخدام</th><th>رصيد آخر</th><th>رصيد آخر بالقطعة</th>
+                            </tr>
+                            <tr style="background:#1565C0;color:#e3f2fd;font-size:0.65rem;">
+                                <th>Restaurant</th><th>Region Manager</th><th>Operations Manager</th><th>Report Date</th>
+                                <th>Start Qty</th><th>Received Qty</th><th>Transfer In</th><th>Transfer Out</th>
+                                <th>Waste</th><th>Usage Qty</th><th>End Qty</th><th>End Qty per piece</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>`;
                     let noteHtml = isShawarmaItem(currentSelectedItem) ?
                         `<div style="background:#fff3cd;border-right:4px solid #ffc107;padding:10px;margin-top:15px;border-radius:8px;font-size:0.8rem;color:#856404;">⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.</div>` :
                         "";
@@ -1564,16 +1585,20 @@
         }
 
         // ================================================================
-        // 8. تصدير Excel و PDF للتاب الثاني (مع العمود الجديد والتجميع)
+        // 8. تصدير Excel و PDF للتاب الثاني (مع عناوين سطرين)
         // ================================================================
         function exportRestaurantExcel() {
             if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
             try {
                 const fromDate = startDateInput.value || "غير محدد";
                 const toDate = endDateInput.value || "غير محدد";
-                const sheetHeader = ["الصنف", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج", "التوالف",
+                const headerArabic = ["الصنف", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج", "التوالف",
                     "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة"
                 ];
+                const headerEnglish = ["Item", "Start Qty", "Received Qty", "Transfer In", "Transfer Out", "Waste",
+                    "Usage Qty", "End Qty", "End Qty per piece"
+                ];
+
                 const excelRows = [
                     ["شركة نايف للأغذية"],
                     ["تقرير حركة أصناف المطعم (المحددة)"],
@@ -1583,7 +1608,8 @@
                     [`تاريخ التقرير: ${currentRestaurantData.reportDateRaw || 'غير محدد'}`],
                     [`الفترة الوصفية: ${fromDate} → ${toDate}`],
                     [],
-                    sheetHeader
+                    headerArabic,
+                    headerEnglish
                 ];
 
                 let currentGroup = -1;
@@ -1685,7 +1711,7 @@
                 const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
                 const fromDate = startDateInput.value,
                     toDate = endDateInput.value;
-                const rowsPerPage = 11,
+                const rowsPerPage = 10,
                     margin = 10;
                 const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
                 const allRows = currentRestaurantItems;
@@ -1784,7 +1810,33 @@
                     }
 
                     const tableHtml =
-                        `<table style="width:100%;border-collapse:collapse;font-size:0.7rem;margin-top:6px;"><thead><tr style="background:#2e7d32;color:#fff;"><th style="padding:6px;">الصنف</th><th style="padding:6px;">بداية</th><th style="padding:6px;">مستلم</th><th style="padding:6px;">داخل</th><th style="padding:6px;">خارج</th><th style="padding:6px;">توالف</th><th style="padding:6px;">استخدام</th><th style="padding:6px;">نهاية</th><th style="padding:6px;">نهاية بالقطعة</th></tr></thead><tbody>${tableRows}</tbody></table>`;
+                        `<table style="width:100%;border-collapse:collapse;font-size:0.7rem;margin-top:6px;">
+                        <thead>
+                            <tr style="background:#2e7d32;color:#fff;">
+                                <th style="padding:6px;">الصنف</th>
+                                <th style="padding:6px;">رصيد أول</th>
+                                <th style="padding:6px;">الكمية المستلمة</th>
+                                <th style="padding:6px;">المحول للداخل</th>
+                                <th style="padding:6px;">المحول للخارج</th>
+                                <th style="padding:6px;">التوالف</th>
+                                <th style="padding:6px;">كمية الاستخدام</th>
+                                <th style="padding:6px;">رصيد آخر</th>
+                                <th style="padding:6px;">رصيد آخر بالقطعة</th>
+                            </tr>
+                            <tr style="background:#1b5e20;color:#c8e6c9;font-size:0.6rem;">
+                                <th>Item</th>
+                                <th>Start Qty</th>
+                                <th>Received Qty</th>
+                                <th>Transfer In</th>
+                                <th>Transfer Out</th>
+                                <th>Waste</th>
+                                <th>Usage Qty</th>
+                                <th>End Qty</th>
+                                <th>End Qty per piece</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>`;
 
                     let noteHtml = currentRestaurantItems.some(r => r.isShaw) ?
                         `<div style="background:#fff3cd;border-right:4px solid #ffc107;padding:10px;margin-top:15px;border-radius:8px;font-size:0.8rem;color:#856404;">⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.</div>` :
@@ -1872,7 +1924,7 @@
         exportRestaurantPdfBtn.disabled = true;
         restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ COGS v10 – تم إضافة عمود "رصيد آخر بالقطعة" مع معاملات التحويل والتجميع');
+        console.log('✅ COGS v11 – عناوين الجدول في Excel و PDF أصبحت سطرين (عربي/إنجليزي)');
     </script>
 </body>
 </html>
