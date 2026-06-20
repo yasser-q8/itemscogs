@@ -712,19 +712,15 @@
                     display: `${it.ar} (${it.en})`
                 });
                 conversionMapByCode[it.code] = it.factor;
-                // إضافة الاسمين العربي والإنجليزي للخريطة (للتاب الأول)
                 conversionMapByName[it.ar.trim().toLowerCase()] = it.factor;
                 conversionMapByName[it.en.trim().toLowerCase()] = it.factor;
             });
         });
 
-        // دالة للحصول على معامل التحويل من اسم الصنف (للاستخدام في التاب الأول)
         function getConversionFactorFromName(itemName) {
             if (!itemName) return null;
             const lower = itemName.trim().toLowerCase();
-            // محاولة المطابقة التامة
             if (conversionMapByName[lower]) return conversionMapByName[lower];
-            // محاولة البحث الجزئي (لأن الأسماء في الملفات قد تحتوي على كلمات إضافية)
             for (let key in conversionMapByName) {
                 if (lower.includes(key) || key.includes(lower)) {
                     return conversionMapByName[key];
@@ -733,16 +729,16 @@
             return null;
         }
 
-        // دالة للحصول على معامل التحويل من الكود
         function getConversionFactorFromCode(code) {
             if (!code) return null;
             return conversionMapByCode[code.trim()] || null;
         }
 
         // ================================================================
-        // 2. قاعدة بيانات المطاعم
+        // 2. قاعدة بيانات المطاعم + خريطة الأسماء المزدوجة
         // ================================================================
         const RESTAURANT_MASTER = new Map();
+        const arToEnMap = new Map(); // اسم عربي -> اسم إنجليزي
 
         function buildMasterDatabase() {
             const managersData = [
@@ -833,7 +829,7 @@
                 { ar: "الدسمة", en: "Dasma" },
                 { ar: "الفحيحيل", en: "Fahaheel" },
                 { ar: "الفحيحيل -2", en: "Fahaheel- 2" },
-                { ar: "الفيحاء", en: "Faiha" },
+                { ar: "الفيحاء", en: "Al-Faiha" },
                 { ar: "الفروانية", en: "Farwaniya" },
                 { ar: "الفنطاس", en: "Fintas" },
                 { ar: "هدية", en: "Hadiya" },
@@ -889,6 +885,11 @@
                 { ar: "غرب أبو فطيرة", en: "West Abu Fatira" },
                 { ar: "الزهراء", en: "Zahra" }
             ];
+            // بناء خريطة الاسم العربي -> الإنجليزي
+            for (const syn of synonyms) {
+                arToEnMap.set(syn.ar, syn.en);
+            }
+            // إضافة مرادفات إنجليزية للـ Map للبحث السريع (مع الاحتفاظ بالاسم المزدوج)
             for (const syn of synonyms) {
                 const stdData = RESTAURANT_MASTER.get(syn.ar);
                 if (stdData) {
@@ -903,34 +904,49 @@
         buildMasterDatabase();
 
         function getRestaurantInfo(rawName) {
-            if (!rawName) return { displayName: "غير معروف", regionManager: "—", opsManager: "—" };
+            if (!rawName) return { displayName: "غير معروف", regionManager: "—", opsManager: "—", combinedName: "غير معروف" };
             let normalized = rawName.trim().replace(/^مطعم\s+/i, '').replace(/\s+/g, ' ').trim();
+            let found = null;
+            let foundKey = null;
+            // البحث بالاسم العربي أو الإنجليزي
             if (RESTAURANT_MASTER.has(normalized)) {
-                const info = RESTAURANT_MASTER.get(normalized);
-                return { displayName: info.displayName, regionManager: info.regionManager, opsManager: info
-                        .operationsManager };
-            }
-            const lowerKey = normalized.toLowerCase();
-            if (RESTAURANT_MASTER.has(lowerKey)) {
-                const info = RESTAURANT_MASTER.get(lowerKey);
-                return { displayName: info.displayName, regionManager: info.regionManager, opsManager: info
-                        .operationsManager };
-            }
-            for (let [key, info] of RESTAURANT_MASTER.entries()) {
-                if (typeof key === 'string' && key.length > 2 && (normalized.includes(key) || key.includes(normalized) ||
-                        lowerKey.includes(key.toLowerCase()))) {
-                    return { displayName: info.displayName, regionManager: info.regionManager, opsManager: info
-                            .operationsManager };
+                found = RESTAURANT_MASTER.get(normalized);
+                foundKey = normalized;
+            } else {
+                const lowerKey = normalized.toLowerCase();
+                if (RESTAURANT_MASTER.has(lowerKey)) {
+                    found = RESTAURANT_MASTER.get(lowerKey);
+                    foundKey = lowerKey;
+                } else {
+                    for (let [key, info] of RESTAURANT_MASTER.entries()) {
+                        if (typeof key === 'string' && key.length > 2 && (normalized.includes(key) || key.includes(
+                                normalized) || lowerKey.includes(key.toLowerCase()))) {
+                            found = info;
+                            foundKey = key;
+                            break;
+                        }
+                    }
                 }
             }
-            return { displayName: rawName, regionManager: "غير محدد", opsManager: "غير محدد" };
+            if (found) {
+                const arName = found.displayName || foundKey;
+                const enName = arToEnMap.get(arName) || arToEnMap.get(foundKey) || '';
+                const combined = enName ? `${arName} - ${enName}` : arName;
+                return {
+                    displayName: arName,
+                    regionManager: found.regionManager,
+                    opsManager: found.operationsManager,
+                    combinedName: combined
+                };
+            }
+            return { displayName: rawName, regionManager: "غير محدد", opsManager: "غير محدد", combinedName: rawName };
         }
 
         // ================================================================
         // 3. قراءة الملفات
         // ================================================================
         let allRestaurantsData = [];
-        let uniqueItemsSet = new Set(); // للأصناف المستخلصة من الملفات (التاب الأول)
+        let uniqueItemsSet = new Set();
         let currentSelectedItem = "";
         let currentReportData = [];
         let currentRestaurantData = null;
@@ -966,7 +982,6 @@
         const headerOpsManager = document.getElementById('headerOpsManager');
         const headerReportDate = document.getElementById('headerReportDate');
 
-        // دوال مساعدة
         function formatZero(val) {
             let num = Number(val);
             if (isNaN(num) || num === 0) return "—";
@@ -1006,7 +1021,6 @@
             return { wast: originalItem.wastQty, usage: originalItem.actUsage, endQty: originalItem.endQty };
         }
 
-        // --- قراءة ملفات Excel ---
         function getRestaurantNameFromSheet(worksheet) {
             try {
                 const cell = worksheet['B14'];
@@ -1142,6 +1156,7 @@
                     allRestaurantsData.push({
                         restaurantRaw: res.restaurantRaw,
                         restaurantDisplay: res.restaurantInfo.displayName,
+                        restaurantCombined: res.restaurantInfo.combinedName,
                         regionManager: res.restaurantInfo.regionManager,
                         opsManager: res.restaurantInfo.opsManager,
                         reportDateRaw: res.reportDateRaw,
@@ -1153,14 +1168,12 @@
             if (valid === 0) { showError("لم يتم العثور على جداول متوافقة.");
                 uploadStatus.innerHTML = "❌ فشل القراءة"; return; }
             uploadStatus.innerHTML = `✅ تم تحميل ${valid} ملف | إجمالي الأصناف المستخلصة: ${uniqueItemsSet.size}`;
-            // تفعيل التاب الأول
             itemSearch.disabled = false;
             generateBtn.disabled = false;
             exportExcelBtn.disabled = false;
             exportPdfBtn.disabled = false;
             refreshSearchTab1();
 
-            // تفعيل التاب الثاني
             tab2Btn.disabled = false;
             populateRestaurantDatalist();
             restaurantSearchInput.disabled = false;
@@ -1170,7 +1183,7 @@
         }
 
         // ================================================================
-        // 4. البحث الديناميكي للتاب الأول (من uniqueItemsSet)
+        // 4. البحث الديناميكي للتاب الأول
         // ================================================================
         function refreshSearchTab1() {
             const term = itemSearch.value.trim().toLowerCase();
@@ -1196,7 +1209,6 @@
             }
             currentSelectedItem = exact;
             const rows = [];
-            // الحصول على معامل التحويل لهذا الصنف (إذا كان ضمن القائمة المحددة)
             let factor = getConversionFactorFromName(exact);
 
             for (const rest of allRestaurantsData) {
@@ -1206,7 +1218,7 @@
                         found);
                     const convertedEnd = factor !== null ? (newEnd * factor) : null;
                     rows.push({
-                        restaurantDisplay: rest.restaurantDisplay,
+                        restaurantCombined: rest.restaurantCombined, // الاسم المزدوج
                         regionManager: rest.regionManager,
                         opsManager: rest.opsManager,
                         reportDate: rest.reportDateRaw || "غير محدد",
@@ -1229,7 +1241,7 @@
                 let html = "";
                 for (const r of rows) {
                     html += `<tr>
-                        <td style="text-align:right;">${escapeHtml(r.restaurantDisplay)}</td>
+                        <td style="text-align:right;">${escapeHtml(r.restaurantCombined)}</td>
                         <td>${escapeHtml(r.regionManager)}</td>
                         <td>${escapeHtml(r.opsManager)}</td>
                         <td>${formatZero(r.startQty)}</td>
@@ -1258,7 +1270,6 @@
             try {
                 const fromDate = startDateInput.value || "غير محدد";
                 const toDate = endDateInput.value || "غير محدد";
-                // عناوين سطرين
                 const headerArabic = ["اسم المطعم", "مدير المنطقة", "مدير التشغيل", "تاريخ التقرير", "رصيد أول", "الكمية المستلمة",
                     "المحول للداخل", "المحول للخارج", "التوالف", "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة"
                 ];
@@ -1277,7 +1288,7 @@
                 ];
                 for (const row of currentReportData) {
                     excelRows.push([
-                        row.restaurantDisplay, row.regionManager, row.opsManager, row.reportDate,
+                        row.restaurantCombined, row.regionManager, row.opsManager, row.reportDate,
                         row.startQty, row.recdQty, row.tranInQty, row.tranOutQty,
                         row.wastQty, row.actUsage, row.endQty,
                         row.convertedEnd !== null ? Math.round(row.convertedEnd) : ''
@@ -1291,7 +1302,6 @@
                 ws['!cols'] = [{ wch: 28 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 18 }, { wch: 16 },
                 { wch: 16 }, { wch: 12 }, { wch: 18 }, { wch: 14 }, { wch: 18 }
                 ];
-                // دمج خلايا العناوين العلوية (الصفوف 0-3)
                 ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 11 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 11 } },
                 { s: { r: 2, c: 0 }, e: { r: 2, c: 11 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: 11 } }
                 ];
@@ -1338,7 +1348,7 @@
                     let tableRows = "";
                     for (const r of chunk) {
                         tableRows += `<tr>
-                            <td style="border:1px solid #ccc;padding:6px;">${escapeHtml(r.restaurantDisplay)}</td>
+                            <td style="border:1px solid #ccc;padding:6px;">${escapeHtml(r.restaurantCombined)}</td>
                             <td style="border:1px solid #ccc;padding:6px;">${escapeHtml(r.regionManager)}</td>
                             <td style="border:1px solid #ccc;padding:6px;">${escapeHtml(r.opsManager)}</td>
                             <td style="border:1px solid #ccc;padding:6px;">${escapeHtml(r.reportDate)}</td>
@@ -1391,7 +1401,7 @@
         // 7. التاب الثاني: المطاعم والأصناف المحددة (مع التحويل والتجميع)
         // ================================================================
         function populateRestaurantDatalist() {
-            const restaurants = allRestaurantsData.map(r => r.restaurantDisplay).filter((v, i, a) => a.indexOf(v) === i);
+            const restaurants = allRestaurantsData.map(r => r.restaurantCombined).filter((v, i, a) => a.indexOf(v) === i);
             restaurantDatalist.innerHTML = '';
             for (const name of restaurants.sort()) {
                 const opt = document.createElement('option');
@@ -1402,7 +1412,6 @@
         }
 
         function findMatchingItem(flatItem, restData) {
-            // 1. مطابقة الكود
             if (flatItem.code) {
                 for (let it of restData.items) {
                     if (it.itemCode && it.itemCode.trim() === flatItem.code) {
@@ -1410,7 +1419,6 @@
                     }
                 }
             }
-            // 2. مطابقة الاسم التامة
             const arName = flatItem.ar.trim();
             const enName = flatItem.en.trim();
             for (let it of restData.items) {
@@ -1419,7 +1427,6 @@
                     return it;
                 }
             }
-            // 3. مطابقة جزئية
             const lowerAr = arName.toLowerCase();
             const lowerEn = enName.toLowerCase();
             for (let it of restData.items) {
@@ -1442,7 +1449,7 @@
                 currentRestaurantItems = [];
                 return;
             }
-            const restData = allRestaurantsData.find(r => r.restaurantDisplay === selected);
+            const restData = allRestaurantsData.find(r => r.restaurantCombined === selected);
             if (!restData) {
                 restaurantItemsBody.innerHTML =
                 `<tr class="empty-row"><td colspan="9">❌ لا توجد بيانات لهذا المطعم</td></tr>`;
@@ -1455,7 +1462,7 @@
             currentRestaurantData = restData;
 
             restaurantInfoHeader.style.display = 'flex';
-            headerRestaurantName.textContent = restData.restaurantDisplay;
+            headerRestaurantName.textContent = restData.restaurantCombined;
             headerRegionManager.textContent = restData.regionManager;
             headerOpsManager.textContent = restData.opsManager;
             headerReportDate.textContent = restData.reportDateRaw || 'غير محدد';
@@ -1527,7 +1534,7 @@
                 }
 
                 const rowData = {
-                    restaurant: restData.restaurantDisplay,
+                    restaurant: restData.restaurantCombined,
                     region: restData.regionManager,
                     ops: restData.opsManager,
                     item: displayName,
@@ -1602,7 +1609,7 @@
                 const excelRows = [
                     ["شركة نايف للأغذية"],
                     ["تقرير حركة أصناف المطعم (المحددة)"],
-                    [`المطعم: ${currentRestaurantData.restaurantDisplay}`],
+                    [`المطعم: ${currentRestaurantData.restaurantCombined}`],
                     [`مدير المنطقة: ${currentRestaurantData.regionManager}`],
                     [`مدير التشغيل: ${currentRestaurantData.opsManager}`],
                     [`تاريخ التقرير: ${currentRestaurantData.reportDateRaw || 'غير محدد'}`],
@@ -1692,10 +1699,10 @@
                 ];
                 const wb = XLSX.utils.book_new();
                 const sheetName =
-                    `حركة_${currentRestaurantData.restaurantDisplay.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 25)}`;
+                    `حركة_${currentRestaurantData.restaurantCombined.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 25)}`;
                 XLSX.utils.book_append_sheet(wb, ws, sheetName);
                 XLSX.writeFile(wb,
-                    `Restaurant_Items_${currentRestaurantData.restaurantDisplay.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 30)}.xlsx`
+                    `Restaurant_Items_${currentRestaurantData.restaurantCombined.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 30)}.xlsx`
                     );
             } catch (err) { alert("فشل تصدير Excel: " + err.message); }
         }
@@ -1733,7 +1740,7 @@
                         `<img src="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" style="width:55px;border-radius:12px;"><br>` :
                         "";
                     const infoHtml =
-                        `<div style="text-align:center;font-size:0.9rem;background:#f0f6fe;padding:10px;border-radius:12px;margin:6px 0 12px 0;"><div><strong>المطعم:</strong> ${escapeHtml(currentRestaurantData.restaurantDisplay)}</div><div><strong>مدير المنطقة:</strong> ${escapeHtml(currentRestaurantData.regionManager)} &nbsp;|&nbsp; <strong>مدير التشغيل:</strong> ${escapeHtml(currentRestaurantData.opsManager)}</div><div><strong>تاريخ التقرير:</strong> ${escapeHtml(currentRestaurantData.reportDateRaw || 'غير محدد')} &nbsp;|&nbsp; <strong>الفترة:</strong> ${fromDate} → ${toDate}</div></div>`;
+                        `<div style="text-align:center;font-size:0.9rem;background:#f0f6fe;padding:10px;border-radius:12px;margin:6px 0 12px 0;"><div><strong>المطعم:</strong> ${escapeHtml(currentRestaurantData.restaurantCombined)}</div><div><strong>مدير المنطقة:</strong> ${escapeHtml(currentRestaurantData.regionManager)} &nbsp;|&nbsp; <strong>مدير التشغيل:</strong> ${escapeHtml(currentRestaurantData.opsManager)}</div><div><strong>تاريخ التقرير:</strong> ${escapeHtml(currentRestaurantData.reportDateRaw || 'غير محدد')} &nbsp;|&nbsp; <strong>الفترة:</strong> ${fromDate} → ${toDate}</div></div>`;
                     const headerHtml =
                         `<div style="text-align:center;"><div>${logoHtml}<div style="font-size:1.6rem;font-weight:bold;color:#d32f2f;">شركة نايف للأغذية</div><div style="font-size:0.9rem;">NAIF FOOD COMPANY</div><div style="font-size:1.1rem;font-weight:700;color:#2e7d32;margin-top:4px;">تقرير حركة أصناف المطعم (المحددة)</div>${infoHtml}${pageNum>1?`<div style="font-size:0.8rem;color:#888;">صفحة ${pageNum}</div>`:''}</div>`;
 
@@ -1854,7 +1861,7 @@
                     pageNum++;
                 }
                 pdf.save(
-                    `Restaurant_Items_${currentRestaurantData.restaurantDisplay.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 30)}.pdf`
+                    `Restaurant_Items_${currentRestaurantData.restaurantCombined.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 30)}.pdf`
                     );
             } catch (e) { alert("خطأ في PDF: " + e.message); } finally { exportRestaurantPdfBtn.innerHTML =
                     originalText;
@@ -1912,7 +1919,6 @@
         exportRestaurantExcelBtn.addEventListener('click', exportRestaurantExcel);
         exportRestaurantPdfBtn.addEventListener('click', exportRestaurantPDF);
 
-        // الحالة الأولية
         itemSearch.disabled = true;
         generateBtn.disabled = true;
         exportExcelBtn.disabled = true;
@@ -1924,7 +1930,7 @@
         exportRestaurantPdfBtn.disabled = true;
         restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ COGS v11 – عناوين الجدول في Excel و PDF أصبحت سطرين (عربي/إنجليزي)');
+        console.log('✅ COGS v12 – أسماء المطاعم تظهر بالعربية والإنجليزية معاً');
     </script>
 </body>
 </html>
