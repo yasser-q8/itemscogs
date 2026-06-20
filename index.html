@@ -12,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
     </script>
     <style>
+        /* ... (نفس الأنماط السابقة) ... */
         * {
             margin: 0;
             padding: 0;
@@ -636,11 +637,10 @@
                 { ar: 'بيج فيلية', en: 'Chicken Big Fillet', code: 'K1035', factor: 10 },
                 { ar: 'بيج فيلية فلفل', en: 'Chicken Big Fillet Spicy', code: 'K1036', factor: 10 }
             ],
-            // مجموعة 3
+            // مجموعة 3 (تم إزالة فيليه مشوي منها)
             [
                 { ar: 'فيليه عادي', en: 'Chicken Fillet', code: 'K1008', factor: 25 },
-                { ar: 'فيليه فلفل', en: 'Chicken Fillet Spicy', code: 'K1009', factor: 10 },
-                { ar: 'فيليه مشوي', en: 'Grilled Chicken Fillet', code: 'K1049', factor: 5 }
+                { ar: 'فيليه فلفل', en: 'Chicken Fillet Spicy', code: 'K1009', factor: 10 }
             ],
             // مجموعة 4
             [
@@ -693,6 +693,14 @@
             [
                 { ar: 'قطع دجاج فرايد صغير عادي', en: 'Happy Chicken Pc', code: 'K1042', factor: 1 },
                 { ar: 'قطع دجاج فرايد صغير فلفل', en: 'Happy Chicken Pc-Spicy', code: 'K1043', factor: 1 }
+            ],
+            // مجموعة 15 (جديدة) - فيليه مشوي منفرد
+            [
+                { ar: 'فيليه مشوي', en: 'Grilled Chicken Fillet', code: 'K1049', factor: 5 }
+            ],
+            // مجموعة 16 (جديدة) - برجر دجاج طازج
+            [
+                { ar: 'برجر دجاج طازج', en: 'Fresh Burger Chickens', code: 'K1070', factor: 1 }
             ]
         ];
 
@@ -738,7 +746,7 @@
         // 2. قاعدة بيانات المطاعم + خريطة الأسماء المزدوجة
         // ================================================================
         const RESTAURANT_MASTER = new Map();
-        const arToEnMap = new Map(); // اسم عربي -> اسم إنجليزي
+        const arToEnMap = new Map();
 
         function buildMasterDatabase() {
             const managersData = [
@@ -885,11 +893,9 @@
                 { ar: "غرب أبو فطيرة", en: "West Abu Fatira" },
                 { ar: "الزهراء", en: "Zahra" }
             ];
-            // بناء خريطة الاسم العربي -> الإنجليزي
             for (const syn of synonyms) {
                 arToEnMap.set(syn.ar, syn.en);
             }
-            // إضافة مرادفات إنجليزية للـ Map للبحث السريع (مع الاحتفاظ بالاسم المزدوج)
             for (const syn of synonyms) {
                 const stdData = RESTAURANT_MASTER.get(syn.ar);
                 if (stdData) {
@@ -908,7 +914,6 @@
             let normalized = rawName.trim().replace(/^مطعم\s+/i, '').replace(/\s+/g, ' ').trim();
             let found = null;
             let foundKey = null;
-            // البحث بالاسم العربي أو الإنجليزي
             if (RESTAURANT_MASTER.has(normalized)) {
                 found = RESTAURANT_MASTER.get(normalized);
                 foundKey = normalized;
@@ -1218,7 +1223,7 @@
                         found);
                     const convertedEnd = factor !== null ? (newEnd * factor) : null;
                     rows.push({
-                        restaurantCombined: rest.restaurantCombined, // الاسم المزدوج
+                        restaurantCombined: rest.restaurantCombined,
                         regionManager: rest.regionManager,
                         opsManager: rest.opsManager,
                         reportDate: rest.reportDateRaw || "غير محدد",
@@ -1930,7 +1935,7 @@
         exportRestaurantPdfBtn.disabled = true;
         restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ COGS v12 – أسماء المطاعم تظهر بالعربية والإنجليزية معاً');
+        console.log('✅ COGS v13 – مجموعات جديدة: فيليه مشوي منفرد، برجر دجاج طازج');
     </script>
 </body>
 </html>
