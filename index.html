@@ -627,80 +627,94 @@
         // 1. قائمة الأصناف الثابتة مع الأكواد ومعاملات التحويل (للتاب الثاني والتحويل)
         // ================================================================
         const ITEM_GROUPS = [
-            // مجموعة 1
+            // مجموعة 1: اصابع فيليه
             [
                 { ar: 'اصابع فيليه', en: 'Chicken Finger Fillet', code: 'K1015', factor: 50 },
-                { ar: 'اصابع فيليه فلفل', en: 'Ch.Finger Fillet Spicy', code: 'K1016', factor: 25 }
+                { ar: 'اصابع فيليه فلفل', en: 'Ch.Finger Fillet Spicy', code: 'K1016', factor: 25 }  // تم التعديل: أصبح 25
             ],
-            // مجموعة 2
+            // مجموعة 2: بيج فيليه
             [
                 { ar: 'بيج فيلية', en: 'Chicken Big Fillet', code: 'K1035', factor: 10 },
                 { ar: 'بيج فيلية فلفل', en: 'Chicken Big Fillet Spicy', code: 'K1036', factor: 10 }
             ],
-            // مجموعة 3 (تم إزالة فيليه مشوي منها)
+            // مجموعة 3: ديلوكس فيلية (جديد) - تحت مجموعة بيج فيليه
+            [
+                { ar: 'ديلوكس فيلية عادي', en: 'Deluxe Chi Fillet', code: 'K1080', factor: 15 },
+                { ar: 'ديلوكس فيلية فلفل', en: 'Deluxe Chi Fillet Spicy', code: 'K1081', factor: 15 }
+            ],
+            // مجموعة 4: فيليه عادي وفلفل
             [
                 { ar: 'فيليه عادي', en: 'Chicken Fillet', code: 'K1008', factor: 25 },
-                { ar: 'فيليه فلفل', en: 'Chicken Fillet Spicy', code: 'K1009', factor: 10 }
+                { ar: 'فيليه فلفل', en: 'Chicken Fillet Spicy', code: 'K1009', factor: 10 }  // تم التعديل: أصبح 10
             ],
-            // مجموعة 4
+            // مجموعة 5: أجنحة
             [
                 { ar: 'جناح صغير عادي', en: 'Chicken Small Wings Nor', code: 'K1071', factor: 60 },
                 { ar: 'جناح صغير فلفل', en: 'Chicken Small Wings Spicy', code: 'K1072', factor: 60 },
                 { ar: 'جناح متبل', en: 'Chicken Wings', code: 'K1010', factor: 60 }
             ],
-            // مجموعة 5
+            // مجموعة 6: دجاج فرايد (تم إزالة قطع دجاج مشويه)
             [
                 { ar: 'دجاج فرايد عادي', en: 'Chicken Fried', code: 'K1012', factor: 18 },
-                { ar: 'دجاج فرايد فلفل', en: 'Chicken Fried Spicy', code: 'K1013', factor: 18 },
+                { ar: 'دجاج فرايد فلفل', en: 'Chicken Fried Spicy', code: 'K1013', factor: 18 }
+            ],
+            // مجموعة 7: قطع دجاج مشويه (مجموعة جديدة منفصلة)
+            [
                 { ar: 'قطع دجاج مشويه', en: 'Grilled Chicken Pc', code: 'K1076', factor: 18 }
             ],
-            // مجموعة 6
+            // مجموعة 8: دجاج تكا
             [
                 { ar: 'دجاج تكا عادي', en: 'Chicken Tikka', code: 'K1006', factor: 8 },
                 { ar: 'تكا صدور', en: 'Chicken Tikka Brest', code: 'K1004', factor: 8 },
                 { ar: 'تكا فخذ', en: 'Chicken Tikka Thigh', code: 'K1005', factor: 8 }
             ],
-            // مجموعة 7
+            // مجموعة 9: قطع دجاج على الفحم
             [
                 { ar: 'قطع دجاج على الفحم', en: 'Grilled charcoal chicken pcs', code: 'K1055', factor: 16 }
             ],
-            // مجموعة 8
+            // مجموعة 10: فري مشوي
             [
                 { ar: 'فري مشوي', en: 'Grilled Quils', code: 'K1017', factor: 9 }
             ],
-            // مجموعة 9
+            // مجموعة 11: دجاج شواية ملكي
             [
                 { ar: 'دجاج شواية ملكي', en: 'Royal Grilled Chicken', code: 'K1020', factor: 5 }
             ],
-            // مجموعة 10
+            // مجموعة 12: بنت الديك وفروج نايف
             [
                 { ar: 'بنت الديك', en: 'Bint Al-Deek', code: 'K1014', factor: 5 },
                 { ar: 'فروج نايف', en: 'Rooster Junior', code: 'K1011', factor: 5 }
             ],
-            // مجموعة 11
+            // مجموعة 13: شيش طاووق
             [
                 { ar: 'شيش طاووق', en: 'Sish Tawouk', code: 'K1003', factor: 60 }
             ],
-            // مجموعة 12
+            // مجموعة 14: كباب دجاج
             [
                 { ar: 'كباب دجاج', en: 'Chicken Kabab', code: 'K1002', factor: 2 }
             ],
-            // مجموعة 13
+            // مجموعة 15: قطع دجاج جرل صغير
             [
                 { ar: 'قطع دجاج جرل صغير', en: 'Grill Chicken Pc -Multi Taste', code: 'K1044', factor: 1 }
             ],
-            // مجموعة 14
+            // مجموعة 16: قطع دجاج فرايد صغير
             [
                 { ar: 'قطع دجاج فرايد صغير عادي', en: 'Happy Chicken Pc', code: 'K1042', factor: 1 },
                 { ar: 'قطع دجاج فرايد صغير فلفل', en: 'Happy Chicken Pc-Spicy', code: 'K1043', factor: 1 }
             ],
-            // مجموعة 15 (جديدة) - فيليه مشوي منفرد
+            // مجموعة 17: فيليه مشوي
             [
                 { ar: 'فيليه مشوي', en: 'Grilled Chicken Fillet', code: 'K1049', factor: 5 }
             ],
-            // مجموعة 16 (جديدة) - برجر دجاج طازج
+            // مجموعة 18: برجر دجاج طازج
             [
                 { ar: 'برجر دجاج طازج', en: 'Fresh Burger Chickens', code: 'K1070', factor: 1 }
+            ],
+            // مجموعة 19: أصناف جديدة (حلقات بصل، ناجيت، موزاريلا)
+            [
+                { ar: 'حلقات بصل', en: 'Onion Rings', code: 'K1082', factor: 60 },
+                { ar: 'ناجيت تمبورا', en: 'Chicken Nuggets', code: 'K1083', factor: 45 },
+                { ar: 'اصابع مودزريلا', en: 'Mozzarella Stick', code: 'K1084', factor: 40 }
             ]
         ];
 
@@ -725,13 +739,51 @@
             });
         });
 
+        // إضافة مرادفات إضافية لضمان التطابق مع الأسماء المحتملة في الملفات
+        conversionMapByName['اصابع فيليه فلفل'.toLowerCase()] = 25;
+        conversionMapByName['ch.finger fillet spicy'.toLowerCase()] = 25;
+        conversionMapByName['فيليه فلفل'.toLowerCase()] = 10;
+        conversionMapByName['chicken fillet spicy'.toLowerCase()] = 10;
+
         function getConversionFactorFromName(itemName) {
             if (!itemName) return null;
             const lower = itemName.trim().toLowerCase();
+            // 1. البحث المباشر في الخريطة
             if (conversionMapByName[lower]) return conversionMapByName[lower];
-            for (let key in conversionMapByName) {
-                if (lower.includes(key) || key.includes(lower)) {
-                    return conversionMapByName[key];
+            // 2. البحث في FLAT_ITEMS بمطابقة دقيقة غير حساسة للحالة
+            for (let it of FLAT_ITEMS) {
+                if (it.ar.trim().toLowerCase() === lower || it.en.trim().toLowerCase() === lower) {
+                    return it.factor;
+                }
+            }
+            // 3. البحث الجزئي (إذا كان الاسم يحتوي على جزء من اسم الصنف أو العكس)
+            //    مع إعطاء الأولوية للمطابقات الأطول لتجنب الخلط
+            let bestMatch = null;
+            let bestLength = 0;
+            for (let it of FLAT_ITEMS) {
+                const arLower = it.ar.trim().toLowerCase();
+                const enLower = it.en.trim().toLowerCase();
+                // التحقق من احتواء الاسم على النص أو العكس
+                if (lower.includes(arLower) || arLower.includes(lower) ||
+                    lower.includes(enLower) || enLower.includes(lower)) {
+                    // اختر المطابقة الأطول (أكثر تحديداً)
+                    const matchLen = Math.max(
+                        lower.includes(arLower) ? arLower.length : 0,
+                        arLower.includes(lower) ? lower.length : 0,
+                        lower.includes(enLower) ? enLower.length : 0,
+                        enLower.includes(lower) ? lower.length : 0
+                    );
+                    if (matchLen > bestLength) {
+                        bestLength = matchLen;
+                        bestMatch = it.factor;
+                    }
+                }
+            }
+            if (bestMatch !== null) return bestMatch;
+            // 4. البحث عن طريق الكود (إذا كان الاسم يحتوي على كود)
+            for (let it of FLAT_ITEMS) {
+                if (it.code && lower.includes(it.code.toLowerCase())) {
+                    return it.factor;
                 }
             }
             return null;
@@ -1935,7 +1987,7 @@
         exportRestaurantPdfBtn.disabled = true;
         restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ COGS v13 – مجموعات جديدة: فيليه مشوي منفرد، برجر دجاج طازج');
+        console.log('✅ COGS v15 – تصحيح دقيق لمعاملات الاصابع فيليه فلفل وفيليه فلفل مع تحسين البحث');
     </script>
 </body>
 </html>
