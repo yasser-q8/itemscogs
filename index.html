@@ -237,7 +237,8 @@
         }
         .action-buttons {
             display: flex;
-            gap: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         button {
             padding: 10px 24px;
@@ -577,6 +578,9 @@
                 <div class="action-buttons">
                     <button id="exportRestaurantExcelBtn" class="btn-outline" disabled>📎 تصدير Excel</button>
                     <button id="exportRestaurantPdfBtn" class="btn-outline" disabled>🖨️ تصدير PDF</button>
+                    <!-- الأزرار الجديدة لتصدير جميع المطاعم -->
+                    <button id="exportAllRestaurantsExcelBtn" class="btn-outline" disabled>📊 تصدير كل المطاعم Excel</button>
+                    <button id="exportAllRestaurantsPdfBtn" class="btn-outline" disabled>📊 تصدير كل المطاعم PDF</button>
                 </div>
             </div>
 
@@ -630,14 +634,14 @@
             // مجموعة 1: اصابع فيليه
             [
                 { ar: 'اصابع فيليه', en: 'Chicken Finger Fillet', code: 'K1015', factor: 50 },
-                { ar: 'اصابع فيليه فلفل', en: 'Ch.Finger Fillet Spicy', code: 'K1016', factor: 25 }  // تم التعديل: أصبح 25
+                { ar: 'اصابع فيليه فلفل', en: 'Ch.Finger Fillet Spicy', code: 'K1016', factor: 25 }
             ],
             // مجموعة 2: بيج فيليه
             [
                 { ar: 'بيج فيلية', en: 'Chicken Big Fillet', code: 'K1035', factor: 10 },
                 { ar: 'بيج فيلية فلفل', en: 'Chicken Big Fillet Spicy', code: 'K1036', factor: 10 }
             ],
-            // مجموعة 3: ديلوكس فيلية (جديد) - تحت مجموعة بيج فيليه
+            // مجموعة 3: ديلوكس فيلية
             [
                 { ar: 'ديلوكس فيلية عادي', en: 'Deluxe Chi Fillet', code: 'K1080', factor: 15 },
                 { ar: 'ديلوكس فيلية فلفل', en: 'Deluxe Chi Fillet Spicy', code: 'K1081', factor: 15 }
@@ -645,7 +649,7 @@
             // مجموعة 4: فيليه عادي وفلفل
             [
                 { ar: 'فيليه عادي', en: 'Chicken Fillet', code: 'K1008', factor: 25 },
-                { ar: 'فيليه فلفل', en: 'Chicken Fillet Spicy', code: 'K1009', factor: 10 }  // تم التعديل: أصبح 10
+                { ar: 'فيليه فلفل', en: 'Chicken Fillet Spicy', code: 'K1009', factor: 10 }
             ],
             // مجموعة 5: أجنحة
             [
@@ -653,12 +657,12 @@
                 { ar: 'جناح صغير فلفل', en: 'Chicken Small Wings Spicy', code: 'K1072', factor: 60 },
                 { ar: 'جناح متبل', en: 'Chicken Wings', code: 'K1010', factor: 60 }
             ],
-            // مجموعة 6: دجاج فرايد (تم إزالة قطع دجاج مشويه)
+            // مجموعة 6: دجاج فرايد
             [
                 { ar: 'دجاج فرايد عادي', en: 'Chicken Fried', code: 'K1012', factor: 18 },
                 { ar: 'دجاج فرايد فلفل', en: 'Chicken Fried Spicy', code: 'K1013', factor: 18 }
             ],
-            // مجموعة 7: قطع دجاج مشويه (مجموعة جديدة منفصلة)
+            // مجموعة 7: قطع دجاج مشويه
             [
                 { ar: 'قطع دجاج مشويه', en: 'Grilled Chicken Pc', code: 'K1076', factor: 18 }
             ],
@@ -715,6 +719,15 @@
                 { ar: 'حلقات بصل', en: 'Onion Rings', code: 'K1082', factor: 60 },
                 { ar: 'ناجيت تمبورا', en: 'Chicken Nuggets', code: 'K1083', factor: 45 },
                 { ar: 'اصابع مودزريلا', en: 'Mozzarella Stick', code: 'K1084', factor: 40 }
+            ],
+            // ===== المجموعتان الجديدتان =====
+            // مجموعة 20: شاورما دجاج
+            [
+                { ar: 'شاورما دجاج', en: 'Chicken Shawarma', code: 'SHAWARMA', factor: 1 }
+            ],
+            // مجموعة 21: أرز بسمتي
+            [
+                { ar: 'أرز بسمتي', en: 'Basmati Rice', code: 'RICE', factor: 1 }
             ]
         ];
 
@@ -756,17 +769,14 @@
                     return it.factor;
                 }
             }
-            // 3. البحث الجزئي (إذا كان الاسم يحتوي على جزء من اسم الصنف أو العكس)
-            //    مع إعطاء الأولوية للمطابقات الأطول لتجنب الخلط
+            // 3. البحث الجزئي
             let bestMatch = null;
             let bestLength = 0;
             for (let it of FLAT_ITEMS) {
                 const arLower = it.ar.trim().toLowerCase();
                 const enLower = it.en.trim().toLowerCase();
-                // التحقق من احتواء الاسم على النص أو العكس
                 if (lower.includes(arLower) || arLower.includes(lower) ||
                     lower.includes(enLower) || enLower.includes(lower)) {
-                    // اختر المطابقة الأطول (أكثر تحديداً)
                     const matchLen = Math.max(
                         lower.includes(arLower) ? arLower.length : 0,
                         arLower.includes(lower) ? lower.length : 0,
@@ -780,7 +790,7 @@
                 }
             }
             if (bestMatch !== null) return bestMatch;
-            // 4. البحث عن طريق الكود (إذا كان الاسم يحتوي على كود)
+            // 4. البحث عن طريق الكود
             for (let it of FLAT_ITEMS) {
                 if (it.code && lower.includes(it.code.toLowerCase())) {
                     return it.factor;
@@ -1032,6 +1042,10 @@
         const restaurantNoteContainer = document.getElementById('restaurantNoteContainer');
         const exportRestaurantExcelBtn = document.getElementById('exportRestaurantExcelBtn');
         const exportRestaurantPdfBtn = document.getElementById('exportRestaurantPdfBtn');
+        // الأزرار الجديدة
+        const exportAllRestaurantsExcelBtn = document.getElementById('exportAllRestaurantsExcelBtn');
+        const exportAllRestaurantsPdfBtn = document.getElementById('exportAllRestaurantsPdfBtn');
+
         const tab2Btn = document.querySelector('[data-tab="tab2"]');
         const restaurantInfoHeader = document.getElementById('restaurantInfoHeader');
         const headerRestaurantName = document.getElementById('headerRestaurantName');
@@ -1237,6 +1251,9 @@
             showRestaurantItemsBtn.disabled = false;
             exportRestaurantExcelBtn.disabled = false;
             exportRestaurantPdfBtn.disabled = false;
+            // تمكين الأزرار الجديدة
+            exportAllRestaurantsExcelBtn.disabled = false;
+            exportAllRestaurantsPdfBtn.disabled = false;
         }
 
         // ================================================================
@@ -1254,7 +1271,7 @@
         }
 
         // ================================================================
-        // 5. توليد تقرير COGS (التاب الأول) - مع عمود التحويل
+        // 5. توليد تقرير COGS (التاب الأول)
         // ================================================================
         function generateReportForItem(itemName) {
             if (!itemName) return [];
@@ -1320,7 +1337,7 @@
         }
 
         // ================================================================
-        // 6. تصدير Excel و PDF للتاب الأول (مع عناوين سطرين)
+        // 6. تصدير Excel و PDF للتاب الأول
         // ================================================================
         function exportToExcel() {
             if (!currentReportData || currentReportData.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -1495,68 +1512,19 @@
             return null;
         }
 
-        function showRestaurantItems() {
-            const selected = restaurantSearchInput.value.trim();
-            if (!selected) {
-                restaurantItemsBody.innerHTML =
-                `<tr class="empty-row"><td colspan="9">⚠️ الرجاء اختيار مطعم من القائمة</td></tr>`;
-                restaurantNoteContainer.style.display = 'none';
-                restaurantInfoHeader.style.display = 'none';
-                currentRestaurantData = null;
-                currentRestaurantItems = [];
-                return;
-            }
-            const restData = allRestaurantsData.find(r => r.restaurantCombined === selected);
-            if (!restData) {
-                restaurantItemsBody.innerHTML =
-                `<tr class="empty-row"><td colspan="9">❌ لا توجد بيانات لهذا المطعم</td></tr>`;
-                restaurantNoteContainer.style.display = 'none';
-                restaurantInfoHeader.style.display = 'none';
-                currentRestaurantData = null;
-                currentRestaurantItems = [];
-                return;
-            }
-            currentRestaurantData = restData;
-
-            restaurantInfoHeader.style.display = 'flex';
-            headerRestaurantName.textContent = restData.restaurantCombined;
-            headerRegionManager.textContent = restData.regionManager;
-            headerOpsManager.textContent = restData.opsManager;
-            headerReportDate.textContent = restData.reportDateRaw || 'غير محدد';
-
-            let html = '';
-            let hasShawarma = false;
-            const allRows = [];
+        // دالة مساعدة لاستخراج صفوف الأصناف لمطعم معين (تُستخدم في التصدير الشامل)
+        function getRestaurantItemRows(restData) {
+            const rows = [];
             let currentGroup = -1;
             let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0, convertedEnd: 0 };
+            const groupRows = [];
 
             for (let idx = 0; idx < FLAT_ITEMS.length; idx++) {
                 const it = FLAT_ITEMS[idx];
                 const groupIdx = it.groupIdx;
-
-                if (groupIdx !== currentGroup && currentGroup !== -1) {
-                    html += `<tr class="total-row">
-                        <td style="text-align:center;">🔹 إجمالي المجموعة</td>
-                        <td>${formatZero(groupTotals.start)}</td>
-                        <td>${formatZero(groupTotals.recd)}</td>
-                        <td>${formatZero(groupTotals.tranIn)}</td>
-                        <td>${formatZero(groupTotals.tranOut)}</td>
-                        <td>${formatZero(groupTotals.wast)}</td>
-                        <td>${formatZero(groupTotals.usage)}</td>
-                        <td class="bold-end">${formatZero(groupTotals.end)}</td>
-                        <td class="bold-end">${formatZeroInt(groupTotals.convertedEnd)}</td>
-                    </tr>`;
-                    groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
-                    convertedEnd: 0 };
-                }
-                currentGroup = groupIdx;
-
                 const found = findMatchingItem(it, restData);
                 const displayName = found ? found.itemName : `${it.ar} (غير موجود)`;
                 const isShaw = isShawarmaItem(displayName);
-                if (isShaw) hasShawarma = true;
-                const rowClass = found ? '' : 'item-missing';
-                const shawIcon = isShaw ? ' 🔥' : '';
 
                 let startQty = found ? found.startQty : null;
                 let recdQty = found ? found.recdQty : null;
@@ -1591,9 +1559,7 @@
                 }
 
                 const rowData = {
-                    restaurant: restData.restaurantCombined,
-                    region: restData.regionManager,
-                    ops: restData.opsManager,
+                    groupIdx: groupIdx,
                     item: displayName,
                     start: startQty,
                     recd: recdQty,
@@ -1604,40 +1570,110 @@
                     end: endQty,
                     convertedEnd: convertedEnd,
                     found: !!found,
-                    isShaw: isShaw,
-                    groupIdx: groupIdx
+                    isShaw: isShaw
                 };
-                allRows.push(rowData);
 
-                html += `<tr class="${rowClass}">
-                    <td style="text-align:right;">${escapeHtml(displayName)}${shawIcon}</td>
-                    <td>${found ? formatZero(startQty) : '—'}</td>
-                    <td>${found ? formatZero(recdQty) : '—'}</td>
-                    <td>${found ? formatZero(tranInQty) : '—'}</td>
-                    <td>${found ? formatZero(tranOutQty) : '—'}</td>
-                    <td>${found ? formatZero(wastQty) : '—'}</td>
-                    <td>${found ? formatZero(usageQty) : '—'}</td>
-                    <td class="bold-end">${found ? formatZero(endQty) : '—'}</td>
-                    <td class="bold-end">${found && convertedEnd !== null ? formatZeroInt(convertedEnd) : '—'}</td>
-                </tr>`;
+                // إذا تغيرت المجموعة، أضف صف الإجمالي السابق
+                if (groupIdx !== currentGroup && currentGroup !== -1) {
+                    const totalRow = {
+                        groupIdx: currentGroup,
+                        item: '🔹 إجمالي المجموعة',
+                        start: groupTotals.start,
+                        recd: groupTotals.recd,
+                        tranIn: groupTotals.tranIn,
+                        tranOut: groupTotals.tranOut,
+                        wast: groupTotals.wast,
+                        usage: groupTotals.usage,
+                        end: groupTotals.end,
+                        convertedEnd: groupTotals.convertedEnd,
+                        found: true,
+                        isShaw: false,
+                        isTotal: true
+                    };
+                    rows.push(totalRow);
+                    groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
+                    convertedEnd: 0 };
+                }
+                currentGroup = groupIdx;
+                rows.push(rowData);
             }
 
+            // إجمالي آخر مجموعة
             if (currentGroup !== -1) {
-                html += `<tr class="total-row">
-                    <td style="text-align:center;">🔹 إجمالي المجموعة</td>
-                    <td>${formatZero(groupTotals.start)}</td>
-                    <td>${formatZero(groupTotals.recd)}</td>
-                    <td>${formatZero(groupTotals.tranIn)}</td>
-                    <td>${formatZero(groupTotals.tranOut)}</td>
-                    <td>${formatZero(groupTotals.wast)}</td>
-                    <td>${formatZero(groupTotals.usage)}</td>
-                    <td class="bold-end">${formatZero(groupTotals.end)}</td>
-                    <td class="bold-end">${formatZeroInt(groupTotals.convertedEnd)}</td>
+                const totalRow = {
+                    groupIdx: currentGroup,
+                    item: '🔹 إجمالي المجموعة',
+                    start: groupTotals.start,
+                    recd: groupTotals.recd,
+                    tranIn: groupTotals.tranIn,
+                    tranOut: groupTotals.tranOut,
+                    wast: groupTotals.wast,
+                    usage: groupTotals.usage,
+                    end: groupTotals.end,
+                    convertedEnd: groupTotals.convertedEnd,
+                    found: true,
+                    isShaw: false,
+                    isTotal: true
+                };
+                rows.push(totalRow);
+            }
+            return rows;
+        }
+
+        function showRestaurantItems() {
+            const selected = restaurantSearchInput.value.trim();
+            if (!selected) {
+                restaurantItemsBody.innerHTML =
+                `<tr class="empty-row"><td colspan="9">⚠️ الرجاء اختيار مطعم من القائمة</td></tr>`;
+                restaurantNoteContainer.style.display = 'none';
+                restaurantInfoHeader.style.display = 'none';
+                currentRestaurantData = null;
+                currentRestaurantItems = [];
+                return;
+            }
+            const restData = allRestaurantsData.find(r => r.restaurantCombined === selected);
+            if (!restData) {
+                restaurantItemsBody.innerHTML =
+                `<tr class="empty-row"><td colspan="9">❌ لا توجد بيانات لهذا المطعم</td></tr>`;
+                restaurantNoteContainer.style.display = 'none';
+                restaurantInfoHeader.style.display = 'none';
+                currentRestaurantData = null;
+                currentRestaurantItems = [];
+                return;
+            }
+            currentRestaurantData = restData;
+            const allRows = getRestaurantItemRows(restData);
+            currentRestaurantItems = allRows;
+
+            // عرض معلومات المطعم
+            restaurantInfoHeader.style.display = 'flex';
+            headerRestaurantName.textContent = restData.restaurantCombined;
+            headerRegionManager.textContent = restData.regionManager;
+            headerOpsManager.textContent = restData.opsManager;
+            headerReportDate.textContent = restData.reportDateRaw || 'غير محدد';
+
+            // إنشاء HTML للجدول
+            let html = '';
+            let hasShawarma = false;
+            for (const row of allRows) {
+                const isTotal = row.isTotal || false;
+                const cls = isTotal ? 'total-row' : (row.found ? '' : 'item-missing');
+                const shawIcon = row.isShaw ? ' 🔥' : '';
+                if (row.isShaw) hasShawarma = true;
+
+                html += `<tr class="${cls}">
+                    <td style="text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
+                    <td>${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
+                    <td>${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
+                    <td>${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
+                    <td>${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
+                    <td>${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
+                    <td>${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
+                    <td class="bold-end">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
+                    <td class="bold-end">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
                 </tr>`;
             }
-
             restaurantItemsBody.innerHTML = html;
-            currentRestaurantItems = allRows;
 
             if (hasShawarma) {
                 restaurantNoteContainer.style.display = 'block';
@@ -1649,7 +1685,7 @@
         }
 
         // ================================================================
-        // 8. تصدير Excel و PDF للتاب الثاني (مع عناوين سطرين)
+        // 8. تصدير Excel و PDF للتاب الثاني (مطعم واحد)
         // ================================================================
         function exportRestaurantExcel() {
             if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -1676,67 +1712,19 @@
                     headerEnglish
                 ];
 
-                let currentGroup = -1;
-                let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
-                convertedEnd: 0 };
-
-                for (let i = 0; i < currentRestaurantItems.length; i++) {
-                    const row = currentRestaurantItems[i];
-                    const flatItem = FLAT_ITEMS[i];
-                    if (!flatItem) continue;
-
-                    if (flatItem.groupIdx !== currentGroup && currentGroup !== -1) {
-                        excelRows.push([
-                            "🔹 إجمالي المجموعة",
-                            groupTotals.start,
-                            groupTotals.recd,
-                            groupTotals.tranIn,
-                            groupTotals.tranOut,
-                            groupTotals.wast,
-                            groupTotals.usage,
-                            groupTotals.end,
-                            Math.round(groupTotals.convertedEnd)
-                        ]);
-                        groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
-                        convertedEnd: 0 };
-                    }
-                    currentGroup = flatItem.groupIdx;
-
-                    if (row.found) {
-                        groupTotals.start += (row.start || 0);
-                        groupTotals.recd += (row.recd || 0);
-                        groupTotals.tranIn += (row.tranIn || 0);
-                        groupTotals.tranOut += (row.tranOut || 0);
-                        groupTotals.wast += (row.wast || 0);
-                        groupTotals.usage += (row.usage || 0);
-                        groupTotals.end += (row.end || 0);
-                        groupTotals.convertedEnd += (row.convertedEnd || 0);
-                    }
-
+                for (const row of currentRestaurantItems) {
+                    const isTotal = row.isTotal || false;
                     excelRows.push([
                         row.item,
-                        row.found ? row.start : '',
-                        row.found ? row.recd : '',
-                        row.found ? row.tranIn : '',
-                        row.found ? row.tranOut : '',
-                        row.found ? row.wast : '',
-                        row.found ? row.usage : '',
-                        row.found ? row.end : '',
-                        row.found && row.convertedEnd !== null ? Math.round(row.convertedEnd) : ''
-                    ]);
-                }
-
-                if (currentGroup !== -1) {
-                    excelRows.push([
-                        "🔹 إجمالي المجموعة",
-                        groupTotals.start,
-                        groupTotals.recd,
-                        groupTotals.tranIn,
-                        groupTotals.tranOut,
-                        groupTotals.wast,
-                        groupTotals.usage,
-                        groupTotals.end,
-                        Math.round(groupTotals.convertedEnd)
+                        isTotal ? row.start : (row.found ? row.start : ''),
+                        isTotal ? row.recd : (row.found ? row.recd : ''),
+                        isTotal ? row.tranIn : (row.found ? row.tranIn : ''),
+                        isTotal ? row.tranOut : (row.found ? row.tranOut : ''),
+                        isTotal ? row.wast : (row.found ? row.wast : ''),
+                        isTotal ? row.usage : (row.found ? row.usage : ''),
+                        isTotal ? row.end : (row.found ? row.end : ''),
+                        isTotal ? Math.round(row.convertedEnd) : (row.found && row.convertedEnd !== null ? Math.round(row
+                            .convertedEnd) : '')
                     ]);
                 }
 
@@ -1775,7 +1763,7 @@
                 const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
                 const fromDate = startDateInput.value,
                     toDate = endDateInput.value;
-                const rowsPerPage = 10,
+                const rowsPerPage = 12,
                     margin = 10;
                 const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
                 const allRows = currentRestaurantItems;
@@ -1802,76 +1790,27 @@
                         `<div style="text-align:center;"><div>${logoHtml}<div style="font-size:1.6rem;font-weight:bold;color:#d32f2f;">شركة نايف للأغذية</div><div style="font-size:0.9rem;">NAIF FOOD COMPANY</div><div style="font-size:1.1rem;font-weight:700;color:#2e7d32;margin-top:4px;">تقرير حركة أصناف المطعم (المحددة)</div>${infoHtml}${pageNum>1?`<div style="font-size:0.8rem;color:#888;">صفحة ${pageNum}</div>`:''}</div>`;
 
                     let tableRows = "";
-                    let currentGroup = -1;
-                    let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
-                    convertedEnd: 0 };
-                    let visibleCount = 0;
-
-                    for (let i = 0; i < allRows.length; i++) {
-                        const r = allRows[i];
-                        const flatItem = FLAT_ITEMS[i];
-                        if (!flatItem) continue;
-
-                        const isVisible = (i >= startIdx && visibleCount < rowsPerPage);
-                        if (isVisible) visibleCount++;
-
-                        if (flatItem.groupIdx !== currentGroup && currentGroup !== -1) {
-                            let shouldAddTotal = false;
-                            for (let j = startIdx; j < Math.min(startIdx + rowsPerPage, allRows.length); j++) {
-                                if (FLAT_ITEMS[j] && FLAT_ITEMS[j].groupIdx === currentGroup) {
-                                    shouldAddTotal = true;
-                                    break;
-                                }
-                            }
-                            if (shouldAddTotal) {
-                                tableRows +=
-                                    `<tr style="background:#e3f0fa;font-weight:700;border-top:3px solid #0d47a1;"><td style="border:1px solid #ccc;padding:6px;text-align:center;">🔹 إجمالي المجموعة</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.start)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.recd)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranIn)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranOut)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.wast)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.usage)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZero(groupTotals.end)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZeroInt(groupTotals.convertedEnd)}</td></tr>`;
-                            }
-                            groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
-                            convertedEnd: 0 };
-                        }
-                        currentGroup = flatItem.groupIdx;
-
-                        if (r.found) {
-                            groupTotals.start += (r.start || 0);
-                            groupTotals.recd += (r.recd || 0);
-                            groupTotals.tranIn += (r.tranIn || 0);
-                            groupTotals.tranOut += (r.tranOut || 0);
-                            groupTotals.wast += (r.wast || 0);
-                            groupTotals.usage += (r.usage || 0);
-                            groupTotals.end += (r.end || 0);
-                            groupTotals.convertedEnd += (r.convertedEnd || 0);
-                        }
-
-                        if (isVisible) {
-                            const isShaw = r.isShaw ? ' 🔥' : '';
-                            tableRows += `<tr>
-                                <td style="border:1px solid #ccc;padding:6px;text-align:right;">${escapeHtml(r.item)}${isShaw}</td>
-                                <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.start):'—'}</td>
-                                <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.recd):'—'}</td>
-                                <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.tranIn):'—'}</td>
-                                <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.tranOut):'—'}</td>
-                                <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.wast):'—'}</td>
-                                <td style="border:1px solid #ccc;text-align:center;">${r.found?formatZero(r.usage):'—'}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${r.found?formatZero(r.end):'—'}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${r.found && r.convertedEnd !== null ? Math.round(r.convertedEnd) : '—'}</td>
-                            </tr>`;
-                        }
+                    let count = 0;
+                    for (let i = startIdx; i < allRows.length && count < rowsPerPage; i++) {
+                        const row = allRows[i];
+                        const isTotal = row.isTotal || false;
+                        const cls = isTotal ? ' style="background:#e3f0fa;font-weight:700;border-top:3px solid #0d47a1;"' :
+                            '';
+                        const shawIcon = row.isShaw ? ' 🔥' : '';
+                        tableRows += `<tr${cls}>
+                            <td style="border:1px solid #ccc;padding:6px;text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
+                            <td style="border:1px solid #ccc;text-align:center;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? Math.round(row.convertedEnd) : '—')}</td>
+                        </tr>`;
+                        count++;
                     }
-
-                    if (currentGroup !== -1) {
-                        let shouldAddTotal = false;
-                        for (let j = startIdx; j < Math.min(startIdx + rowsPerPage, allRows.length); j++) {
-                            if (FLAT_ITEMS[j] && FLAT_ITEMS[j].groupIdx === currentGroup) {
-                                shouldAddTotal = true;
-                                break;
-                            }
-                        }
-                        if (shouldAddTotal) {
-                            tableRows +=
-                                `<tr style="background:#e3f0fa;font-weight:700;border-top:3px solid #0d47a1;"><td style="border:1px solid #ccc;padding:6px;text-align:center;">🔹 إجمالي المجموعة</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.start)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.recd)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranIn)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.tranOut)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.wast)}</td><td style="border:1px solid #ccc;text-align:center;">${formatZero(groupTotals.usage)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZero(groupTotals.end)}</td><td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${formatZeroInt(groupTotals.convertedEnd)}</td></tr>`;
-                        }
-                    }
+                    startIdx += count;
 
                     const tableHtml =
                         `<table style="width:100%;border-collapse:collapse;font-size:0.7rem;margin-top:6px;">
@@ -1914,7 +1853,6 @@
                     if (pageNum > 1) pdf.addPage();
                     pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, imgHeight);
                     document.body.removeChild(container);
-                    startIdx += rowsPerPage;
                     pageNum++;
                 }
                 pdf.save(
@@ -1926,7 +1864,203 @@
         }
 
         // ================================================================
-        // 9. الأحداث
+        // 9. تصدير جميع المطاعم (Excel و PDF) - الأزرار الجديدة
+        // ================================================================
+        function exportAllRestaurantsExcel() {
+            if (!allRestaurantsData || allRestaurantsData.length === 0) {
+                alert("⚠️ لا توجد بيانات مطاعم.");
+                return;
+            }
+            try {
+                const fromDate = startDateInput.value || "غير محدد";
+                const toDate = endDateInput.value || "غير محدد";
+                const wb = XLSX.utils.book_new();
+
+                // لكل مطعم ورقة عمل منفصلة
+                for (const rest of allRestaurantsData) {
+                    const rows = getRestaurantItemRows(rest);
+                    const headerArabic = ["الصنف", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج",
+                        "التوالف", "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة"
+                    ];
+                    const headerEnglish = ["Item", "Start Qty", "Received Qty", "Transfer In", "Transfer Out", "Waste",
+                        "Usage Qty", "End Qty", "End Qty per piece"
+                    ];
+
+                    const excelRows = [
+                        ["شركة نايف للأغذية"],
+                        ["تقرير حركة أصناف المطعم (المحددة) - جميع المطاعم"],
+                        [`المطعم: ${rest.restaurantCombined}`],
+                        [`مدير المنطقة: ${rest.regionManager}`],
+                        [`مدير التشغيل: ${rest.opsManager}`],
+                        [`تاريخ التقرير: ${rest.reportDateRaw || 'غير محدد'}`],
+                        [`الفترة الوصفية: ${fromDate} → ${toDate}`],
+                        [],
+                        headerArabic,
+                        headerEnglish
+                    ];
+
+                    for (const row of rows) {
+                        const isTotal = row.isTotal || false;
+                        excelRows.push([
+                            row.item,
+                            isTotal ? row.start : (row.found ? row.start : ''),
+                            isTotal ? row.recd : (row.found ? row.recd : ''),
+                            isTotal ? row.tranIn : (row.found ? row.tranIn : ''),
+                            isTotal ? row.tranOut : (row.found ? row.tranOut : ''),
+                            isTotal ? row.wast : (row.found ? row.wast : ''),
+                            isTotal ? row.usage : (row.found ? row.usage : ''),
+                            isTotal ? row.end : (row.found ? row.end : ''),
+                            isTotal ? Math.round(row.convertedEnd) : (row.found && row.convertedEnd !== null ? Math.round(
+                                row.convertedEnd) : '')
+                        ]);
+                    }
+
+                    if (rows.some(r => r.isShaw)) {
+                        excelRows.push([]);
+                        excelRows.push(["ملاحظة:", "تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما."]);
+                    }
+
+                    const ws = XLSX.utils.aoa_to_sheet(excelRows);
+                    ws['!cols'] = [{ wch: 32 }, { wch: 15 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 12 },
+                    { wch: 18 }, { wch: 14 }, { wch: 18 }
+                    ];
+                    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },
+                    { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } }, { s: { r: 3, c: 0 }, e: { r: 3, c: 8 } },
+                    { s: { r: 4, c: 0 }, e: { r: 4, c: 8 } }, { s: { r: 5, c: 0 }, e: { r: 5, c: 8 } },
+                    { s: { r: 6, c: 0 }, e: { r: 6, c: 8 } }
+                    ];
+                    const sheetName =
+                        rest.restaurantCombined.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 25) || "مطعم";
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                }
+
+                XLSX.writeFile(wb, `جميع_المطاعم_الأصناف_المحددة.xlsx`);
+            } catch (err) { alert("فشل تصدير Excel: " + err.message); }
+        }
+
+        async function exportAllRestaurantsPDF() {
+            if (!allRestaurantsData || allRestaurantsData.length === 0) {
+                alert("⚠️ لا توجد بيانات مطاعم.");
+                return;
+            }
+            if (!startDateInput.value || !endDateInput.value) {
+                alert("❌ الرجاء إدخال التاريخ.");
+                return;
+            }
+            exportAllRestaurantsPdfBtn.disabled = true;
+            const originalText = exportAllRestaurantsPdfBtn.innerHTML;
+            exportAllRestaurantsPdfBtn.innerHTML = "⏳ جاري...";
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+                const fromDate = startDateInput.value,
+                    toDate = endDateInput.value;
+                const rowsPerPage = 12,
+                    margin = 10;
+                const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
+
+                let firstPage = true;
+                for (const rest of allRestaurantsData) {
+                    const allRows = getRestaurantItemRows(rest);
+                    let pageNum = 1;
+                    let startIdx = 0;
+
+                    while (startIdx < allRows.length) {
+                        const container = document.createElement('div');
+                        container.style.position = 'absolute';
+                        container.style.left = '-9999px';
+                        container.style.top = '0';
+                        container.style.width = '1200px';
+                        container.style.backgroundColor = 'white';
+                        container.style.padding = '20px';
+                        container.style.direction = 'rtl';
+                        container.style.fontFamily = "'Segoe UI', Tahoma, Arial";
+
+                        let logoHtml = (firstPage && pageNum === 1) ?
+                            `<img src="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" style="width:55px;border-radius:12px;"><br>` :
+                            "";
+                        const infoHtml =
+                            `<div style="text-align:center;font-size:0.9rem;background:#f0f6fe;padding:10px;border-radius:12px;margin:6px 0 12px 0;"><div><strong>المطعم:</strong> ${escapeHtml(rest.restaurantCombined)}</div><div><strong>مدير المنطقة:</strong> ${escapeHtml(rest.regionManager)} &nbsp;|&nbsp; <strong>مدير التشغيل:</strong> ${escapeHtml(rest.opsManager)}</div><div><strong>تاريخ التقرير:</strong> ${escapeHtml(rest.reportDateRaw || 'غير محدد')} &nbsp;|&nbsp; <strong>الفترة:</strong> ${fromDate} → ${toDate}</div></div>`;
+                        const headerHtml =
+                            `<div style="text-align:center;"><div>${logoHtml}<div style="font-size:1.6rem;font-weight:bold;color:#d32f2f;">شركة نايف للأغذية</div><div style="font-size:0.9rem;">NAIF FOOD COMPANY</div><div style="font-size:1.1rem;font-weight:700;color:#2e7d32;margin-top:4px;">تقرير حركة أصناف المطاعم (جميع المطاعم)</div>${infoHtml}${(pageNum>1 || !firstPage)?`<div style="font-size:0.8rem;color:#888;">صفحة ${pageNum}</div>`:''}</div>`;
+
+                        let tableRows = "";
+                        let count = 0;
+                        for (let i = startIdx; i < allRows.length && count < rowsPerPage; i++) {
+                            const row = allRows[i];
+                            const isTotal = row.isTotal || false;
+                            const cls = isTotal ?
+                                ' style="background:#e3f0fa;font-weight:700;border-top:3px solid #0d47a1;"' : '';
+                            const shawIcon = row.isShaw ? ' 🔥' : '';
+                            tableRows += `<tr${cls}>
+                                <td style="border:1px solid #ccc;padding:6px;text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
+                                <td style="border:1px solid #ccc;text-align:center;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? Math.round(row.convertedEnd) : '—')}</td>
+                            </tr>`;
+                            count++;
+                        }
+                        startIdx += count;
+
+                        const tableHtml =
+                            `<table style="width:100%;border-collapse:collapse;font-size:0.7rem;margin-top:6px;">
+                            <thead>
+                                <tr style="background:#2e7d32;color:#fff;">
+                                    <th style="padding:6px;">الصنف</th>
+                                    <th style="padding:6px;">رصيد أول</th>
+                                    <th style="padding:6px;">الكمية المستلمة</th>
+                                    <th style="padding:6px;">المحول للداخل</th>
+                                    <th style="padding:6px;">المحول للخارج</th>
+                                    <th style="padding:6px;">التوالف</th>
+                                    <th style="padding:6px;">كمية الاستخدام</th>
+                                    <th style="padding:6px;">رصيد آخر</th>
+                                    <th style="padding:6px;">رصيد آخر بالقطعة</th>
+                                </tr>
+                                <tr style="background:#1b5e20;color:#c8e6c9;font-size:0.6rem;">
+                                    <th>Item</th>
+                                    <th>Start Qty</th>
+                                    <th>Received Qty</th>
+                                    <th>Transfer In</th>
+                                    <th>Transfer Out</th>
+                                    <th>Waste</th>
+                                    <th>Usage Qty</th>
+                                    <th>End Qty</th>
+                                    <th>End Qty per piece</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tableRows}</tbody>
+                        </table>`;
+
+                        let noteHtml = allRows.some(r => r.isShaw) ?
+                            `<div style="background:#fff3cd;border-right:4px solid #ffc107;padding:10px;margin-top:15px;border-radius:8px;font-size:0.8rem;color:#856404;">⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.</div>` :
+                            "";
+
+                        container.innerHTML = headerHtml + tableHtml + noteHtml;
+                        document.body.appendChild(container);
+                        const canvas = await html2canvas(container, { scale: 1.8, useCORS: true,
+                            backgroundColor: '#ffffff' });
+                        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                        const imgHeight = (canvas.height * contentWidth) / canvas.width;
+                        if (!firstPage || pageNum > 1) pdf.addPage();
+                        pdf.addImage(imgData, 'JPEG', margin, margin, contentWidth, imgHeight);
+                        document.body.removeChild(container);
+                        pageNum++;
+                        firstPage = false;
+                    }
+                }
+                pdf.save(`جميع_المطاعم_الأصناف_المحددة.pdf`);
+            } catch (e) { alert("خطأ في PDF: " + e.message); } finally { exportAllRestaurantsPdfBtn.innerHTML =
+                    originalText;
+                exportAllRestaurantsPdfBtn.disabled = false; }
+        }
+
+        // ================================================================
+        // 10. الأحداث
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
             const now = new Date();
@@ -1975,7 +2109,11 @@
         showRestaurantItemsBtn.addEventListener('click', showRestaurantItems);
         exportRestaurantExcelBtn.addEventListener('click', exportRestaurantExcel);
         exportRestaurantPdfBtn.addEventListener('click', exportRestaurantPDF);
+        // ربط الأزرار الجديدة
+        exportAllRestaurantsExcelBtn.addEventListener('click', exportAllRestaurantsExcel);
+        exportAllRestaurantsPdfBtn.addEventListener('click', exportAllRestaurantsPDF);
 
+        // تعطيل الأزرار في البداية
         itemSearch.disabled = true;
         generateBtn.disabled = true;
         exportExcelBtn.disabled = true;
@@ -1985,9 +2123,11 @@
         showRestaurantItemsBtn.disabled = true;
         exportRestaurantExcelBtn.disabled = true;
         exportRestaurantPdfBtn.disabled = true;
+        exportAllRestaurantsExcelBtn.disabled = true;
+        exportAllRestaurantsPdfBtn.disabled = true;
         restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ COGS v15 – تصحيح دقيق لمعاملات الاصابع فيليه فلفل وفيليه فلفل مع تحسين البحث');
+        console.log('✅ COGS v16 – إضافة شاورما دجاج وأرز بسمتي، وأزرار تصدير جميع المطاعم');
     </script>
 </body>
 </html>
