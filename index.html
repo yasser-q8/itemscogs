@@ -17,7 +17,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
     </script>
     <style>
-        /* جميع الأنماط السابقة مع تعديل بسيط */
         * {
             margin: 0;
             padding: 0;
@@ -496,7 +495,6 @@
     </style>
 </head>
 <body>
-    <!-- نفس هيكل HTML كما هو، بدون تغيير -->
     <div class="app-container">
         <div class="top-bar">
             <div class="logo-area">
@@ -636,7 +634,7 @@
         // 1. نص العلامة المائية الثابت
         // ================================================================
         const WATERMARK_TEXT = "مطور البرنامج: Yasser Elkhateeb | 67011143";
-        const WATERMARK_FONT_SIZE = 9; // حجم الخط 9pt
+        const WATERMARK_FONT_SIZE = 9;
 
         // ================================================================
         // 2. دالة لإنشاء صورة PNG للعلامة المائية (شفافة)
@@ -979,42 +977,63 @@
         }
         buildMasterDatabase();
 
+        // ================================================================
+        // 4b. مطابقة المطاعم (مع إصلاح المطابقة الضبابية - إصلاح تعارض "Khaitan Airport Road")
+        // ================================================================
         function getRestaurantInfo(rawName) {
             if (!rawName) return { displayName: "غير معروف", regionManager: "—", opsManager: "—", combinedName: "غير معروف" };
             let normalized = rawName.trim().replace(/^مطعم\s+/i, '').replace(/\s+/g, ' ').trim();
             let found = null;
             let foundKey = null;
+
+            // 1) مطابقة تامة (حساسة لحالة الأحرف)
             if (RESTAURANT_MASTER.has(normalized)) {
                 found = RESTAURANT_MASTER.get(normalized);
                 foundKey = normalized;
             } else {
                 const lowerKey = normalized.toLowerCase();
+                // 2) مطابقة غير حساسة لحالة الأحرف
                 if (RESTAURANT_MASTER.has(lowerKey)) {
                     found = RESTAURANT_MASTER.get(lowerKey);
                     foundKey = lowerKey;
                 } else {
+                    // 3) مطابقة ضبابية محسَّنة: نتحقق من البادئة أو اللاحقة فقط
+                    //    بهذا نتجنب مطابقة "Airport" داخل "Khaitan Airport Road"
                     for (let [key, info] of RESTAURANT_MASTER.entries()) {
-                        if (typeof key === 'string' && key.length > 2 && (normalized.includes(key) || key.includes(
-                                normalized) || lowerKey.includes(key.toLowerCase()))) {
+                        if (typeof key !== 'string' || key.length < 2) continue;
+                        const keyLower = key.toLowerCase();
+                        const normLower = normalized.toLowerCase();
+                        // بادئة / لاحقة
+                        if (normLower.startsWith(keyLower) || keyLower.startsWith(normLower) ||
+                            normLower.endsWith(keyLower) || keyLower.endsWith(normLower)) {
                             found = info;
                             foundKey = key;
                             break;
                         }
                     }
+                    // إذا لم نجد أي مطابقة، نعيد الاسم الخام
+                    if (!found) {
+                        return {
+                            displayName: rawName,
+                            regionManager: "غير محدد",
+                            opsManager: "غير محدد",
+                            combinedName: rawName
+                        };
+                    }
                 }
             }
-            if (found) {
-                const arName = found.displayName || foundKey;
-                const enName = arToEnMap.get(arName) || arToEnMap.get(foundKey) || '';
-                const combined = enName ? `${arName} - ${enName}` : arName;
-                return {
-                    displayName: arName,
-                    regionManager: found.regionManager,
-                    opsManager: found.operationsManager,
-                    combinedName: combined
-                };
-            }
-            return { displayName: rawName, regionManager: "غير محدد", opsManager: "غير محدد", combinedName: rawName };
+
+            // بناء الاسم المركَّب
+            const arName = found.displayName || foundKey;
+            const enName = arToEnMap.get(arName) || arToEnMap.get(foundKey) || '';
+            const combined = enName ? `${arName} - ${enName}` : arName;
+
+            return {
+                displayName: arName,
+                regionManager: found.regionManager || "غير محدد",
+                opsManager: found.operationsManager || "غير محدد",
+                combinedName: combined
+            };
         }
 
         // ================================================================
@@ -1353,7 +1372,6 @@
                 const workbook = new ExcelJS.Workbook();
                 const worksheet = workbook.addWorksheet(currentSelectedItem.substring(0, 31));
 
-                // إضافة البيانات
                 const headerArabic = ["اسم المطعم", "مدير المنطقة", "مدير التشغيل", "تاريخ التقرير", "رصيد أول", "الكمية المستلمة",
                     "المحول للداخل", "المحول للخارج", "التوالف", "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة"
                 ];
@@ -1379,31 +1397,23 @@
                     worksheet.addRow(['ملاحظة:', 'تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.']);
                 }
 
-                // --- إضافة العلامة المائية كصورة واحدة في أسفل الورقة ---
                 const watermarkBlob = await createWatermarkImage(WATERMARK_TEXT, WATERMARK_FONT_SIZE);
                 const imageId = workbook.addImage({
                     buffer: await watermarkBlob.arrayBuffer(),
                     extension: 'png',
                 });
-                // نضيف الصورة في صف جديد بعد البيانات (في العمود الأول)
                 const lastRow = worksheet.rowCount + 2;
-                worksheet.addRow([]); // صف فارغ
-                const watermarkRow = worksheet.addRow([WATERMARK_TEXT]);
-                // نضيف الصورة فوق هذا الصف (لكن في الواقع سنضعها في خلية محددة)
-                // لحل مشكلة عدم ظهور الصورة، سنضعها في مكان ثابت في الزاوية السفلية اليمنى
-                // باستخدام الإحداثيات المطلقة
-                const imgWidth = 300; // عرض الصورة بالبكسل
-                const imgHeight = 50;
-                // تحويل البكسل إلى وحدات Excel (تقريبية)
-                const widthUnits = imgWidth / 7.5;
-                const heightUnits = imgHeight / 7.5;
+                worksheet.addRow([]);
+                const imgWidth = 300,
+                    imgHeight = 50;
+                const widthUnits = imgWidth / 7.5,
+                    heightUnits = imgHeight / 7.5;
                 worksheet.addImage(imageId, {
-                    tl: { col: 1, row: lastRow - 1 }, // وضعها في العمود B (رقم 1)، الصف الأخير+1
+                    tl: { col: 1, row: lastRow - 1 },
                     ext: { width: widthUnits, height: heightUnits },
                     editAs: 'absolute',
                 });
 
-                // حفظ الملف
                 const buffer = await workbook.xlsx.writeBuffer({ type: 'buffer' });
                 const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 saveAs(blob, `COGS_${currentSelectedItem.replace(/[\\/*:?"<>|[\]]/g, '_')}.xlsx`);
@@ -1411,7 +1421,7 @@
         }
 
         // ================================================================
-        // 9. تصدير PDF للتاب الأول (توقيع واحد أسفل الجدول، تصغير حجم الجدول 3%)
+        // 9. تصدير PDF للتاب الأول
         // ================================================================
         async function exportToPDF() {
             if (!currentReportData || currentReportData.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -1442,9 +1452,7 @@
                     container.style.fontFamily = "'Segoe UI', Tahoma, Arial";
                     container.style.position = 'relative';
 
-                    // تقليل حجم الجدول بنسبة 3% عن طريق تصغير حجم الخط والتباعد
-                    const scaleFactor = 0.97; // 3% أصغر
-
+                    const scaleFactor = 0.97;
                     let logoHtml = pageNum === 1 ?
                         `<img src="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" style="width:55px;border-radius:12px;"><br>` :
                         "";
@@ -1495,7 +1503,6 @@
                     let noteHtml = isShawarmaItem(currentSelectedItem) ?
                         `<div style="background:#fff3cd;border-right:4px solid #ffc107;padding:10px;margin-top:15px;border-radius:8px;font-size:${0.8 * scaleFactor}rem;color:#856404;">⚠️ ملاحظة: تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.</div>` :
                         "";
-                    // التوقيع مرة واحدة في الأسفل
                     const signatureHtml =
                         `<div style="text-align:center;margin-top:20px;font-size:${WATERMARK_FONT_SIZE}pt;color:#333;border-top:1px solid #ccc;padding-top:10px;">${WATERMARK_TEXT}</div>`;
                     container.innerHTML = headerHtml + tableHtml + noteHtml + signatureHtml;
@@ -1556,7 +1563,7 @@
         }
 
         // ================================================================
-        // 11. دالة الحصول على صفوف الأصناف مع إجماليات كل مجموعة (مصححة)
+        // 11. دالة الحصول على صفوف الأصناف مع إجماليات كل مجموعة
         // ================================================================
         function getRestaurantItemRows(restData) {
             const rows = [];
@@ -1567,9 +1574,7 @@
                 const it = FLAT_ITEMS[idx];
                 const groupIdx = it.groupIdx;
 
-                // إذا بدأت مجموعة جديدة، نضيف إجمالي المجموعة السابقة (إن وجد)
                 if (groupIdx !== currentGroup && currentGroup !== -1) {
-                    // نضيف صف الإجمالي فقط إذا كانت المجموعة السابقة تحتوي على عناصر موجودة
                     if (groupTotals.start !== 0 || groupTotals.recd !== 0 || groupTotals.tranIn !== 0 ||
                         groupTotals.tranOut !== 0 || groupTotals.wast !== 0 || groupTotals.usage !== 0 ||
                         groupTotals.end !== 0 || groupTotals.convertedEnd !== 0) {
@@ -1589,7 +1594,6 @@
                             isTotal: true
                         });
                     }
-                    // إعادة تعيين المجاميع
                     groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
                     convertedEnd: 0 };
                 }
@@ -1648,7 +1652,6 @@
                 });
             }
 
-            // إجمالي آخر مجموعة
             if (currentGroup !== -1) {
                 if (groupTotals.start !== 0 || groupTotals.recd !== 0 || groupTotals.tranIn !== 0 ||
                     groupTotals.tranOut !== 0 || groupTotals.wast !== 0 || groupTotals.usage !== 0 ||
@@ -1739,7 +1742,7 @@
         }
 
         // ================================================================
-        // 13. تصدير Excel للتاب الثاني (مطعم واحد) مع العلامة المائية
+        // 13. تصدير Excel للتاب الثاني (مطعم واحد)
         // ================================================================
         async function exportRestaurantExcel() {
             if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -1787,7 +1790,6 @@
                     worksheet.addRow(['ملاحظة:', 'تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.']);
                 }
 
-                // --- إضافة العلامة المائية كصورة واحدة ---
                 const watermarkBlob = await createWatermarkImage(WATERMARK_TEXT, WATERMARK_FONT_SIZE);
                 const imageId = workbook.addImage({
                     buffer: await watermarkBlob.arrayBuffer(),
@@ -1814,7 +1816,7 @@
         }
 
         // ================================================================
-        // 14. تصدير PDF للتاب الثاني (مطعم واحد) مع توقيع واحد أسفل الجدول وتصغير الجدول 3%
+        // 14. تصدير PDF للتاب الثاني (مطعم واحد)
         // ================================================================
         async function exportRestaurantPDF() {
             if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -1931,7 +1933,7 @@
         }
 
         // ================================================================
-        // 15. تصدير جميع المطاعم (Excel و PDF) مع العلامة المائية
+        // 15. تصدير جميع المطاعم (Excel و PDF)
         // ================================================================
         async function exportAllRestaurantsExcel() {
             if (!allRestaurantsData || allRestaurantsData.length === 0) {
@@ -1953,10 +1955,23 @@
                 const widthUnits = imgWidth / 7.5,
                     heightUnits = imgHeight / 7.5;
 
+                // قائمة بأسماء الأوراق المستخدمة لتجنب التكرار
+                const usedSheetNames = new Set();
+
                 for (const rest of allRestaurantsData) {
                     const rows = getRestaurantItemRows(rest);
-                    const sheetName =
-                        rest.restaurantCombined.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 25) || "مطعم";
+                    // نستخدم الاسم المركَّب كأساس لاسم الورقة، ونتأكد من أنه فريد
+                    let baseName = rest.restaurantCombined.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 25) || "مطعم";
+                    let sheetName = baseName;
+                    let counter = 2;
+                    while (usedSheetNames.has(sheetName)) {
+                        const suffix = `_${counter}`;
+                        const maxLen = 31 - suffix.length;
+                        sheetName = baseName.substring(0, maxLen) + suffix;
+                        counter++;
+                    }
+                    usedSheetNames.add(sheetName);
+
                     const worksheet = workbook.addWorksheet(sheetName);
 
                     worksheet.addRow(['شركة نايف للأغذية']);
@@ -2202,7 +2217,7 @@
         exportAllRestaurantsPdfBtn.disabled = true;
         restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ COGS v18 – إصلاح المجاميع، ظهور العلامة المائية في Excel، توقيع واحد في PDF مع تصغير الجدول 3%');
+        console.log('✅ COGS v19 – إصلاح تعارض أسماء أوراق Excel (المطابقة الضبابية المحسَّنة)');
     </script>
 </body>
 </html>
