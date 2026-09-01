@@ -1764,7 +1764,7 @@
         }
 
         // ================================================================
-        // 13. تصدير Excel للتاب الثاني (مطعم واحد)
+        // 13. تصدير Excel للتاب الثاني (مطعم واحد) مع إطار خارجي سميك أحمر
         // ================================================================
         async function exportRestaurantExcel() {
             if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -1780,6 +1780,7 @@
                     "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة"
                 ];
 
+                // إضافة معلومات الرأس
                 worksheet.addRow(['شركة نايف للأغذية']);
                 worksheet.addRow(['تقرير حركة أصناف المطعم (المحددة)']);
                 worksheet.addRow([`المطعم: ${currentRestaurantData.restaurantCombined}`]);
@@ -1788,30 +1789,96 @@
                 worksheet.addRow([`تاريخ التقرير: ${currentRestaurantData.reportDateRaw || 'غير محدد'}`]);
                 worksheet.addRow([`الفترة الوصفية: ${fromDate} → ${toDate}`]);
                 worksheet.addRow([]);
-                worksheet.addRow(headerArabic);
+                // صف العناوين
+                const headerRow = worksheet.addRow(headerArabic);
+                // صف العناوين بالإنجليزية (اختياري)
                 worksheet.addRow(headerArabic.map(h => h.replace(/[^\w\s]/g, '')));
 
-                for (const row of currentRestaurantItems) {
-                    const isTotal = row.isTotal || false;
-                    worksheet.addRow([
-                        row.item,
-                        isTotal ? row.start : (row.found ? row.start : ''),
-                        isTotal ? row.recd : (row.found ? row.recd : ''),
-                        isTotal ? row.tranIn : (row.found ? row.tranIn : ''),
-                        isTotal ? row.tranOut : (row.found ? row.tranOut : ''),
-                        isTotal ? row.wast : (row.found ? row.wast : ''),
-                        isTotal ? row.usage : (row.found ? row.usage : ''),
-                        isTotal ? row.end : (row.found ? row.end : ''),
-                        isTotal ? Math.round(row.convertedEnd) : (row.found && row.convertedEnd !== null ? Math.round(row
-                            .convertedEnd) : '')
-                    ]);
+                // الآن نكتب البيانات مع تتبع المجموعات
+                const rowsWithGroup = currentRestaurantItems.map(row => ({
+                    rowData: row,
+                    groupIdx: row.groupIdx
+                }));
+
+                // نكتب البيانات
+                let currentGroup = -1;
+                let groupStartRow = -1;
+                let groupEndRow = -1;
+                const totalCols = headerArabic.length; // 9
+
+                // دالة لتطبيق الإطار الخارجي السميك الأحمر على نطاق المجموعة
+                function applyOuterRedBorder(startRow, endRow) {
+                    // نطاق الأعمدة: 1 إلى totalCols
+                    for (let r = startRow; r <= endRow; r++) {
+                        const row = worksheet.getRow(r);
+                        for (let c = 1; c <= totalCols; c++) {
+                            const cell = row.getCell(c);
+                            // نحدد ما إذا كنا في الصف العلوي أو السفلي أو الأعمدة الجانبية
+                            const isTop = (r === startRow);
+                            const isBottom = (r === endRow);
+                            const isLeft = (c === 1);
+                            const isRight = (c === totalCols);
+
+                            const border = {};
+                            if (isTop) border.top = { style: 'thick', color: { argb: 'FFFF0000' } };
+                            if (isBottom) border.bottom = { style: 'thick', color: { argb: 'FFFF0000' } };
+                            if (isLeft) border.left = { style: 'thick', color: { argb: 'FFFF0000' } };
+                            if (isRight) border.right = { style: 'thick', color: { argb: 'FFFF0000' } };
+                            // فقط نضع الحدود الخارجية
+                            cell.border = border;
+                        }
+                    }
                 }
 
+                for (let i = 0; i < rowsWithGroup.length; i++) {
+                    const { rowData, groupIdx } = rowsWithGroup[i];
+                    const isTotal = rowData.isTotal || false;
+
+                    // إذا كانت مجموعة جديدة
+                    if (groupIdx !== currentGroup) {
+                        // إذا كانت هناك مجموعة سابقة، نغلقها بإطار ونضيف فاصل
+                        if (currentGroup !== -1 && groupStartRow !== -1 && groupEndRow !== -1) {
+                            applyOuterRedBorder(groupStartRow, groupEndRow);
+                            // إضافة صف فارغ بعد المجموعة (فاصل)
+                            worksheet.addRow([]);
+                        }
+                        // بداية مجموعة جديدة
+                        currentGroup = groupIdx;
+                        groupStartRow = worksheet.rowCount + 1; // الصف التالي
+                        groupEndRow = groupStartRow;
+                    }
+
+                    // كتابة الصف
+                    const rowValues = [
+                        rowData.item,
+                        isTotal ? rowData.start : (rowData.found ? rowData.start : ''),
+                        isTotal ? rowData.recd : (rowData.found ? rowData.recd : ''),
+                        isTotal ? rowData.tranIn : (rowData.found ? rowData.tranIn : ''),
+                        isTotal ? rowData.tranOut : (rowData.found ? rowData.tranOut : ''),
+                        isTotal ? rowData.wast : (rowData.found ? rowData.wast : ''),
+                        isTotal ? rowData.usage : (rowData.found ? rowData.usage : ''),
+                        isTotal ? rowData.end : (rowData.found ? rowData.end : ''),
+                        isTotal ? Math.round(rowData.convertedEnd) : (rowData.found && rowData.convertedEnd !== null ?
+                            Math.round(rowData.convertedEnd) : '')
+                    ];
+                    worksheet.addRow(rowValues);
+                    groupEndRow = worksheet.rowCount;
+
+                    // إذا كان هذا هو الصف الأخير من البيانات، نغلق المجموعة الحالية
+                    if (i === rowsWithGroup.length - 1) {
+                        if (groupStartRow !== -1 && groupEndRow !== -1) {
+                            applyOuterRedBorder(groupStartRow, groupEndRow);
+                        }
+                    }
+                }
+
+                // إضافة ملاحظة الشاورما إن وجدت
                 if (currentRestaurantItems.some(r => r.isShaw)) {
                     worksheet.addRow([]);
                     worksheet.addRow(['ملاحظة:', 'تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.']);
                 }
 
+                // العلامة المائية
                 const watermarkBlob = await createWatermarkImage(WATERMARK_TEXT, WATERMARK_FONT_SIZE);
                 const imageId = workbook.addImage({
                     buffer: await watermarkBlob.arrayBuffer(),
@@ -1838,7 +1905,7 @@
         }
 
         // ================================================================
-        // 14. تصدير PDF للتاب الثاني (مطعم واحد)
+        // 14. تصدير PDF للتاب الثاني (مطعم واحد) - بدون تغيير
         // ================================================================
         async function exportRestaurantPDF() {
             if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -1955,7 +2022,7 @@
         }
 
         // ================================================================
-        // 15. تصدير جميع المطاعم (Excel و PDF)
+        // 15. تصدير جميع المطاعم Excel مع إطار خارجي سميك أحمر
         // ================================================================
         async function exportAllRestaurantsExcel() {
             if (!allRestaurantsData || allRestaurantsData.length === 0) {
@@ -1969,6 +2036,7 @@
                 const headerArabic = ["الصنف", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج",
                     "التوالف", "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة"
                 ];
+                const totalCols = headerArabic.length;
 
                 const watermarkBlob = await createWatermarkImage(WATERMARK_TEXT, WATERMARK_FONT_SIZE);
                 const imageBuffer = await watermarkBlob.arrayBuffer();
@@ -1977,12 +2045,10 @@
                 const widthUnits = imgWidth / 7.5,
                     heightUnits = imgHeight / 7.5;
 
-                // قائمة بأسماء الأوراق المستخدمة لتجنب التكرار
                 const usedSheetNames = new Set();
 
                 for (const rest of allRestaurantsData) {
                     const rows = getRestaurantItemRows(rest);
-                    // نستخدم الاسم المركَّب كأساس لاسم الورقة، ونتأكد من أنه فريد
                     let baseName = rest.restaurantCombined.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 25) || "مطعم";
                     let sheetName = baseName;
                     let counter = 2;
@@ -1996,6 +2062,7 @@
 
                     const worksheet = workbook.addWorksheet(sheetName);
 
+                    // رأس التقرير
                     worksheet.addRow(['شركة نايف للأغذية']);
                     worksheet.addRow(['تقرير حركة أصناف المطعم (المحددة) - جميع المطاعم']);
                     worksheet.addRow([`المطعم: ${rest.restaurantCombined}`]);
@@ -2007,20 +2074,70 @@
                     worksheet.addRow(headerArabic);
                     worksheet.addRow(headerArabic.map(h => h.replace(/[^\w\s]/g, '')));
 
-                    for (const row of rows) {
-                        const isTotal = row.isTotal || false;
-                        worksheet.addRow([
-                            row.item,
-                            isTotal ? row.start : (row.found ? row.start : ''),
-                            isTotal ? row.recd : (row.found ? row.recd : ''),
-                            isTotal ? row.tranIn : (row.found ? row.tranIn : ''),
-                            isTotal ? row.tranOut : (row.found ? row.tranOut : ''),
-                            isTotal ? row.wast : (row.found ? row.wast : ''),
-                            isTotal ? row.usage : (row.found ? row.usage : ''),
-                            isTotal ? row.end : (row.found ? row.end : ''),
-                            isTotal ? Math.round(row.convertedEnd) : (row.found && row.convertedEnd !== null ? Math.round(
-                                row.convertedEnd) : '')
-                        ]);
+                    // كتابة البيانات مع تتبع المجموعات
+                    const rowsWithGroup = rows.map(row => ({
+                        rowData: row,
+                        groupIdx: row.groupIdx
+                    }));
+
+                    let currentGroup = -1;
+                    let groupStartRow = -1;
+                    let groupEndRow = -1;
+
+                    // دالة لتطبيق الإطار الخارجي السميك الأحمر
+                    function applyOuterRedBorderAll(startRow, endRow) {
+                        for (let r = startRow; r <= endRow; r++) {
+                            const row = worksheet.getRow(r);
+                            for (let c = 1; c <= totalCols; c++) {
+                                const cell = row.getCell(c);
+                                const isTop = (r === startRow);
+                                const isBottom = (r === endRow);
+                                const isLeft = (c === 1);
+                                const isRight = (c === totalCols);
+                                const border = {};
+                                if (isTop) border.top = { style: 'thick', color: { argb: 'FFFF0000' } };
+                                if (isBottom) border.bottom = { style: 'thick', color: { argb: 'FFFF0000' } };
+                                if (isLeft) border.left = { style: 'thick', color: { argb: 'FFFF0000' } };
+                                if (isRight) border.right = { style: 'thick', color: { argb: 'FFFF0000' } };
+                                cell.border = border;
+                            }
+                        }
+                    }
+
+                    for (let i = 0; i < rowsWithGroup.length; i++) {
+                        const { rowData, groupIdx } = rowsWithGroup[i];
+                        const isTotal = rowData.isTotal || false;
+
+                        if (groupIdx !== currentGroup) {
+                            if (currentGroup !== -1 && groupStartRow !== -1 && groupEndRow !== -1) {
+                                applyOuterRedBorderAll(groupStartRow, groupEndRow);
+                                worksheet.addRow([]);
+                            }
+                            currentGroup = groupIdx;
+                            groupStartRow = worksheet.rowCount + 1;
+                            groupEndRow = groupStartRow;
+                        }
+
+                        const rowValues = [
+                            rowData.item,
+                            isTotal ? rowData.start : (rowData.found ? rowData.start : ''),
+                            isTotal ? rowData.recd : (rowData.found ? rowData.recd : ''),
+                            isTotal ? rowData.tranIn : (rowData.found ? rowData.tranIn : ''),
+                            isTotal ? rowData.tranOut : (rowData.found ? rowData.tranOut : ''),
+                            isTotal ? rowData.wast : (rowData.found ? rowData.wast : ''),
+                            isTotal ? rowData.usage : (rowData.found ? rowData.usage : ''),
+                            isTotal ? rowData.end : (rowData.found ? rowData.end : ''),
+                            isTotal ? Math.round(rowData.convertedEnd) : (rowData.found && rowData.convertedEnd !== null ?
+                                Math.round(rowData.convertedEnd) : '')
+                        ];
+                        worksheet.addRow(rowValues);
+                        groupEndRow = worksheet.rowCount;
+
+                        if (i === rowsWithGroup.length - 1) {
+                            if (groupStartRow !== -1 && groupEndRow !== -1) {
+                                applyOuterRedBorderAll(groupStartRow, groupEndRow);
+                            }
+                        }
                     }
 
                     if (rows.some(r => r.isShaw)) {
@@ -2028,7 +2145,7 @@
                         worksheet.addRow(['ملاحظة:', 'تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.']);
                     }
 
-                    // إضافة العلامة المائية
+                    // العلامة المائية
                     const imageId = workbook.addImage({
                         buffer: imageBuffer,
                         extension: 'png',
@@ -2048,6 +2165,9 @@
             } catch (err) { alert("فشل تصدير Excel: " + err.message); }
         }
 
+        // ================================================================
+        // 16. تصدير جميع المطاعم PDF (بدون تغيير)
+        // ================================================================
         async function exportAllRestaurantsPDF() {
             if (!allRestaurantsData || allRestaurantsData.length === 0) {
                 alert("⚠️ لا توجد بيانات مطاعم.");
@@ -2173,7 +2293,7 @@
         }
 
         // ================================================================
-        // 16. الأحداث
+        // 17. الأحداث
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
             const now = new Date();
@@ -2239,7 +2359,7 @@
         exportAllRestaurantsPdfBtn.disabled = true;
         restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ COGS v20 – إزالة إجمالي المجموعة للصنف الوحيد وللمجموعة 18 (Onion Rings, Nuggets, Mozzarella)');
+        console.log('✅ COGS v22 – إطار خارجي سميك أحمر حول كل مجموعة وفاصل بينها في Excel');
     </script>
 </body>
 </html>
