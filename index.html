@@ -1564,20 +1564,37 @@
 
         // ================================================================
         // 11. دالة الحصول على صفوف الأصناف مع إجماليات كل مجموعة
+        //     تم تعديلها بحيث:
+        //     - لا يظهر إجمالي المجموعة إذا كانت المجموعة تحتوي على صنف واحد فقط.
+        //     - لا يظهر إجمالي المجموعة رقم 18 (حلقات بصل، ناجيت تمبورا، أصابع مودزريلا).
         // ================================================================
         function getRestaurantItemRows(restData) {
             const rows = [];
             let currentGroup = -1;
             let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0, convertedEnd: 0 };
 
+            // المجموعات المستثناة من عرض الإجمالي (رقم 18 = Onion Rings, Nuggets, Mozzarella)
+            const excludedGroupIndices = [18]; // groupIdx يبدأ من 0
+
+            // حساب عدد الأصناف في كل مجموعة مسبقاً (للتأكد من أنها تحتوي على أكثر من صنف)
+            const groupSizeMap = {};
+            for (const it of FLAT_ITEMS) {
+                if (!groupSizeMap[it.groupIdx]) groupSizeMap[it.groupIdx] = 0;
+                groupSizeMap[it.groupIdx]++;
+            }
+
             for (let idx = 0; idx < FLAT_ITEMS.length; idx++) {
                 const it = FLAT_ITEMS[idx];
                 const groupIdx = it.groupIdx;
 
                 if (groupIdx !== currentGroup && currentGroup !== -1) {
-                    if (groupTotals.start !== 0 || groupTotals.recd !== 0 || groupTotals.tranIn !== 0 ||
+                    // انتهت المجموعة السابقة: نضيف الإجمالي إذا توفرت الشروط
+                    const itemsInGroup = groupSizeMap[currentGroup] || 0;
+                    const hasValues = groupTotals.start !== 0 || groupTotals.recd !== 0 || groupTotals.tranIn !== 0 ||
                         groupTotals.tranOut !== 0 || groupTotals.wast !== 0 || groupTotals.usage !== 0 ||
-                        groupTotals.end !== 0 || groupTotals.convertedEnd !== 0) {
+                        groupTotals.end !== 0 || groupTotals.convertedEnd !== 0;
+
+                    if (hasValues && itemsInGroup > 1 && !excludedGroupIndices.includes(currentGroup)) {
                         rows.push({
                             groupIdx: currentGroup,
                             item: '🔹 إجمالي المجموعة',
@@ -1594,6 +1611,7 @@
                             isTotal: true
                         });
                     }
+                    // إعادة تعيين المجموع
                     groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0,
                     convertedEnd: 0 };
                 }
@@ -1652,10 +1670,14 @@
                 });
             }
 
+            // بعد انتهاء الحلقة، نضيف إجمالي المجموعة الأخيرة إذا توفرت الشروط
             if (currentGroup !== -1) {
-                if (groupTotals.start !== 0 || groupTotals.recd !== 0 || groupTotals.tranIn !== 0 ||
+                const itemsInGroup = groupSizeMap[currentGroup] || 0;
+                const hasValues = groupTotals.start !== 0 || groupTotals.recd !== 0 || groupTotals.tranIn !== 0 ||
                     groupTotals.tranOut !== 0 || groupTotals.wast !== 0 || groupTotals.usage !== 0 ||
-                    groupTotals.end !== 0 || groupTotals.convertedEnd !== 0) {
+                    groupTotals.end !== 0 || groupTotals.convertedEnd !== 0;
+
+                if (hasValues && itemsInGroup > 1 && !excludedGroupIndices.includes(currentGroup)) {
                     rows.push({
                         groupIdx: currentGroup,
                         item: '🔹 إجمالي المجموعة',
@@ -2217,7 +2239,7 @@
         exportAllRestaurantsPdfBtn.disabled = true;
         restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ COGS v19 – إصلاح تعارض أسماء أوراق Excel (المطابقة الضبابية المحسَّنة)');
+        console.log('✅ COGS v20 – إزالة إجمالي المجموعة للصنف الوحيد وللمجموعة 18 (Onion Rings, Nuggets, Mozzarella)');
     </script>
 </body>
 </html>
