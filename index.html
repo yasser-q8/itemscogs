@@ -359,7 +359,7 @@
         }
 
         .table-wrapper.restaurant-items-table table {
-            min-width: 800px;
+            min-width: 1200px;
         }
         .table-wrapper.restaurant-items-table th {
             background: #2e7d32;
@@ -591,7 +591,8 @@
                 <div><span class="label">🏢 المطعم:</span> <span id="headerRestaurantName">—</span></div>
                 <div><span class="label">👤 مدير المنطقة:</span> <span id="headerRegionManager">—</span></div>
                 <div><span class="label">👤 مدير التشغيل:</span> <span id="headerOpsManager">—</span></div>
-                <div><span class="label">📅 تاريخ التقرير:</span> <span id="headerReportDate">—</span></div>
+                <div><span class="label">📅 الفترة:</span> <span id="headerPeriod">—</span></div>
+                <div><span class="label">📅 عدد الأيام:</span> <span id="headerDaysCount">—</span></div>
             </div>
 
             <div class="table-wrapper restaurant-items-table">
@@ -606,11 +607,15 @@
                             <th>التوالف<br><small>Waste</small></th>
                             <th>كمية الاستخدام<br><small>Usage Qty</small></th>
                             <th>رصيد آخر<br><small>End Qty</small></th>
-                            <th>رصيد آخر بالقطعة<br><small>End Qty per piece</small></th>
+                            <th>رصيد آخر بالقطعة<br><small>End Qty (Pc)</small></th>
+                            <th>% رصيد الصنف<br><small>Item %</small></th>
+                            <th>% المجموعة<br><small>Group %</small></th>
+                            <th>معدل الطلبية اليومي<br><small>Daily Received Avg</small></th>
+                            <th>معدل البيع اليومي<br><small>Daily Sales Avg</small></th>
                         </tr>
                     </thead>
                     <tbody id="restaurantItemsBody">
-                        <tr class="empty-row"><td colspan="9">📂 قم برفع الملفات ثم اختر مطعماً</td></tr>
+                        <tr class="empty-row"><td colspan="13">📂 قم برفع الملفات ثم اختر مطعماً</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1077,7 +1082,8 @@
         const headerRestaurantName = document.getElementById('headerRestaurantName');
         const headerRegionManager = document.getElementById('headerRegionManager');
         const headerOpsManager = document.getElementById('headerOpsManager');
-        const headerReportDate = document.getElementById('headerReportDate');
+        const headerPeriod = document.getElementById('headerPeriod');
+        const headerDaysCount = document.getElementById('headerDaysCount');
 
         function formatZero(val) {
             let num = Number(val);
@@ -1089,6 +1095,12 @@
             let num = Number(val);
             if (isNaN(num) || num === 0) return "—";
             return Math.round(num);
+        }
+
+        function formatPercent(val) {
+            let num = Number(val);
+            if (isNaN(num) || num === 0) return "0%";
+            return (num * 100).toFixed(1) + '%';
         }
 
         function escapeHtml(str) {
@@ -1128,7 +1140,8 @@
             return "مطعم غير معروف";
         }
 
-        function extractRawDateString(worksheet) {
+        // دالة محسنة لاستخراج الفترة الكاملة من الملف
+        function extractFullPeriod(worksheet) {
             try {
                 const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1:Z100');
                 for (let row = range.s.r; row <= range.e.r; row++) {
@@ -1136,20 +1149,52 @@
                         const addr = XLSX.utils.encode_cell({ r: row, c: col });
                         const cell = worksheet[addr];
                         if (cell && cell.v && typeof cell.v === 'string') {
-                            if (cell.v.includes("From") && cell.v.includes("to")) {
-                                const match = cell.v.match(/(\d{1,2}-[A-Za-z]{3}-\d{4})/g);
-                                if (match && match.length) return match[0];
-                            } else {
-                                const dateMatch = cell.v.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/);
-                                if (dateMatch) return dateMatch[0];
+                            const text = cell.v;
+                            // البحث عن النمط "From ... to ..." (غير حساس لحالة الأحرف)
+                            const match = text.match(/From\s+(\d{1,2}-[A-Za-z]{3}-\d{4})\s+to\s+(\d{1,2}-[A-Za-z]{3}-\d{4})/i);
+                            if (match && match.length >= 3) {
+                                return {
+                                    fullString: `From ${match[1]} to ${match[2]}`,
+                                    startDate: match[1],
+                                    endDate: match[2]
+                                };
+                            }
+                            // محاولة صيغة أخرى: "01-Aug-2026 to 31-Aug-2026"
+                            const match2 = text.match(/(\d{1,2}-[A-Za-z]{3}-\d{4})\s+to\s+(\d{1,2}-[A-Za-z]{3}-\d{4})/i);
+                            if (match2 && match2.length >= 3) {
+                                return {
+                                    fullString: `${match2[1]} to ${match2[2]}`,
+                                    startDate: match2[1],
+                                    endDate: match2[2]
+                                };
+                            }
+                            // محاولة صيغة "From ... to ..." مع تواريخ بصيغة أخرى
+                            const match3 = text.match(/From\s+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\s+to\s+(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i);
+                            if (match3 && match3.length >= 3) {
+                                return {
+                                    fullString: `From ${match3[1]} to ${match3[2]}`,
+                                    startDate: match3[1],
+                                    endDate: match3[2]
+                                };
                             }
                         }
                     }
                 }
+                // إذا لم نجد، نأخذ من A1 مثلاً
                 const a1 = worksheet['A1'];
-                if (a1 && a1.v) { let m = String(a1.v).match(/(\d{1,2}\/\d{1,2}\/\d{4})/); if (m) return m[0]; }
+                if (a1 && a1.v) {
+                    const text = String(a1.v);
+                    const match = text.match(/From\s+(\d{1,2}-[A-Za-z]{3}-\d{4})\s+to\s+(\d{1,2}-[A-Za-z]{3}-\d{4})/i);
+                    if (match && match.length >= 3) {
+                        return {
+                            fullString: `From ${match[1]} to ${match[2]}`,
+                            startDate: match[1],
+                            endDate: match[2]
+                        };
+                    }
+                }
             } catch (e) {}
-            return "تاريخ غير محدد";
+            return null;
         }
 
         function parseItemsFromSheet(worksheet) {
@@ -1228,9 +1273,24 @@
                         if (!sheet) { resolve(null); return; }
                         const rawRestName = getRestaurantNameFromSheet(sheet);
                         const restaurantInfo = getRestaurantInfo(rawRestName);
-                        const rawDate = extractRawDateString(sheet);
+                        const periodData = extractFullPeriod(sheet);
+                        let periodString = "غير محدد";
+                        let startDateStr = null,
+                            endDateStr = null;
+                        if (periodData) {
+                            periodString = periodData.fullString;
+                            startDateStr = periodData.startDate;
+                            endDateStr = periodData.endDate;
+                        }
                         const items = parseItemsFromSheet(sheet);
-                        resolve({ restaurantRaw: rawRestName, restaurantInfo, reportDateRaw: rawDate, items });
+                        resolve({
+                            restaurantRaw: rawRestName,
+                            restaurantInfo,
+                            periodString: periodString,
+                            startDateStr: startDateStr,
+                            endDateStr: endDateStr,
+                            items
+                        });
                     } catch (err) { resolve(null); }
                 };
                 reader.onerror = () => resolve(null);
@@ -1256,7 +1316,9 @@
                         restaurantCombined: res.restaurantInfo.combinedName,
                         regionManager: res.restaurantInfo.regionManager,
                         opsManager: res.restaurantInfo.opsManager,
-                        reportDateRaw: res.reportDateRaw,
+                        periodString: res.periodString || "غير محدد",
+                        startDateStr: res.startDateStr,
+                        endDateStr: res.endDateStr,
                         items: res.items
                     });
                     res.items.forEach(it => { if (it.itemName) uniqueItemsSet.add(it.itemName); });
@@ -1320,7 +1382,7 @@
                         restaurantCombined: rest.restaurantCombined,
                         regionManager: rest.regionManager,
                         opsManager: rest.opsManager,
-                        reportDate: rest.reportDateRaw || "غير محدد",
+                        reportDate: rest.periodString || "غير محدد",
                         startQty: found.startQty,
                         recdQty: found.recdQty,
                         tranInQty: found.tranInQty,
@@ -1563,25 +1625,86 @@
         }
 
         // ================================================================
-        // 11. دالة الحصول على صفوف الأصناف مع إجماليات كل مجموعة
-        //     تم تعديلها بحيث:
-        //     - لا يظهر إجمالي المجموعة إذا كانت المجموعة تحتوي على صنف واحد فقط.
-        //     - لا يظهر إجمالي المجموعة رقم 18 (حلقات بصل، ناجيت تمبورا، أصابع مودزريلا).
+        // 11. دالة حساب عدد الأيام الفعلية من الفترة المستخلصة
+        // ================================================================
+        function calculateActualDays() {
+            // نحاول استخدام الفترة المستخلصة من الملفات
+            let startDates = [];
+            let endDates = [];
+
+            for (const rest of allRestaurantsData) {
+                if (rest.startDateStr && rest.endDateStr) {
+                    const start = parseDateString(rest.startDateStr);
+                    const end = parseDateString(rest.endDateStr);
+                    if (start && end) {
+                        startDates.push(start);
+                        endDates.push(end);
+                    }
+                }
+            }
+
+            if (startDates.length > 0 && endDates.length > 0) {
+                const minStart = new Date(Math.min(...startDates));
+                const maxEnd = new Date(Math.max(...endDates));
+                const diffTime = Math.abs(maxEnd - minStart);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                return diffDays > 0 ? diffDays : 1;
+            }
+
+            // إذا لم نجد، نستخدم التواريخ المدخلة
+            try {
+                const start = new Date(startDateInput.value);
+                const end = new Date(endDateInput.value);
+                if (!isNaN(start) && !isNaN(end) && start <= end) {
+                    const diffTime = Math.abs(end - start);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                    return diffDays > 0 ? diffDays : 1;
+                }
+            } catch (e) {}
+            return 1;
+        }
+
+        function parseDateString(str) {
+            if (!str) return null;
+            let cleaned = str.trim();
+            // dd-MMM-yyyy
+            let match = cleaned.match(/(\d{1,2})-([A-Za-z]{3})-(\d{4})/);
+            if (match) {
+                const months = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7, 'Sep': 8,
+                    'Oct': 9, 'Nov': 10, 'Dec': 11 };
+                const month = months[match[2]];
+                if (month !== undefined) return new Date(parseInt(match[3]), month, parseInt(match[1]));
+            }
+            // dd/mm/yyyy أو dd-mm-yyyy
+            match = cleaned.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+            if (match) {
+                return new Date(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1]));
+            }
+            return null;
+        }
+
+        // ================================================================
+        // 12. دالة الحصول على صفوف الأصناف مع إجماليات كل مجموعة والنسب الجديدة
+        //     تم تصحيح معادلة % رصيد الصنف: End / (Transfer Out + Waste + Usage)
         // ================================================================
         function getRestaurantItemRows(restData) {
             const rows = [];
             let currentGroup = -1;
             let groupTotals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0, convertedEnd: 0 };
+            const days = calculateActualDays();
 
             // المجموعات المستثناة من عرض الإجمالي (رقم 18 = Onion Rings, Nuggets, Mozzarella)
-            const excludedGroupIndices = [18]; // groupIdx يبدأ من 0
+            const excludedGroupIndices = [18];
 
-            // حساب عدد الأصناف في كل مجموعة مسبقاً (للتأكد من أنها تحتوي على أكثر من صنف)
             const groupSizeMap = {};
             for (const it of FLAT_ITEMS) {
                 if (!groupSizeMap[it.groupIdx]) groupSizeMap[it.groupIdx] = 0;
                 groupSizeMap[it.groupIdx]++;
             }
+
+            // تخزين مؤقت لصفوف المجموعة لحساب النسب بعد معرفة إجماليات المجموعة
+            let tempGroupRows = [];
+            let groupIndex = -1;
 
             for (let idx = 0; idx < FLAT_ITEMS.length; idx++) {
                 const it = FLAT_ITEMS[idx];
@@ -1593,6 +1716,23 @@
                     const hasValues = groupTotals.start !== 0 || groupTotals.recd !== 0 || groupTotals.tranIn !== 0 ||
                         groupTotals.tranOut !== 0 || groupTotals.wast !== 0 || groupTotals.usage !== 0 ||
                         groupTotals.end !== 0 || groupTotals.convertedEnd !== 0;
+
+                    // حساب نسب المجموعة
+                    const groupDenominator = groupTotals.tranOut + groupTotals.wast + groupTotals.usage;
+                    const groupPercent = groupDenominator !== 0 ? (groupTotals.end / groupDenominator) : 0;
+
+                    // إعادة معالجة الصفوف المؤقتة لإضافة النسب
+                    for (const tempRow of tempGroupRows) {
+                        const denominator = tempRow.tranOut + tempRow.wast + tempRow.usage;
+                        const itemPercent = denominator !== 0 ? (tempRow.end / denominator) : 0;
+                        rows.push({
+                            ...tempRow,
+                            itemPercent: itemPercent,
+                            groupPercent: groupPercent,
+                            days: days
+                        });
+                    }
+                    tempGroupRows = [];
 
                     if (hasValues && itemsInGroup > 1 && !excludedGroupIndices.includes(currentGroup)) {
                         rows.push({
@@ -1608,7 +1748,10 @@
                             convertedEnd: groupTotals.convertedEnd,
                             found: true,
                             isShaw: false,
-                            isTotal: true
+                            isTotal: true,
+                            itemPercent: null,
+                            groupPercent: groupPercent,
+                            days: days
                         });
                     }
                     // إعادة تعيين المجموع
@@ -1642,18 +1785,7 @@
                     convertedEnd = endQty * factor;
                 }
 
-                if (found) {
-                    groupTotals.start += (startQty || 0);
-                    groupTotals.recd += (recdQty || 0);
-                    groupTotals.tranIn += (tranInQty || 0);
-                    groupTotals.tranOut += (tranOutQty || 0);
-                    groupTotals.wast += (wastQty || 0);
-                    groupTotals.usage += (usageQty || 0);
-                    groupTotals.end += (endQty || 0);
-                    groupTotals.convertedEnd += (convertedEnd || 0);
-                }
-
-                rows.push({
+                const rowData = {
                     groupIdx: groupIdx,
                     item: displayName,
                     start: startQty,
@@ -1667,15 +1799,44 @@
                     found: !!found,
                     isShaw: isShaw,
                     isTotal: false
-                });
+                };
+
+                // تجميع مؤقت لحساب النسب لاحقاً
+                tempGroupRows.push(rowData);
+
+                if (found) {
+                    groupTotals.start += (startQty || 0);
+                    groupTotals.recd += (recdQty || 0);
+                    groupTotals.tranIn += (tranInQty || 0);
+                    groupTotals.tranOut += (tranOutQty || 0);
+                    groupTotals.wast += (wastQty || 0);
+                    groupTotals.usage += (usageQty || 0);
+                    groupTotals.end += (endQty || 0);
+                    groupTotals.convertedEnd += (convertedEnd || 0);
+                }
             }
 
-            // بعد انتهاء الحلقة، نضيف إجمالي المجموعة الأخيرة إذا توفرت الشروط
+            // معالجة المجموعة الأخيرة
             if (currentGroup !== -1) {
                 const itemsInGroup = groupSizeMap[currentGroup] || 0;
                 const hasValues = groupTotals.start !== 0 || groupTotals.recd !== 0 || groupTotals.tranIn !== 0 ||
                     groupTotals.tranOut !== 0 || groupTotals.wast !== 0 || groupTotals.usage !== 0 ||
                     groupTotals.end !== 0 || groupTotals.convertedEnd !== 0;
+
+                const groupDenominator = groupTotals.tranOut + groupTotals.wast + groupTotals.usage;
+                const groupPercent = groupDenominator !== 0 ? (groupTotals.end / groupDenominator) : 0;
+
+                for (const tempRow of tempGroupRows) {
+                    const denominator = tempRow.tranOut + tempRow.wast + tempRow.usage;
+                    const itemPercent = denominator !== 0 ? (tempRow.end / denominator) : 0;
+                    rows.push({
+                        ...tempRow,
+                        itemPercent: itemPercent,
+                        groupPercent: groupPercent,
+                        days: days
+                    });
+                }
+                tempGroupRows = [];
 
                 if (hasValues && itemsInGroup > 1 && !excludedGroupIndices.includes(currentGroup)) {
                     rows.push({
@@ -1691,7 +1852,10 @@
                         convertedEnd: groupTotals.convertedEnd,
                         found: true,
                         isShaw: false,
-                        isTotal: true
+                        isTotal: true,
+                        itemPercent: null,
+                        groupPercent: groupPercent,
+                        days: days
                     });
                 }
             }
@@ -1699,13 +1863,13 @@
         }
 
         // ================================================================
-        // 12. عرض بيانات المطعم المختار (التاب الثاني)
+        // 13. عرض بيانات المطعم المختار (التاب الثاني)
         // ================================================================
         function showRestaurantItems() {
             const selected = restaurantSearchInput.value.trim();
             if (!selected) {
                 restaurantItemsBody.innerHTML =
-                `<tr class="empty-row"><td colspan="9">⚠️ الرجاء اختيار مطعم من القائمة</td></tr>`;
+                `<tr class="empty-row"><td colspan="13">⚠️ الرجاء اختيار مطعم من القائمة</td></tr>`;
                 restaurantNoteContainer.style.display = 'none';
                 restaurantInfoHeader.style.display = 'none';
                 currentRestaurantData = null;
@@ -1715,7 +1879,7 @@
             const restData = allRestaurantsData.find(r => r.restaurantCombined === selected);
             if (!restData) {
                 restaurantItemsBody.innerHTML =
-                `<tr class="empty-row"><td colspan="9">❌ لا توجد بيانات لهذا المطعم</td></tr>`;
+                `<tr class="empty-row"><td colspan="13">❌ لا توجد بيانات لهذا المطعم</td></tr>`;
                 restaurantNoteContainer.style.display = 'none';
                 restaurantInfoHeader.style.display = 'none';
                 currentRestaurantData = null;
@@ -1726,19 +1890,52 @@
             const allRows = getRestaurantItemRows(restData);
             currentRestaurantItems = allRows;
 
+            const days = calculateActualDays();
+
             restaurantInfoHeader.style.display = 'flex';
             headerRestaurantName.textContent = restData.restaurantCombined;
             headerRegionManager.textContent = restData.regionManager;
             headerOpsManager.textContent = restData.opsManager;
-            headerReportDate.textContent = restData.reportDateRaw || 'غير محدد';
+            headerPeriod.textContent = restData.periodString || 'غير محدد';
+            headerDaysCount.textContent = days + ' يوم';
 
             let html = '';
             let hasShawarma = false;
+            // إضافة صف فاصل بين الرأس والبيانات
+            html += `<tr style="height: 10px;"><td colspan="13"></td></tr>`;
+
             for (const row of allRows) {
                 const isTotal = row.isTotal || false;
                 const cls = isTotal ? 'total-row' : (row.found ? '' : 'item-missing');
                 const shawIcon = row.isShaw ? ' 🔥' : '';
                 if (row.isShaw) hasShawarma = true;
+
+                // حساب المعدلات
+                let dailyReceived = '—';
+                let dailySales = '—';
+                let itemPercent = '—';
+                let groupPercent = '—';
+
+                if (!isTotal && row.found) {
+                    const recvAvg = (row.start + row.recd + row.tranIn - row.tranOut) / days;
+                    dailyReceived = formatZero(recvAvg);
+                    const salesAvg = (row.tranOut + row.wast + row.usage) / days;
+                    dailySales = formatZero(salesAvg);
+                    if (row.itemPercent !== null && row.itemPercent !== undefined) {
+                        itemPercent = formatPercent(row.itemPercent);
+                    }
+                    if (row.groupPercent !== null && row.groupPercent !== undefined) {
+                        groupPercent = formatPercent(row.groupPercent);
+                    }
+                } else if (isTotal) {
+                    const recvAvg = (row.start + row.recd + row.tranIn - row.tranOut) / days;
+                    dailyReceived = formatZero(recvAvg);
+                    const salesAvg = (row.tranOut + row.wast + row.usage) / days;
+                    dailySales = formatZero(salesAvg);
+                    if (row.groupPercent !== null && row.groupPercent !== undefined) {
+                        groupPercent = formatPercent(row.groupPercent);
+                    }
+                }
 
                 html += `<tr class="${cls}">
                     <td style="text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
@@ -1750,6 +1947,10 @@
                     <td>${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
                     <td class="bold-end">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
                     <td class="bold-end">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
+                    <td>${isTotal ? '—' : itemPercent}</td>
+                    <td>${groupPercent}</td>
+                    <td>${dailyReceived}</td>
+                    <td>${dailySales}</td>
                 </tr>`;
             }
             restaurantItemsBody.innerHTML = html;
@@ -1764,7 +1965,9 @@
         }
 
         // ================================================================
-        // 13. تصدير Excel للتاب الثاني (مطعم واحد) مع إطار خارجي سميك أحمر
+        // 14. تصدير Excel للتاب الثاني (مطعم واحد) مع الأعمدة الجديدة
+        //     وتنسيق الصفحة: A4, margins 0.1, landscape, fit all columns
+        //     جعل العامود A Bold
         // ================================================================
         async function exportRestaurantExcel() {
             if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -1776,9 +1979,37 @@
                     `حركة_${currentRestaurantData.restaurantCombined.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 25)}`;
                 const worksheet = workbook.addWorksheet(sheetName);
 
+                // تعيين الـ Sheet إلى Right-to-Left
+                worksheet.views = [{ rightToLeft: true }];
+
+                // إعدادات الصفحة: A4, landscape, margins 0.1, fit all columns
+                worksheet.pageSetup = {
+                    paperSize: 9, // A4
+                    orientation: 'landscape',
+                    margins: {
+                        top: 0.1,
+                        bottom: 0.1,
+                        left: 0.1,
+                        right: 0.1,
+                        header: 0.1,
+                        footer: 0.1
+                    },
+                    fitToPage: true,
+                    fitToWidth: 1,
+                    fitToHeight: 0 // automatic height
+                };
+
+                // العناوين بالعربية والإنجليزية (13 عمود)
                 const headerArabic = ["الصنف", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج", "التوالف",
-                    "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة"
+                    "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة", "% رصيد الصنف", "% المجموعة",
+                    "معدل الطلبية اليومي", "معدل البيع اليومي"
                 ];
+                const headerEnglish = ["Item", "Start Qty", "Received Qty", "Transfer In", "Transfer Out", "Waste",
+                    "Usage Qty", "End Qty", "End Qty (Pc)", "Item %", "Group %", "Daily Received Avg",
+                    "Daily Sales Avg"
+                ];
+
+                const days = calculateActualDays();
 
                 // إضافة معلومات الرأس
                 worksheet.addRow(['شركة نايف للأغذية']);
@@ -1786,69 +2017,123 @@
                 worksheet.addRow([`المطعم: ${currentRestaurantData.restaurantCombined}`]);
                 worksheet.addRow([`مدير المنطقة: ${currentRestaurantData.regionManager}`]);
                 worksheet.addRow([`مدير التشغيل: ${currentRestaurantData.opsManager}`]);
-                worksheet.addRow([`تاريخ التقرير: ${currentRestaurantData.reportDateRaw || 'غير محدد'}`]);
-                worksheet.addRow([`الفترة الوصفية: ${fromDate} → ${toDate}`]);
+                worksheet.addRow([`الفترة: ${currentRestaurantData.periodString || 'غير محدد'}`]);
+                worksheet.addRow([`عدد أيام الفترة: ${days} يوم`]);
                 worksheet.addRow([]);
-                // صف العناوين
-                const headerRow = worksheet.addRow(headerArabic);
-                // صف العناوين بالإنجليزية (اختياري)
-                worksheet.addRow(headerArabic.map(h => h.replace(/[^\w\s]/g, '')));
 
-                // الآن نكتب البيانات مع تتبع المجموعات
+                // صف العناوين العربية
+                const rowArabic = worksheet.addRow(headerArabic);
+                // صف العناوين الإنجليزية
+                const rowEnglish = worksheet.addRow(headerEnglish);
+
+                // إضافة صف فاصل بين الرأس والبيانات
+                worksheet.addRow([]);
+
+                const totalCols = headerArabic.length;
+
+                // كتابة البيانات مع تتبع المجموعات
                 const rowsWithGroup = currentRestaurantItems.map(row => ({
                     rowData: row,
                     groupIdx: row.groupIdx
                 }));
 
-                // نكتب البيانات
                 let currentGroup = -1;
                 let groupStartRow = -1;
                 let groupEndRow = -1;
-                const totalCols = headerArabic.length; // 9
 
-                // دالة لتطبيق الإطار الخارجي السميك الأحمر على نطاق المجموعة
+                // دالة لتطبيق الإطار الخارجي السميك الأحمر
                 function applyOuterRedBorder(startRow, endRow) {
-                    // نطاق الأعمدة: 1 إلى totalCols
                     for (let r = startRow; r <= endRow; r++) {
                         const row = worksheet.getRow(r);
                         for (let c = 1; c <= totalCols; c++) {
                             const cell = row.getCell(c);
-                            // نحدد ما إذا كنا في الصف العلوي أو السفلي أو الأعمدة الجانبية
                             const isTop = (r === startRow);
                             const isBottom = (r === endRow);
                             const isLeft = (c === 1);
                             const isRight = (c === totalCols);
-
                             const border = {};
                             if (isTop) border.top = { style: 'thick', color: { argb: 'FFFF0000' } };
                             if (isBottom) border.bottom = { style: 'thick', color: { argb: 'FFFF0000' } };
                             if (isLeft) border.left = { style: 'thick', color: { argb: 'FFFF0000' } };
                             if (isRight) border.right = { style: 'thick', color: { argb: 'FFFF0000' } };
-                            // فقط نضع الحدود الخارجية
                             cell.border = border;
                         }
                     }
                 }
 
+                // تنسيق صفوف الرأس (خارجي فقط، بدون شبكة داخلية)
+                function applyHeaderOuterBorder() {
+                    const startRow = rowArabic.number;
+                    const endRow = rowEnglish.number;
+                    for (let r = startRow; r <= endRow; r++) {
+                        const row = worksheet.getRow(r);
+                        for (let c = 1; c <= totalCols; c++) {
+                            const cell = row.getCell(c);
+                            const isTop = (r === startRow);
+                            const isBottom = (r === endRow);
+                            const isLeft = (c === 1);
+                            const isRight = (c === totalCols);
+                            const border = {};
+                            if (isTop) border.top = { style: 'thick', color: { argb: 'FF0000FF' } };
+                            if (isBottom) border.bottom = { style: 'thick', color: { argb: 'FF0000FF' } };
+                            if (isLeft) border.left = { style: 'thick', color: { argb: 'FF0000FF' } };
+                            if (isRight) border.right = { style: 'thick', color: { argb: 'FF0000FF' } };
+                            cell.border = border;
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+                            cell.font = { bold: true };
+                            cell.alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
+                        }
+                    }
+                }
+
+                // تعيين عرض العمود A = 43 ومحاذاة RTL وجعله Bold
+                const colA = worksheet.getColumn(1);
+                colA.width = 43;
+                colA.alignment = { horizontal: 'right', readingOrder: 'rtl' };
+                // سنقوم بتطبيق Bold على كل خلية في العمود A عند كتابة البيانات
+
+                // كتابة البيانات
                 for (let i = 0; i < rowsWithGroup.length; i++) {
                     const { rowData, groupIdx } = rowsWithGroup[i];
                     const isTotal = rowData.isTotal || false;
 
-                    // إذا كانت مجموعة جديدة
                     if (groupIdx !== currentGroup) {
-                        // إذا كانت هناك مجموعة سابقة، نغلقها بإطار ونضيف فاصل
                         if (currentGroup !== -1 && groupStartRow !== -1 && groupEndRow !== -1) {
                             applyOuterRedBorder(groupStartRow, groupEndRow);
-                            // إضافة صف فارغ بعد المجموعة (فاصل)
                             worksheet.addRow([]);
                         }
-                        // بداية مجموعة جديدة
                         currentGroup = groupIdx;
-                        groupStartRow = worksheet.rowCount + 1; // الصف التالي
+                        groupStartRow = worksheet.rowCount + 1;
                         groupEndRow = groupStartRow;
                     }
 
-                    // كتابة الصف
+                    // حساب القيم
+                    let dailyReceived = '';
+                    let dailySales = '';
+                    let itemPercent = '';
+                    let groupPercent = '';
+
+                    if (!isTotal && rowData.found) {
+                        const recvAvg = (rowData.start + rowData.recd + rowData.tranIn - rowData.tranOut) / days;
+                        dailyReceived = recvAvg.toFixed(2);
+                        const salesAvg = (rowData.tranOut + rowData.wast + rowData.usage) / days;
+                        dailySales = salesAvg.toFixed(2);
+                        if (rowData.itemPercent !== null && rowData.itemPercent !== undefined) {
+                            itemPercent = (rowData.itemPercent * 100).toFixed(1) + '%';
+                        }
+                        if (rowData.groupPercent !== null && rowData.groupPercent !== undefined) {
+                            groupPercent = (rowData.groupPercent * 100).toFixed(1) + '%';
+                        }
+                    } else if (isTotal) {
+                        const recvAvg = (rowData.start + rowData.recd + rowData.tranIn - rowData.tranOut) / days;
+                        dailyReceived = recvAvg.toFixed(2);
+                        const salesAvg = (rowData.tranOut + rowData.wast + rowData.usage) / days;
+                        dailySales = salesAvg.toFixed(2);
+                        if (rowData.groupPercent !== null && rowData.groupPercent !== undefined) {
+                            groupPercent = (rowData.groupPercent * 100).toFixed(1) + '%';
+                        }
+                    }
+
                     const rowValues = [
                         rowData.item,
                         isTotal ? rowData.start : (rowData.found ? rowData.start : ''),
@@ -1859,12 +2144,19 @@
                         isTotal ? rowData.usage : (rowData.found ? rowData.usage : ''),
                         isTotal ? rowData.end : (rowData.found ? rowData.end : ''),
                         isTotal ? Math.round(rowData.convertedEnd) : (rowData.found && rowData.convertedEnd !== null ?
-                            Math.round(rowData.convertedEnd) : '')
+                            Math.round(rowData.convertedEnd) : ''),
+                        isTotal ? '' : itemPercent,
+                        groupPercent,
+                        dailyReceived,
+                        dailySales
                     ];
-                    worksheet.addRow(rowValues);
+                    const newRow = worksheet.addRow(rowValues);
+                    // جعل العمود A (الخانة الأولى) Bold
+                    const cellA = newRow.getCell(1);
+                    cellA.font = { bold: true };
+
                     groupEndRow = worksheet.rowCount;
 
-                    // إذا كان هذا هو الصف الأخير من البيانات، نغلق المجموعة الحالية
                     if (i === rowsWithGroup.length - 1) {
                         if (groupStartRow !== -1 && groupEndRow !== -1) {
                             applyOuterRedBorder(groupStartRow, groupEndRow);
@@ -1872,10 +2164,16 @@
                     }
                 }
 
-                // إضافة ملاحظة الشاورما إن وجدت
+                // تطبيق تنسيق الرأس (إطار خارجي أزرق)
+                applyHeaderOuterBorder();
+
+                // إضافة ملاحظة الشاورما إن وجدت ودمج الخلايا من B إلى I
                 if (currentRestaurantItems.some(r => r.isShaw)) {
-                    worksheet.addRow([]);
-                    worksheet.addRow(['ملاحظة:', 'تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.']);
+                    const noteRow = worksheet.addRow(['ملاحظة:', 'تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.']);
+                    worksheet.mergeCells(`B${noteRow.number}:I${noteRow.number}`);
+                    const mergedCell = worksheet.getCell(`B${noteRow.number}`);
+                    mergedCell.font = { bold: true };
+                    mergedCell.alignment = { horizontal: 'right', vertical: 'middle', wrapText: true };
                 }
 
                 // العلامة المائية
@@ -1905,7 +2203,7 @@
         }
 
         // ================================================================
-        // 14. تصدير PDF للتاب الثاني (مطعم واحد) - بدون تغيير
+        // 15. تصدير PDF للتاب الثاني (مطعم واحد) - محدث للأعمدة الجديدة
         // ================================================================
         async function exportRestaurantPDF() {
             if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -1918,10 +2216,11 @@
                 const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
                 const fromDate = startDateInput.value,
                     toDate = endDateInput.value;
-                const rowsPerPage = 12,
+                const rowsPerPage = 10,
                     margin = 10;
                 const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
                 const allRows = currentRestaurantItems;
+                const days = calculateActualDays();
                 let pageNum = 1;
                 let startIdx = 0;
                 const scaleFactor = 0.97;
@@ -1931,7 +2230,7 @@
                     container.style.position = 'absolute';
                     container.style.left = '-9999px';
                     container.style.top = '0';
-                    container.style.width = '1200px';
+                    container.style.width = '1600px';
                     container.style.backgroundColor = 'white';
                     container.style.padding = '20px';
                     container.style.direction = 'rtl';
@@ -1942,7 +2241,7 @@
                         `<img src="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" style="width:55px;border-radius:12px;"><br>` :
                         "";
                     const infoHtml =
-                        `<div style="text-align:center;font-size:${0.9 * scaleFactor}rem;background:#f0f6fe;padding:10px;border-radius:12px;margin:6px 0 12px 0;"><div><strong>المطعم:</strong> ${escapeHtml(currentRestaurantData.restaurantCombined)}</div><div><strong>مدير المنطقة:</strong> ${escapeHtml(currentRestaurantData.regionManager)} &nbsp;|&nbsp; <strong>مدير التشغيل:</strong> ${escapeHtml(currentRestaurantData.opsManager)}</div><div><strong>تاريخ التقرير:</strong> ${escapeHtml(currentRestaurantData.reportDateRaw || 'غير محدد')} &nbsp;|&nbsp; <strong>الفترة:</strong> ${fromDate} → ${toDate}</div></div>`;
+                        `<div style="text-align:center;font-size:${0.9 * scaleFactor}rem;background:#f0f6fe;padding:10px;border-radius:12px;margin:6px 0 12px 0;"><div><strong>المطعم:</strong> ${escapeHtml(currentRestaurantData.restaurantCombined)}</div><div><strong>مدير المنطقة:</strong> ${escapeHtml(currentRestaurantData.regionManager)} &nbsp;|&nbsp; <strong>مدير التشغيل:</strong> ${escapeHtml(currentRestaurantData.opsManager)}</div><div><strong>الفترة:</strong> ${escapeHtml(currentRestaurantData.periodString || 'غير محدد')} (${days} يوم)</div></div>`;
                     const headerHtml =
                         `<div style="text-align:center;"><div>${logoHtml}<div style="font-size:${1.6 * scaleFactor}rem;font-weight:bold;color:#d32f2f;">شركة نايف للأغذية</div><div style="font-size:${0.9 * scaleFactor}rem;">NAIF FOOD COMPANY</div><div style="font-size:${1.1 * scaleFactor}rem;font-weight:700;color:#2e7d32;margin-top:4px;">تقرير حركة أصناف المطعم (المحددة)</div>${infoHtml}${pageNum>1?`<div style="font-size:0.8rem;color:#888;">صفحة ${pageNum}</div>`:''}</div>`;
 
@@ -1954,45 +2253,74 @@
                         const cls = isTotal ? ' style="background:#e3f0fa;font-weight:700;border-top:3px solid #0d47a1;"' :
                             '';
                         const shawIcon = row.isShaw ? ' 🔥' : '';
+
+                        let dailyReceived = '—';
+                        let dailySales = '—';
+                        let itemPercent = '—';
+                        let groupPercent = '—';
+
+                        if (!isTotal && row.found) {
+                            const recvAvg = (row.start + row.recd + row.tranIn - row.tranOut) / days;
+                            dailyReceived = formatZero(recvAvg);
+                            const salesAvg = (row.tranOut + row.wast + row.usage) / days;
+                            dailySales = formatZero(salesAvg);
+                            if (row.itemPercent !== null && row.itemPercent !== undefined) {
+                                itemPercent = formatPercent(row.itemPercent);
+                            }
+                            if (row.groupPercent !== null && row.groupPercent !== undefined) {
+                                groupPercent = formatPercent(row.groupPercent);
+                            }
+                        } else if (isTotal) {
+                            const recvAvg = (row.start + row.recd + row.tranIn - row.tranOut) / days;
+                            dailyReceived = formatZero(recvAvg);
+                            const salesAvg = (row.tranOut + row.wast + row.usage) / days;
+                            dailySales = formatZero(salesAvg);
+                            if (row.groupPercent !== null && row.groupPercent !== undefined) {
+                                groupPercent = formatPercent(row.groupPercent);
+                            }
+                        }
+
                         tableRows += `<tr${cls}>
-                            <td style="border:1px solid #ccc;padding:${6 * scaleFactor}px;font-size:${0.7 * scaleFactor}rem;text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.75 * scaleFactor}rem;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.75 * scaleFactor}rem;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? Math.round(row.convertedEnd) : '—')}</td>
+                            <td style="border:1px solid #ccc;padding:${5 * scaleFactor}px;font-size:${0.65 * scaleFactor}rem;text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? '' : itemPercent}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${groupPercent}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${dailyReceived}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${dailySales}</td>
                         </tr>`;
                         count++;
                     }
                     startIdx += count;
 
                     const tableHtml =
-                        `<table style="width:100%;border-collapse:collapse;font-size:${0.7 * scaleFactor}rem;margin-top:6px;">
+                        `<table style="width:100%;border-collapse:collapse;font-size:${0.65 * scaleFactor}rem;margin-top:6px;">
                         <thead>
                             <tr style="background:#2e7d32;color:#fff;">
-                                <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">الصنف</th>
-                                <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">رصيد أول</th>
-                                <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">الكمية المستلمة</th>
-                                <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">المحول للداخل</th>
-                                <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">المحول للخارج</th>
-                                <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">التوالف</th>
-                                <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">كمية الاستخدام</th>
-                                <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">رصيد آخر</th>
-                                <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">رصيد آخر بالقطعة</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">الصنف</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">رصيد أول</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">مستلم</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">محول داخل</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">محول خارج</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">توالف</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">استخدام</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">رصيد آخر</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">رصيد بالقطعة</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">% الصنف</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">% المجموعة</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">معدل طلبية</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">معدل بيع</th>
                             </tr>
-                            <tr style="background:#1b5e20;color:#c8e6c9;font-size:${0.6 * scaleFactor}rem;">
-                                <th>Item</th>
-                                <th>Start Qty</th>
-                                <th>Received Qty</th>
-                                <th>Transfer In</th>
-                                <th>Transfer Out</th>
-                                <th>Waste</th>
-                                <th>Usage Qty</th>
-                                <th>End Qty</th>
-                                <th>End Qty per piece</th>
+                            <tr style="background:#1b5e20;color:#c8e6c9;font-size:${0.55 * scaleFactor}rem;">
+                                <th>Item</th><th>Start</th><th>Received</th><th>Transfer In</th><th>Transfer Out</th>
+                                <th>Waste</th><th>Usage</th><th>End</th><th>End Pc</th><th>Item %</th><th>Group %</th>
+                                <th>Daily Recv</th><th>Daily Sales</th>
                             </tr>
                         </thead>
                         <tbody>${tableRows}</tbody>
@@ -2022,7 +2350,7 @@
         }
 
         // ================================================================
-        // 15. تصدير جميع المطاعم Excel مع إطار خارجي سميك أحمر
+        // 16. تصدير جميع المطاعم Excel مع الأعمدة الجديدة وتنسيق الصفحة وجعل العامود A Bold
         // ================================================================
         async function exportAllRestaurantsExcel() {
             if (!allRestaurantsData || allRestaurantsData.length === 0) {
@@ -2034,9 +2362,15 @@
                 const toDate = endDateInput.value || "غير محدد";
                 const workbook = new ExcelJS.Workbook();
                 const headerArabic = ["الصنف", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج",
-                    "التوالف", "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة"
+                    "التوالف", "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة", "% رصيد الصنف", "% المجموعة",
+                    "معدل الطلبية اليومي", "معدل البيع اليومي"
+                ];
+                const headerEnglish = ["Item", "Start Qty", "Received Qty", "Transfer In", "Transfer Out", "Waste",
+                    "Usage Qty", "End Qty", "End Qty (Pc)", "Item %", "Group %", "Daily Received Avg",
+                    "Daily Sales Avg"
                 ];
                 const totalCols = headerArabic.length;
+                const days = calculateActualDays();
 
                 const watermarkBlob = await createWatermarkImage(WATERMARK_TEXT, WATERMARK_FONT_SIZE);
                 const imageBuffer = await watermarkBlob.arrayBuffer();
@@ -2061,6 +2395,24 @@
                     usedSheetNames.add(sheetName);
 
                     const worksheet = workbook.addWorksheet(sheetName);
+                    worksheet.views = [{ rightToLeft: true }];
+
+                    // إعدادات الصفحة: A4, landscape, margins 0.1, fit all columns
+                    worksheet.pageSetup = {
+                        paperSize: 9,
+                        orientation: 'landscape',
+                        margins: {
+                            top: 0.1,
+                            bottom: 0.1,
+                            left: 0.1,
+                            right: 0.1,
+                            header: 0.1,
+                            footer: 0.1
+                        },
+                        fitToPage: true,
+                        fitToWidth: 1,
+                        fitToHeight: 0
+                    };
 
                     // رأس التقرير
                     worksheet.addRow(['شركة نايف للأغذية']);
@@ -2068,13 +2420,46 @@
                     worksheet.addRow([`المطعم: ${rest.restaurantCombined}`]);
                     worksheet.addRow([`مدير المنطقة: ${rest.regionManager}`]);
                     worksheet.addRow([`مدير التشغيل: ${rest.opsManager}`]);
-                    worksheet.addRow([`تاريخ التقرير: ${rest.reportDateRaw || 'غير محدد'}`]);
-                    worksheet.addRow([`الفترة الوصفية: ${fromDate} → ${toDate}`]);
+                    worksheet.addRow([`الفترة: ${rest.periodString || 'غير محدد'}`]);
+                    worksheet.addRow([`عدد أيام الفترة: ${days} يوم`]);
                     worksheet.addRow([]);
-                    worksheet.addRow(headerArabic);
-                    worksheet.addRow(headerArabic.map(h => h.replace(/[^\w\s]/g, '')));
 
-                    // كتابة البيانات مع تتبع المجموعات
+                    // صفوف العناوين
+                    const rowArabic = worksheet.addRow(headerArabic);
+                    const rowEnglish = worksheet.addRow(headerEnglish);
+                    worksheet.addRow([]); // فاصل
+
+                    // تنسيق الرأس (خارجي أزرق)
+                    function applyHeaderBorderAll() {
+                        const startRow = rowArabic.number;
+                        const endRow = rowEnglish.number;
+                        for (let r = startRow; r <= endRow; r++) {
+                            const row = worksheet.getRow(r);
+                            for (let c = 1; c <= totalCols; c++) {
+                                const cell = row.getCell(c);
+                                const isTop = (r === startRow);
+                                const isBottom = (r === endRow);
+                                const isLeft = (c === 1);
+                                const isRight = (c === totalCols);
+                                const border = {};
+                                if (isTop) border.top = { style: 'thick', color: { argb: 'FF0000FF' } };
+                                if (isBottom) border.bottom = { style: 'thick', color: { argb: 'FF0000FF' } };
+                                if (isLeft) border.left = { style: 'thick', color: { argb: 'FF0000FF' } };
+                                if (isRight) border.right = { style: 'thick', color: { argb: 'FF0000FF' } };
+                                cell.border = border;
+                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+                                cell.font = { bold: true };
+                                cell.alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
+                            }
+                        }
+                    }
+
+                    // تعيين عرض العمود A ومحاذاة RTL و Bold
+                    const colA = worksheet.getColumn(1);
+                    colA.width = 43;
+                    colA.alignment = { horizontal: 'right', readingOrder: 'rtl' };
+
+                    // كتابة البيانات
                     const rowsWithGroup = rows.map(row => ({
                         rowData: row,
                         groupIdx: row.groupIdx
@@ -2084,7 +2469,6 @@
                     let groupStartRow = -1;
                     let groupEndRow = -1;
 
-                    // دالة لتطبيق الإطار الخارجي السميك الأحمر
                     function applyOuterRedBorderAll(startRow, endRow) {
                         for (let r = startRow; r <= endRow; r++) {
                             const row = worksheet.getRow(r);
@@ -2118,6 +2502,32 @@
                             groupEndRow = groupStartRow;
                         }
 
+                        let dailyReceived = '';
+                        let dailySales = '';
+                        let itemPercent = '';
+                        let groupPercent = '';
+
+                        if (!isTotal && rowData.found) {
+                            const recvAvg = (rowData.start + rowData.recd + rowData.tranIn - rowData.tranOut) / days;
+                            dailyReceived = recvAvg.toFixed(2);
+                            const salesAvg = (rowData.tranOut + rowData.wast + rowData.usage) / days;
+                            dailySales = salesAvg.toFixed(2);
+                            if (rowData.itemPercent !== null && rowData.itemPercent !== undefined) {
+                                itemPercent = (rowData.itemPercent * 100).toFixed(1) + '%';
+                            }
+                            if (rowData.groupPercent !== null && rowData.groupPercent !== undefined) {
+                                groupPercent = (rowData.groupPercent * 100).toFixed(1) + '%';
+                            }
+                        } else if (isTotal) {
+                            const recvAvg = (rowData.start + rowData.recd + rowData.tranIn - rowData.tranOut) / days;
+                            dailyReceived = recvAvg.toFixed(2);
+                            const salesAvg = (rowData.tranOut + rowData.wast + rowData.usage) / days;
+                            dailySales = salesAvg.toFixed(2);
+                            if (rowData.groupPercent !== null && rowData.groupPercent !== undefined) {
+                                groupPercent = (rowData.groupPercent * 100).toFixed(1) + '%';
+                            }
+                        }
+
                         const rowValues = [
                             rowData.item,
                             isTotal ? rowData.start : (rowData.found ? rowData.start : ''),
@@ -2128,9 +2538,17 @@
                             isTotal ? rowData.usage : (rowData.found ? rowData.usage : ''),
                             isTotal ? rowData.end : (rowData.found ? rowData.end : ''),
                             isTotal ? Math.round(rowData.convertedEnd) : (rowData.found && rowData.convertedEnd !== null ?
-                                Math.round(rowData.convertedEnd) : '')
+                                Math.round(rowData.convertedEnd) : ''),
+                            isTotal ? '' : itemPercent,
+                            groupPercent,
+                            dailyReceived,
+                            dailySales
                         ];
-                        worksheet.addRow(rowValues);
+                        const newRow = worksheet.addRow(rowValues);
+                        // جعل العمود A Bold
+                        const cellA = newRow.getCell(1);
+                        cellA.font = { bold: true };
+
                         groupEndRow = worksheet.rowCount;
 
                         if (i === rowsWithGroup.length - 1) {
@@ -2140,12 +2558,16 @@
                         }
                     }
 
+                    applyHeaderBorderAll();
+
                     if (rows.some(r => r.isShaw)) {
-                        worksheet.addRow([]);
-                        worksheet.addRow(['ملاحظة:', 'تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.']);
+                        const noteRow = worksheet.addRow(['ملاحظة:', 'تم إضافة نسبة 20% على كميات التوالف لصنف الشاورما.']);
+                        worksheet.mergeCells(`B${noteRow.number}:I${noteRow.number}`);
+                        const mergedCell = worksheet.getCell(`B${noteRow.number}`);
+                        mergedCell.font = { bold: true };
+                        mergedCell.alignment = { horizontal: 'right', vertical: 'middle', wrapText: true };
                     }
 
-                    // العلامة المائية
                     const imageId = workbook.addImage({
                         buffer: imageBuffer,
                         extension: 'png',
@@ -2166,7 +2588,7 @@
         }
 
         // ================================================================
-        // 16. تصدير جميع المطاعم PDF (بدون تغيير)
+        // 17. تصدير جميع المطاعم PDF (محدث للأعمدة الجديدة)
         // ================================================================
         async function exportAllRestaurantsPDF() {
             if (!allRestaurantsData || allRestaurantsData.length === 0) {
@@ -2185,10 +2607,11 @@
                 const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
                 const fromDate = startDateInput.value,
                     toDate = endDateInput.value;
-                const rowsPerPage = 12,
+                const rowsPerPage = 10,
                     margin = 10;
                 const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
                 const scaleFactor = 0.97;
+                const days = calculateActualDays();
                 let firstPage = true;
 
                 for (const rest of allRestaurantsData) {
@@ -2201,7 +2624,7 @@
                         container.style.position = 'absolute';
                         container.style.left = '-9999px';
                         container.style.top = '0';
-                        container.style.width = '1200px';
+                        container.style.width = '1600px';
                         container.style.backgroundColor = 'white';
                         container.style.padding = '20px';
                         container.style.direction = 'rtl';
@@ -2212,7 +2635,7 @@
                             `<img src="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" style="width:55px;border-radius:12px;"><br>` :
                             "";
                         const infoHtml =
-                            `<div style="text-align:center;font-size:${0.9 * scaleFactor}rem;background:#f0f6fe;padding:10px;border-radius:12px;margin:6px 0 12px 0;"><div><strong>المطعم:</strong> ${escapeHtml(rest.restaurantCombined)}</div><div><strong>مدير المنطقة:</strong> ${escapeHtml(rest.regionManager)} &nbsp;|&nbsp; <strong>مدير التشغيل:</strong> ${escapeHtml(rest.opsManager)}</div><div><strong>تاريخ التقرير:</strong> ${escapeHtml(rest.reportDateRaw || 'غير محدد')} &nbsp;|&nbsp; <strong>الفترة:</strong> ${fromDate} → ${toDate}</div></div>`;
+                            `<div style="text-align:center;font-size:${0.9 * scaleFactor}rem;background:#f0f6fe;padding:10px;border-radius:12px;margin:6px 0 12px 0;"><div><strong>المطعم:</strong> ${escapeHtml(rest.restaurantCombined)}</div><div><strong>مدير المنطقة:</strong> ${escapeHtml(rest.regionManager)} &nbsp;|&nbsp; <strong>مدير التشغيل:</strong> ${escapeHtml(rest.opsManager)}</div><div><strong>الفترة:</strong> ${escapeHtml(rest.periodString || 'غير محدد')} (${days} يوم)</div></div>`;
                         const headerHtml =
                             `<div style="text-align:center;"><div>${logoHtml}<div style="font-size:${1.6 * scaleFactor}rem;font-weight:bold;color:#d32f2f;">شركة نايف للأغذية</div><div style="font-size:${0.9 * scaleFactor}rem;">NAIF FOOD COMPANY</div><div style="font-size:${1.1 * scaleFactor}rem;font-weight:700;color:#2e7d32;margin-top:4px;">تقرير حركة أصناف المطاعم (جميع المطاعم)</div>${infoHtml}${(pageNum>1 || !firstPage)?`<div style="font-size:0.8rem;color:#888;">صفحة ${pageNum}</div>`:''}</div>`;
 
@@ -2224,45 +2647,74 @@
                             const cls = isTotal ?
                                 ' style="background:#e3f0fa;font-weight:700;border-top:3px solid #0d47a1;"' : '';
                             const shawIcon = row.isShaw ? ' 🔥' : '';
+
+                            let dailyReceived = '—';
+                            let dailySales = '—';
+                            let itemPercent = '—';
+                            let groupPercent = '—';
+
+                            if (!isTotal && row.found) {
+                                const recvAvg = (row.start + row.recd + row.tranIn - row.tranOut) / days;
+                                dailyReceived = formatZero(recvAvg);
+                                const salesAvg = (row.tranOut + row.wast + row.usage) / days;
+                                dailySales = formatZero(salesAvg);
+                                if (row.itemPercent !== null && row.itemPercent !== undefined) {
+                                    itemPercent = formatPercent(row.itemPercent);
+                                }
+                                if (row.groupPercent !== null && row.groupPercent !== undefined) {
+                                    groupPercent = formatPercent(row.groupPercent);
+                                }
+                            } else if (isTotal) {
+                                const recvAvg = (row.start + row.recd + row.tranIn - row.tranOut) / days;
+                                dailyReceived = formatZero(recvAvg);
+                                const salesAvg = (row.tranOut + row.wast + row.usage) / days;
+                                dailySales = formatZero(salesAvg);
+                                if (row.groupPercent !== null && row.groupPercent !== undefined) {
+                                    groupPercent = formatPercent(row.groupPercent);
+                                }
+                            }
+
                             tableRows += `<tr${cls}>
-                                <td style="border:1px solid #ccc;padding:${6 * scaleFactor}px;font-size:${0.7 * scaleFactor}rem;text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.75 * scaleFactor}rem;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.75 * scaleFactor}rem;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? Math.round(row.convertedEnd) : '—')}</td>
+                                <td style="border:1px solid #ccc;padding:${5 * scaleFactor}px;font-size:${0.65 * scaleFactor}rem;text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? '' : itemPercent}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${groupPercent}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${dailyReceived}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${dailySales}</td>
                             </tr>`;
                             count++;
                         }
                         startIdx += count;
 
                         const tableHtml =
-                            `<table style="width:100%;border-collapse:collapse;font-size:${0.7 * scaleFactor}rem;margin-top:6px;">
+                            `<table style="width:100%;border-collapse:collapse;font-size:${0.65 * scaleFactor}rem;margin-top:6px;">
                             <thead>
                                 <tr style="background:#2e7d32;color:#fff;">
-                                    <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">الصنف</th>
-                                    <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">رصيد أول</th>
-                                    <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">الكمية المستلمة</th>
-                                    <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">المحول للداخل</th>
-                                    <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">المحول للخارج</th>
-                                    <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">التوالف</th>
-                                    <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">كمية الاستخدام</th>
-                                    <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">رصيد آخر</th>
-                                    <th style="padding:${8 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;">رصيد آخر بالقطعة</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">الصنف</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">رصيد أول</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">مستلم</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">محول داخل</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">محول خارج</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">توالف</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">استخدام</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">رصيد آخر</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">رصيد بالقطعة</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">% الصنف</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">% المجموعة</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">معدل طلبية</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">معدل بيع</th>
                                 </tr>
-                                <tr style="background:#1b5e20;color:#c8e6c9;font-size:${0.6 * scaleFactor}rem;">
-                                    <th>Item</th>
-                                    <th>Start Qty</th>
-                                    <th>Received Qty</th>
-                                    <th>Transfer In</th>
-                                    <th>Transfer Out</th>
-                                    <th>Waste</th>
-                                    <th>Usage Qty</th>
-                                    <th>End Qty</th>
-                                    <th>End Qty per piece</th>
+                                <tr style="background:#1b5e20;color:#c8e6c9;font-size:${0.55 * scaleFactor}rem;">
+                                    <th>Item</th><th>Start</th><th>Received</th><th>Transfer In</th><th>Transfer Out</th>
+                                    <th>Waste</th><th>Usage</th><th>End</th><th>End Pc</th><th>Item %</th><th>Group %</th>
+                                    <th>Daily Recv</th><th>Daily Sales</th>
                                 </tr>
                             </thead>
                             <tbody>${tableRows}</tbody>
@@ -2293,7 +2745,7 @@
         }
 
         // ================================================================
-        // 17. الأحداث
+        // 18. الأحداث
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
             const now = new Date();
@@ -2359,7 +2811,7 @@
         exportAllRestaurantsPdfBtn.disabled = true;
         restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ COGS v22 – إطار خارجي سميك أحمر حول كل مجموعة وفاصل بينها في Excel');
+        console.log('✅ COGS v26 – تحسين استخراج الفترة من الملفات، عرض الفترة في واجهة المستخدم، جعل العامود A Bold في Excel');
     </script>
 </body>
 </html>
