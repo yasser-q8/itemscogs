@@ -672,7 +672,7 @@
         }
 
         // ================================================================
-        // 3. قائمة الأصناف الثابتة
+        // 3. قائمة الأصناف الثابتة (تم تعديل صنف الأرز بسمتي)
         // ================================================================
         const ITEM_GROUPS = [
             [
@@ -749,7 +749,7 @@
                 { ar: 'شاورما دجاج', en: 'Chicken Shawarma', code: 'SHAWARMA', factor: 1 }
             ],
             [
-                { ar: 'أرز بسمتي', en: 'Basmati Rice', code: 'RICE', factor: 1 }
+                { ar: 'أرز بسمتي', en: 'Basmati Rice', code: 'B1007', factor: 20 }
             ]
         ];
 
@@ -1358,7 +1358,7 @@
         }
 
         // ================================================================
-        // 7. توليد تقرير COGS (التاب الأول)
+        // 7. توليد تقرير COGS (التاب الأول) - استخدام الفترة من المستخدم
         // ================================================================
         function generateReportForItem(itemName) {
             if (!itemName) return [];
@@ -1371,6 +1371,9 @@
             currentSelectedItem = exact;
             const rows = [];
             let factor = getConversionFactorFromName(exact);
+            const fromDate = startDateInput.value || "غير محدد";
+            const toDate = endDateInput.value || "غير محدد";
+            const periodDisplay = `${fromDate} → ${toDate}`;
 
             for (const rest of allRestaurantsData) {
                 const found = rest.items.find(it => it.itemName === exact);
@@ -1382,7 +1385,7 @@
                         restaurantCombined: rest.restaurantCombined,
                         regionManager: rest.regionManager,
                         opsManager: rest.opsManager,
-                        reportDate: rest.periodString || "غير محدد",
+                        reportDate: periodDisplay,
                         startQty: found.startQty,
                         recdQty: found.recdQty,
                         tranInQty: found.tranInQty,
@@ -1483,7 +1486,7 @@
         }
 
         // ================================================================
-        // 9. تصدير PDF للتاب الأول
+        // 9. تصدير PDF للتاب الأول (استخدام الفترة من المستخدم)
         // ================================================================
         async function exportToPDF() {
             if (!currentReportData || currentReportData.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -2204,6 +2207,7 @@
 
         // ================================================================
         // 15. تصدير PDF للتاب الثاني (مطعم واحد) مع تحسين حجم الخط وتضييق الأعمدة
+        //     زيادة عدد الصفوف إلى 24، تصغير عرض عامود "محول للخارج"، محاذاة الأعمدة المضافة لليمين
         // ================================================================
         async function exportRestaurantPDF() {
             if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -2216,8 +2220,8 @@
                 const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
                 const fromDate = startDateInput.value,
                     toDate = endDateInput.value;
-                const rowsPerPage = 10,
-                    margin = 10;
+                const rowsPerPage = 24; // زيادة عدد الصفوف إلى 24
+                const margin = 10;
                 const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
                 const allRows = currentRestaurantItems;
                 const days = calculateActualDays();
@@ -2280,31 +2284,26 @@
                             }
                         }
 
-                        // تكبير حجم الخط للأرقام والنسب بنسبة 10% (زيادة font-size)
+                        // زيادة حجم الأرقام إلى 0.9rem (من 0.85) بنسبة 5% تقريباً
+                        // محاذاة الأعمدة المضافة لليمين: % رصيد الصنف (العمود 10), % المجموعة (11), معدل طلبية يومي (12), معدل بيع يومي (13)
                         tableRows += `<tr${cls}>
                             <td style="border:1px solid #ccc;padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:${isTotal ? 'center' : 'right'};font-weight:${isTotal ? 'bold' : 'normal'};">${escapeHtml(row.item)}${shawIcon}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? '' : itemPercent}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${groupPercent}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${dailyReceived}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${dailySales}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.9 * scaleFactor}rem;padding:${3.5 * scaleFactor}px;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.95 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.95 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:right;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? '' : itemPercent}</td>
+                            <td style="border:1px solid #ccc;text-align:right;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${groupPercent}</td>
+                            <td style="border:1px solid #ccc;text-align:right;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${dailyReceived}</td>
+                            <td style="border:1px solid #ccc;text-align:right;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${dailySales}</td>
                         </tr>`;
                         count++;
                     }
                     startIdx += count;
-
-                    // تصغير عرض الأعمدة الرقمية (من العمود 2 إلى 13) بنسبة 15%
-                    // الأعمدة: Start Qty, Received, Transfer In, Transfer Out, Waste, Usage, End, End Pc, Item%, Group%, Daily Recv, Daily Sales
-                    // تم ضبط عرض الخلايا بتقليل padding من 6px إلى 4px وتقليل font-size قليلاً للأرقام
-                    // لكن بما أننا نستخدم html2canvas، سنتحكم بالعرض عبر تقليل padding وعرض الأعمدة في الجدول
-                    // سيتم تطبيق ذلك على كل خلية عبر تعديل style أعلاه.
 
                     const tableHtml =
                         `<table style="width:100%;border-collapse:collapse;font-size:${0.7 * scaleFactor}rem;margin-top:6px;direction:rtl;">
@@ -2319,10 +2318,10 @@
                                 <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">استخدام</th>
                                 <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">رصيد آخر</th>
                                 <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">رصيد بالقطعة</th>
-                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">% الصنف</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">% رصيد الصنف</th>
                                 <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">% المجموعة</th>
-                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">معدل طلبية</th>
-                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">معدل بيع</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">معدل طلبية يومي</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">معدل بيع يومي</th>
                             </tr>
                             <tr style="background:#1b5e20;color:#c8e6c9;font-size:${0.55 * scaleFactor}rem;">
                                 <th style="padding:${4 * scaleFactor}px;text-align:center;">Item</th>
@@ -2605,7 +2604,7 @@
         }
 
         // ================================================================
-        // 17. تصدير جميع المطاعم PDF مع تحسين حجم الخط وتضييق الأعمدة
+        // 17. تصدير جميع المطاعم PDF مع تحسينات مماثلة (24 صف، محاذاة لليمين، إلخ)
         // ================================================================
         async function exportAllRestaurantsPDF() {
             if (!allRestaurantsData || allRestaurantsData.length === 0) {
@@ -2624,8 +2623,8 @@
                 const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
                 const fromDate = startDateInput.value,
                     toDate = endDateInput.value;
-                const rowsPerPage = 10,
-                    margin = 10;
+                const rowsPerPage = 24; // زيادة عدد الصفوف إلى 24
+                const margin = 10;
                 const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
                 const scaleFactor = 0.97;
                 const days = calculateActualDays();
@@ -2693,18 +2692,18 @@
 
                             tableRows += `<tr${cls}>
                                 <td style="border:1px solid #ccc;padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:${isTotal ? 'center' : 'right'};font-weight:${isTotal ? 'bold' : 'normal'};">${escapeHtml(row.item)}${shawIcon}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? '' : itemPercent}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${groupPercent}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${dailyReceived}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${dailySales}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.9 * scaleFactor}rem;padding:${3.5 * scaleFactor}px;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.95 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.95 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:right;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? '' : itemPercent}</td>
+                                <td style="border:1px solid #ccc;text-align:right;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${groupPercent}</td>
+                                <td style="border:1px solid #ccc;text-align:right;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${dailyReceived}</td>
+                                <td style="border:1px solid #ccc;text-align:right;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${dailySales}</td>
                             </tr>`;
                             count++;
                         }
@@ -2723,10 +2722,10 @@
                                     <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">استخدام</th>
                                     <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">رصيد آخر</th>
                                     <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">رصيد بالقطعة</th>
-                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">% الصنف</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">% رصيد الصنف</th>
                                     <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">% المجموعة</th>
-                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">معدل طلبية</th>
-                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">معدل بيع</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">معدل طلبية يومي</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">معدل بيع يومي</th>
                                 </tr>
                                 <tr style="background:#1b5e20;color:#c8e6c9;font-size:${0.55 * scaleFactor}rem;">
                                     <th style="padding:${4 * scaleFactor}px;text-align:center;">Item</th>
@@ -2838,7 +2837,7 @@
         exportAllRestaurantsPdfBtn.disabled = true;
         restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ COGS v27 – تحسين PDF: تصغير عرض الأعمدة الرقمية 15%، تكبير حجم الأرقام والنسب 10%');
+        console.log('✅ COGS v29 – تحديث: صنف الأرز بسمتي (B1007) عامل تحويل 20، زيادة صفوف PDF إلى 24');
     </script>
 </body>
 </html>
