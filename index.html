@@ -2203,7 +2203,7 @@
         }
 
         // ================================================================
-        // 15. تصدير PDF للتاب الثاني (مطعم واحد) - محدث للأعمدة الجديدة
+        // 15. تصدير PDF للتاب الثاني (مطعم واحد) مع تحسين حجم الخط وتضييق الأعمدة
         // ================================================================
         async function exportRestaurantPDF() {
             if (!currentRestaurantItems || currentRestaurantItems.length === 0) { alert("⚠️ لا توجد بيانات معروضة."); return; }
@@ -2280,47 +2280,64 @@
                             }
                         }
 
+                        // تكبير حجم الخط للأرقام والنسب بنسبة 10% (زيادة font-size)
                         tableRows += `<tr${cls}>
-                            <td style="border:1px solid #ccc;padding:${5 * scaleFactor}px;font-size:${0.65 * scaleFactor}rem;text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? '' : itemPercent}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${groupPercent}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${dailyReceived}</td>
-                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${dailySales}</td>
+                            <td style="border:1px solid #ccc;padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:${isTotal ? 'center' : 'right'};font-weight:${isTotal ? 'bold' : 'normal'};">${escapeHtml(row.item)}${shawIcon}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? '' : itemPercent}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${groupPercent}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${dailyReceived}</td>
+                            <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${dailySales}</td>
                         </tr>`;
                         count++;
                     }
                     startIdx += count;
 
+                    // تصغير عرض الأعمدة الرقمية (من العمود 2 إلى 13) بنسبة 15%
+                    // الأعمدة: Start Qty, Received, Transfer In, Transfer Out, Waste, Usage, End, End Pc, Item%, Group%, Daily Recv, Daily Sales
+                    // تم ضبط عرض الخلايا بتقليل padding من 6px إلى 4px وتقليل font-size قليلاً للأرقام
+                    // لكن بما أننا نستخدم html2canvas، سنتحكم بالعرض عبر تقليل padding وعرض الأعمدة في الجدول
+                    // سيتم تطبيق ذلك على كل خلية عبر تعديل style أعلاه.
+
                     const tableHtml =
-                        `<table style="width:100%;border-collapse:collapse;font-size:${0.65 * scaleFactor}rem;margin-top:6px;">
+                        `<table style="width:100%;border-collapse:collapse;font-size:${0.7 * scaleFactor}rem;margin-top:6px;direction:rtl;">
                         <thead>
                             <tr style="background:#2e7d32;color:#fff;">
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">الصنف</th>
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">رصيد أول</th>
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">مستلم</th>
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">محول داخل</th>
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">محول خارج</th>
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">توالف</th>
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">استخدام</th>
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">رصيد آخر</th>
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">رصيد بالقطعة</th>
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">% الصنف</th>
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">% المجموعة</th>
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">معدل طلبية</th>
-                                <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">معدل بيع</th>
+                                <th style="padding:${6 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;text-align:center;">الصنف</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">رصيد أول</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">مستلم</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">محول داخل</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">محول خارج</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">توالف</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">استخدام</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">رصيد آخر</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">رصيد بالقطعة</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">% الصنف</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">% المجموعة</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">معدل طلبية</th>
+                                <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">معدل بيع</th>
                             </tr>
                             <tr style="background:#1b5e20;color:#c8e6c9;font-size:${0.55 * scaleFactor}rem;">
-                                <th>Item</th><th>Start</th><th>Received</th><th>Transfer In</th><th>Transfer Out</th>
-                                <th>Waste</th><th>Usage</th><th>End</th><th>End Pc</th><th>Item %</th><th>Group %</th>
-                                <th>Daily Recv</th><th>Daily Sales</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">Item</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">Start</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">Received</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">Transfer In</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">Transfer Out</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">Waste</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">Usage</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">End</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">End Pc</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">Item %</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">Group %</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">Daily Recv</th>
+                                <th style="padding:${4 * scaleFactor}px;text-align:center;">Daily Sales</th>
                             </tr>
                         </thead>
                         <tbody>${tableRows}</tbody>
@@ -2588,7 +2605,7 @@
         }
 
         // ================================================================
-        // 17. تصدير جميع المطاعم PDF (محدث للأعمدة الجديدة)
+        // 17. تصدير جميع المطاعم PDF مع تحسين حجم الخط وتضييق الأعمدة
         // ================================================================
         async function exportAllRestaurantsPDF() {
             if (!allRestaurantsData || allRestaurantsData.length === 0) {
@@ -2675,46 +2692,56 @@
                             }
 
                             tableRows += `<tr${cls}>
-                                <td style="border:1px solid #ccc;padding:${5 * scaleFactor}px;font-size:${0.65 * scaleFactor}rem;text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.7 * scaleFactor}rem;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${isTotal ? '' : itemPercent}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${groupPercent}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${dailyReceived}</td>
-                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.65 * scaleFactor}rem;">${dailySales}</td>
+                                <td style="border:1px solid #ccc;padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:${isTotal ? 'center' : 'right'};font-weight:${isTotal ? 'bold' : 'normal'};">${escapeHtml(row.item)}${shawIcon}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-weight:bold;font-size:${0.9 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${isTotal ? '' : itemPercent}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${groupPercent}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${dailyReceived}</td>
+                                <td style="border:1px solid #ccc;text-align:center;font-size:${0.85 * scaleFactor}rem;padding:${4 * scaleFactor}px;">${dailySales}</td>
                             </tr>`;
                             count++;
                         }
                         startIdx += count;
 
                         const tableHtml =
-                            `<table style="width:100%;border-collapse:collapse;font-size:${0.65 * scaleFactor}rem;margin-top:6px;">
+                            `<table style="width:100%;border-collapse:collapse;font-size:${0.7 * scaleFactor}rem;margin-top:6px;direction:rtl;">
                             <thead>
                                 <tr style="background:#2e7d32;color:#fff;">
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">الصنف</th>
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">رصيد أول</th>
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">مستلم</th>
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">محول داخل</th>
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">محول خارج</th>
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">توالف</th>
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">استخدام</th>
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">رصيد آخر</th>
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">رصيد بالقطعة</th>
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">% الصنف</th>
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">% المجموعة</th>
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">معدل طلبية</th>
-                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;">معدل بيع</th>
+                                    <th style="padding:${6 * scaleFactor}px;font-size:${0.8 * scaleFactor}rem;text-align:center;">الصنف</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">رصيد أول</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">مستلم</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">محول داخل</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">محول خارج</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">توالف</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">استخدام</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">رصيد آخر</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">رصيد بالقطعة</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">% الصنف</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">% المجموعة</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">معدل طلبية</th>
+                                    <th style="padding:${5 * scaleFactor}px;font-size:${0.75 * scaleFactor}rem;text-align:center;">معدل بيع</th>
                                 </tr>
                                 <tr style="background:#1b5e20;color:#c8e6c9;font-size:${0.55 * scaleFactor}rem;">
-                                    <th>Item</th><th>Start</th><th>Received</th><th>Transfer In</th><th>Transfer Out</th>
-                                    <th>Waste</th><th>Usage</th><th>End</th><th>End Pc</th><th>Item %</th><th>Group %</th>
-                                    <th>Daily Recv</th><th>Daily Sales</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">Item</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">Start</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">Received</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">Transfer In</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">Transfer Out</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">Waste</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">Usage</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">End</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">End Pc</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">Item %</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">Group %</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">Daily Recv</th>
+                                    <th style="padding:${4 * scaleFactor}px;text-align:center;">Daily Sales</th>
                                 </tr>
                             </thead>
                             <tbody>${tableRows}</tbody>
@@ -2811,7 +2838,7 @@
         exportAllRestaurantsPdfBtn.disabled = true;
         restaurantInfoHeader.style.display = 'none';
 
-        console.log('✅ COGS v26 – تحسين استخراج الفترة من الملفات، عرض الفترة في واجهة المستخدم، جعل العامود A Bold في Excel');
+        console.log('✅ COGS v27 – تحسين PDF: تصغير عرض الأعمدة الرقمية 15%، تكبير حجم الأرقام والنسب 10%');
     </script>
 </body>
 </html>
