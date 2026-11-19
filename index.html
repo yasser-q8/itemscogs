@@ -484,7 +484,7 @@
                 <img class="logo-img" src="https://i.postimg.cc/NM2zJWZD/NAIF-LOGO.jpg" alt="Naif Logo" onerror="this.src='https://via.placeholder.com/55?text=NAIF'">
                 <div class="company-name">شركة نايف للأغذية <small>NAIF FOOD COMPANY</small></div>
             </div>
-            <div class="report-title-badge">📊 تقرير COGS + حركة المطاعم</div>
+            <div class="report-title-badge">📊 تقرير COGS + حركة المطاعم + الخبز</div>
         </div>
 
         <div class="upload-area">
@@ -498,6 +498,7 @@
             <button class="tab-btn active" data-tab="tab1">📋 تقرير COGS (جميع الأصناف)</button>
             <button class="tab-btn" data-tab="tab2" disabled>🍗 حركة المطعم (الأصناف المحددة)</button>
             <button class="tab-btn" data-tab="tab3" disabled style="background:#e8f5e9; color:#1b5e20;">📋 حركة المطعم (مع Stk. Take)</button>
+            <button class="tab-btn" data-tab="tab4" disabled style="background:#fff8e1; color:#8d4e00;">🥖 حركة الخبز (أصناف الخبز)</button>
         </div>
 
         <!-- TAB 1 -->
@@ -516,6 +517,12 @@
                         <input type="text" id="itemSearchInput" placeholder="اكتب اسم الصنف..." autocomplete="off" list="itemDatalist" disabled>
                         <datalist id="itemDatalist"></datalist>
                         <span id="matchCountDisplay" class="match-counter">0 صنف</span>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; background:#e3f0ff; padding:6px 14px; border-radius:20px; color:#0d47a1;">
+                            <input type="checkbox" id="combineDualPairsTab1" checked style="width:16px; height:16px; cursor:pointer;">
+                            <span>🔗 تجميع نتائج المطاعم المتشابهة (ذات الجهازين) تلقائياً في الجدول والتصدير</span>
+                        </label>
                     </div>
                 </div>
                 <div class="action-buttons">
@@ -558,6 +565,9 @@
                 <input type="text" id="restaurantSearchInput" placeholder="اكتب اسم المطعم..." autocomplete="off" list="restaurantDatalist" disabled>
                 <datalist id="restaurantDatalist"></datalist>
                 <button id="showRestaurantItemsBtn" class="btn-show" disabled>🔍 عرض الأصناف</button>
+                <select id="combinedSelectTab2" style="padding:11px 16px; border-radius:30px; border:1px solid #1e4668; background:#e3f0ff; color:#0d47a1; font-weight:700; cursor:pointer;" disabled>
+                    <option value="">🔗 اختر مطعماً مجمعاً (جهازين)...</option>
+                </select>
                 <span id="restaurantCountBadge" class="restaurant-count">0 مطعم متاح</span>
             </div>
 
@@ -615,6 +625,9 @@
                 <label>🏢 اختر المطعم (صفحة Stk. Take):</label>
                 <input type="text" id="restaurantSearchInput3" placeholder="اكتب اسم المطعم..." autocomplete="off" list="restaurantDatalist" disabled>
                 <button id="showRestaurantItemsBtn3" class="btn-show" disabled>🔍 عرض الأصناف</button>
+                <select id="combinedSelectTab3" style="padding:11px 16px; border-radius:30px; border:1px solid #1b5e20; background:#e8f5e9; color:#1b5e20; font-weight:700; cursor:pointer;" disabled>
+                    <option value="">🔗 اختر مطعماً مجمعاً (جهازين)...</option>
+                </select>
                 <span id="restaurantCountBadge3" class="restaurant-count">0 مطعم متاح</span>
             </div>
 
@@ -659,6 +672,61 @@
                     </thead>
                     <tbody id="restaurantItemsBody3">
                         <tr class="empty-row"><td colspan="14">📂 قم برفع الملفات ثم اختر مطعماً</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: حركة الخبز (أصناف الخبز من ملف الخبز.xlsx) -->
+        <div id="tab4" class="tab-content">
+            <div class="restaurant-selector" style="background:#fff8e1;">
+                <label style="color:#8d4e00;">🏢 اختر المطعم (حركة الخبز):</label>
+                <input type="text" id="restaurantSearchInput4" placeholder="اكتب اسم المطعم..." autocomplete="off" list="restaurantDatalist" disabled>
+                <button id="showRestaurantItemsBtn4" class="btn-show" style="background:#8d4e00;" disabled>🔍 عرض أصناف الخبز</button>
+                <select id="combinedSelectTab4" style="padding:11px 16px; border-radius:30px; border:1px solid #8d4e00; background:#fff8e1; color:#8d4e00; font-weight:700; cursor:pointer;" disabled>
+                    <option value="">🔗 اختر مطعماً مجمعاً (جهازين)...</option>
+                </select>
+                <span id="restaurantCountBadge4" class="restaurant-count" style="color:#8d4e00;">0 مطعم متاح</span>
+            </div>
+
+            <div class="controls" style="margin-top:-10px;">
+                <div></div>
+                <div class="action-buttons">
+                    <button id="exportBreadExcelBtn" class="btn-outline" disabled>📎 تصدير Excel (الخبز)</button>
+                    <button id="exportManagersBreadExcelBtn" class="btn-outline" style="background:#e8f5e9; border-color:#2e7d32; color:#2e7d32;" disabled>📊 تصدير مجموعات المشرفين Excel (الخبز)</button>
+                    <button id="exportAllBreadExcelBtn" class="btn-outline" disabled>📊 تصدير كل المطاعم Excel (الخبز)</button>
+                </div>
+            </div>
+
+            <div id="restaurantInfoHeader4" class="restaurant-info-header" style="display:none; border-right-color:#8d4e00; background:#fffde7;">
+                <div><span class="label">🏢 المطعم:</span> <span id="headerRestaurantName4">—</span></div>
+                <div><span class="label">👤 مدير المنطقة:</span> <span id="headerRegionManager4">—</span></div>
+                <div><span class="label">👤 مدير التشغيل:</span> <span id="headerOpsManager4">—</span></div>
+                <div><span class="label">📅 الفترة:</span> <span id="headerPeriod4">—</span></div>
+                <div><span class="label">📅 عدد الأيام:</span> <span id="headerDaysCount4">—</span></div>
+            </div>
+
+            <div class="table-wrapper restaurant-items-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="background:#8d4e00;">الصنف<br><small>Item</small></th>
+                            <th style="background:#8d4e00;">رصيد أول<br><small>Start Qty</small></th>
+                            <th style="background:#8d4e00;">الكمية المستلمة<br><small>Received Qty</small></th>
+                            <th style="background:#8d4e00;">المحول للداخل<br><small>Transfer In</small></th>
+                            <th style="background:#8d4e00;">المحول للخارج<br><small>Transfer Out</small></th>
+                            <th style="background:#8d4e00;">التوالف<br><small>Waste</small></th>
+                            <th style="background:#8d4e00;">كمية الاستخدام<br><small>Usage Qty</small></th>
+                            <th style="background:#8d4e00;">رصيد آخر<br><small>End Qty</small></th>
+                            <th style="background:#8d4e00;">رصيد آخر بالقطعة<br><small>End Qty (Pc)</small></th>
+                            <th style="background:#8d4e00;">% رصيد الصنف<br><small>Item %</small></th>
+                            <th style="background:#8d4e00;">% المجموعة<br><small>Group %</small></th>
+                            <th style="background:#8d4e00;">معدل الطلبية اليومي<br><small>Daily Received Avg</small></th>
+                            <th style="background:#8d4e00;">معدل البيع اليومي<br><small>Daily Sales Avg</small></th>
+                        </tr>
+                    </thead>
+                    <tbody id="restaurantItemsBody4">
+                        <tr class="empty-row"><td colspan="13">📂 قم برفع الملفات ثم اختر مطعماً لعرض أصناف الخبز</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -782,24 +850,44 @@
             ]
         ];
 
-        let FLAT_ITEMS = [];
+        // أصناف الخبز من ملف الخبز.xlsx
+        const BREAD_ITEM_GROUPS = [
+            [{ ar: 'خبز صمون بالسمسم', en: 'Bread Samon with Sesame', code: 'E1526', factor: 1 }],
+            [{ ar: 'خبز بريوش', en: 'Brioche Bun', code: 'E1023', factor: 1 }],
+            [{ ar: 'خبز بريوش بالسمسم', en: 'Brioche Bun with sesame', code: 'E1009', factor: 1 }],
+            [{ ar: 'خبز همبرجر كبير', en: 'Hamburger Bread Big', code: 'E1003', factor: 1 }],
+            [{ ar: 'خبز همبرجر صغير', en: 'Hamburger Bread Small', code: 'E1002', factor: 1 }],
+            [{ ar: 'خبز همبرجر بروتين', en: 'Protein Bun', code: 'E1006', factor: 1 }],
+            [{ ar: 'خبز تنور', en: 'Tannur Bread', code: 'E1014', factor: 1 }],
+            [{ ar: 'خبز تورتيلا راب', en: 'Tortella Bread white 20cm', code: 'E1008', factor: 1 }]
+        ];
+
+        function buildFlatItems(groupsList) {
+            const list = [];
+            groupsList.forEach((group, idx) => {
+                group.forEach(it => {
+                    list.push({
+                        groupIdx: idx,
+                        ar: it.ar,
+                        en: it.en,
+                        code: it.code,
+                        factor: it.factor,
+                        display: `${it.ar} (${it.en})`
+                    });
+                });
+            });
+            return list;
+        }
+
+        let FLAT_ITEMS = buildFlatItems(ITEM_GROUPS);
+        let BREAD_FLAT_ITEMS = buildFlatItems(BREAD_ITEM_GROUPS);
         let conversionMapByCode = {};
         let conversionMapByName = {};
 
-        ITEM_GROUPS.forEach((group, idx) => {
-            group.forEach(it => {
-                FLAT_ITEMS.push({
-                    groupIdx: idx,
-                    ar: it.ar,
-                    en: it.en,
-                    code: it.code,
-                    factor: it.factor,
-                    display: `${it.ar} (${it.en})`
-                });
-                conversionMapByCode[it.code] = it.factor;
-                conversionMapByName[it.ar.trim().toLowerCase()] = it.factor;
-                conversionMapByName[it.en.trim().toLowerCase()] = it.factor;
-            });
+        [...FLAT_ITEMS, ...BREAD_FLAT_ITEMS].forEach(it => {
+            conversionMapByCode[it.code] = it.factor;
+            conversionMapByName[it.ar.trim().toLowerCase()] = it.factor;
+            conversionMapByName[it.en.trim().toLowerCase()] = it.factor;
         });
 
         conversionMapByName['اصابع فيليه فلفل'.toLowerCase()] = 25;
@@ -811,11 +899,12 @@
             if (!itemName) return null;
             const lower = itemName.trim().toLowerCase();
             if (conversionMapByName[lower]) return conversionMapByName[lower];
-            for (let it of FLAT_ITEMS) {
+            const allFlat = [...FLAT_ITEMS, ...BREAD_FLAT_ITEMS];
+            for (let it of allFlat) {
                 if (it.ar.trim().toLowerCase() === lower || it.en.trim().toLowerCase() === lower) return it.factor;
             }
             let bestMatch = null, bestLength = 0;
-            for (let it of FLAT_ITEMS) {
+            for (let it of allFlat) {
                 const arLower = it.ar.trim().toLowerCase();
                 const enLower = it.en.trim().toLowerCase();
                 if (lower.includes(arLower) || arLower.includes(lower) || lower.includes(enLower) || enLower.includes(lower)) {
@@ -829,7 +918,7 @@
                 }
             }
             if (bestMatch !== null) return bestMatch;
-            for (let it of FLAT_ITEMS) {
+            for (let it of allFlat) {
                 if (it.code && lower.includes(it.code.toLowerCase())) return it.factor;
             }
             return null;
@@ -993,33 +1082,90 @@
         }
         buildMasterDatabase();
 
+        // أزواج المطاعم ذات الجهازين المطلوب تجميعها في شيت مستقل لكل مشرف
+        const DUAL_DEVICE_PAIRS = [
+            { first: "الشرق", second: "الشرق -2", enFirst: "Sharq", enSecond: "Sharq- 2", combinedLabel: "الشرق + الشرق -2 (Sharq + Sharq- 2)" },
+            { first: "هدية", second: "هدية -2", enFirst: "Hadiya", enSecond: "Hadiya- 2", combinedLabel: "هدية + هدية -2 (Hadiya + Hadiya- 2)" },
+            { first: "أسواق القرين", second: "أسواق القرين -2", enFirst: "Souq Qurain", enSecond: "Souq Qurain- 2", combinedLabel: "أسواق القرين + أسواق القرين -2 (Souq Qurain + Souq Qurain- 2)" },
+            { first: "الفحيحيل", second: "الفحيحيل -2", enFirst: "Fahaheel", enSecond: "Fahaheel- 2", combinedLabel: "الفحيحيل + الفحيحيل -2 (Fahaheel + Fahaheel- 2)" },
+            { first: "صباح السالم العرين", second: "صباح السالم العرين -2", enFirst: "Sabah-Salem Alareen", enSecond: "Sabah-Salem Alareen- 2", combinedLabel: "صباح السالم العرين + صباح السالم العرين -2 (Sabah-Salem Alareen + Sabah-Salem Alareen- 2)" },
+            { first: "الري", second: "الري -2", enFirst: "Al Rai", enSecond: "Al Rai- 2", combinedLabel: "الري + الري -2 (Al Rai + Al Rai- 2)" },
+            { first: "جمعية الصليبية", second: "جمعية الصليبية -2", enFirst: "Sulaibiya CO-OP", enSecond: "Sulaibiya CO-OP- 2", combinedLabel: "جمعية الصليبية + جمعية الصليبية -2 (Sulaibiya CO-OP + Sulaibiya CO-OP- 2)" },
+            { first: "سيد ياسين", second: "سيد ياسين -2", enFirst: "Salmiya 4 - Sayed Yasin", enSecond: "Salmiya 4 - Sayed Yasin- 2", combinedLabel: "سيد ياسين + سيد ياسين -2 (Salmiya 4 - Sayed Yasin + Salmiya 4 - Sayed Yasin- 2)" }
+        ];
+
+        function normalizeRestKey(name) {
+            if (!name) return '';
+            return String(name)
+                .toLowerCase()
+                .replace(/^مطعم\s+/i, '')
+                .replace(/[–—]/g, '-')
+                .replace(/\(\s*2\s*\)/g, ' -2')
+                .replace(/(?:[_\-\s]+)2(?:$|[^0-9])/g, (m, p1) => ' -2' + (p1 || ''))
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function matchesPairTarget(rest, targetAr, targetEn) {
+            const tAr = normalizeRestKey(targetAr);
+            const tEn = normalizeRestKey(targetEn);
+            const isSecondTarget = tAr.endsWith('-2') || tEn.endsWith('-2');
+
+            const candidates = [
+                normalizeRestKey(rest.restaurantDisplay),
+                normalizeRestKey(rest.restaurantRaw),
+                normalizeRestKey(rest.restaurantCombined)
+            ].filter(Boolean);
+
+            for (const cand of candidates) {
+                const candIsSecond = cand.endsWith('-2');
+                if (isSecondTarget !== candIsSecond) continue;
+                if (cand === tAr || cand === tEn) return true;
+                if (cand === `${tAr} - ${tEn}`) return true;
+                if (cand.endsWith(` - ${tEn}`) || cand.startsWith(`${tAr} - `)) return true;
+            }
+            return false;
+        }
+
         function getRestaurantInfo(rawName) {
             if (!rawName) return { displayName: "غير معروف", regionManager: "—", opsManager: "—", combinedName: "غير معروف" };
             let normalized = rawName.trim().replace(/^مطعم\s+/i, '').replace(/\s+/g, ' ').trim();
+            let normUnified = normalizeRestKey(normalized);
             let found = null, foundKey = null;
 
             if (RESTAURANT_MASTER.has(normalized)) {
                 found = RESTAURANT_MASTER.get(normalized);
                 foundKey = normalized;
             } else {
-                const lowerKey = normalized.toLowerCase();
-                if (RESTAURANT_MASTER.has(lowerKey)) {
-                    found = RESTAURANT_MASTER.get(lowerKey);
-                    foundKey = lowerKey;
-                } else {
-                    for (let [key, info] of RESTAURANT_MASTER.entries()) {
-                        if (typeof key !== 'string' || key.length < 2) continue;
-                        const keyLower = key.toLowerCase();
-                        const normLower = normalized.toLowerCase();
-                        if (normLower.startsWith(keyLower) || keyLower.startsWith(normLower) || normLower.endsWith(keyLower) || keyLower.endsWith(normLower)) {
+                // ترتيب المفاتيح من الأطول إلى الأقصر لضمان مطابقة "-2" قبل الاسم الأساسي
+                const sortedEntries = Array.from(RESTAURANT_MASTER.entries())
+                    .filter(([k]) => typeof k === 'string' && k.length >= 2)
+                    .sort((a, b) => normalizeRestKey(b[0]).length - normalizeRestKey(a[0]).length);
+
+                for (const [key, info] of sortedEntries) {
+                    if (normalizeRestKey(key) === normUnified) {
+                        found = info;
+                        foundKey = key;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    const normIsSecond = normUnified.endsWith('-2');
+                    for (const [key, info] of sortedEntries) {
+                        const keyUnified = normalizeRestKey(key);
+                        const keyIsSecond = keyUnified.endsWith('-2');
+                        if (normIsSecond !== keyIsSecond) continue;
+                        if (normUnified.startsWith(keyUnified) || keyUnified.startsWith(normUnified) || normUnified.endsWith(keyUnified) || keyUnified.endsWith(normUnified)) {
                             found = info;
                             foundKey = key;
                             break;
                         }
                     }
-                    if (!found) {
-                        return { displayName: rawName, regionManager: "غير محدد", opsManager: "غير محدد", combinedName: rawName };
-                    }
+                }
+
+                if (!found) {
+                    return { displayName: rawName, regionManager: "غير محدد", opsManager: "غير محدد", combinedName: rawName };
                 }
             }
 
@@ -1042,6 +1188,7 @@
         let currentRestaurantData = null;
         let currentRestaurantItems = [];
         let currentRestaurantItems3 = [];
+        let currentRestaurantItems4 = [];
 
         const fileInput = document.getElementById('fileInput');
         const uploadStatus = document.getElementById('uploadStatus');
@@ -1071,6 +1218,7 @@
 
         const tab2Btn = document.querySelector('[data-tab="tab2"]');
         const tab3Btn = document.querySelector('[data-tab="tab3"]');
+        const tab4Btn = document.querySelector('[data-tab="tab4"]');
         const restaurantInfoHeader = document.getElementById('restaurantInfoHeader');
         const headerRestaurantName = document.getElementById('headerRestaurantName');
         const headerRegionManager = document.getElementById('headerRegionManager');
@@ -1093,6 +1241,20 @@
         const headerOpsManager3 = document.getElementById('headerOpsManager3');
         const headerPeriod3 = document.getElementById('headerPeriod3');
         const headerDaysCount3 = document.getElementById('headerDaysCount3');
+
+        const restaurantSearchInput4 = document.getElementById('restaurantSearchInput4');
+        const showRestaurantItemsBtn4 = document.getElementById('showRestaurantItemsBtn4');
+        const restaurantCountBadge4 = document.getElementById('restaurantCountBadge4');
+        const restaurantItemsBody4 = document.getElementById('restaurantItemsBody4');
+        const exportBreadExcelBtn = document.getElementById('exportBreadExcelBtn');
+        const exportManagersBreadExcelBtn = document.getElementById('exportManagersBreadExcelBtn');
+        const exportAllBreadExcelBtn = document.getElementById('exportAllBreadExcelBtn');
+        const restaurantInfoHeader4 = document.getElementById('restaurantInfoHeader4');
+        const headerRestaurantName4 = document.getElementById('headerRestaurantName4');
+        const headerRegionManager4 = document.getElementById('headerRegionManager4');
+        const headerOpsManager4 = document.getElementById('headerOpsManager4');
+        const headerPeriod4 = document.getElementById('headerPeriod4');
+        const headerDaysCount4 = document.getElementById('headerDaysCount4');
 
         function formatZero(val) {
             let num = Number(val);
@@ -1140,10 +1302,16 @@
 
         function getRestaurantNameFromSheet(worksheet) {
             try {
-                const cell = worksheet['B14'];
-                if (cell && cell.v) return String(cell.v).trim();
-                const fallback = worksheet['B6'];
-                if (fallback && fallback.v) return String(fallback.v).trim();
+                const priorityCells = ['B14', 'C14', 'B13', 'B15', 'B6', 'C6'];
+                for (const addr of priorityCells) {
+                    const cell = worksheet[addr];
+                    if (cell && cell.v) {
+                        const val = String(cell.v).trim();
+                        if (val && !/^(from|to|date|restaurant|branch|مطعم|التاريخ|الفترة)$/i.test(val)) {
+                            return val;
+                        }
+                    }
+                }
             } catch (e) {}
             return "مطعم غير معروف";
         }
@@ -1274,15 +1442,22 @@
                 }
             }
             if (valid === 0) { showError("لم يتم العثور على جداول متوافقة."); uploadStatus.innerHTML = "❌ فشل القراءة"; return; }
-            uploadStatus.innerHTML = `✅ تم تحميل ${valid} ملف | إجمالي الأصناف المستخلصة: ${uniqueItemsSet.size}`;
+            const detectedPairs = getCombinedPairsForList(allRestaurantsData);
+            const pairsSummary = detectedPairs.length > 0
+                ? `<div style="margin-top:8px; color:#0d47a1; font-weight:700;">🔗 تم اكتشاف وتجميع (${detectedPairs.length}) مطاعم ذات جهازين: ${detectedPairs.map(p => p.restaurantDisplay).join(' | ')}</div>`
+                : '';
+            uploadStatus.innerHTML = `✅ تم تحميل ${valid} ملف | إجمالي الأصناف المستخلصة: ${uniqueItemsSet.size}${pairsSummary}`;
             itemSearch.disabled = false; generateBtn.disabled = false; exportExcelBtn.disabled = false; exportPdfBtn.disabled = false;
             refreshSearchTab1();
 
-            tab2Btn.disabled = false; tab3Btn.disabled = false; populateRestaurantDatalist();
+            tab2Btn.disabled = false; tab3Btn.disabled = false; tab4Btn.disabled = false;
+            populateRestaurantDatalist();
             restaurantSearchInput.disabled = false; showRestaurantItemsBtn.disabled = false;
             restaurantSearchInput3.disabled = false; showRestaurantItemsBtn3.disabled = false;
+            restaurantSearchInput4.disabled = false; showRestaurantItemsBtn4.disabled = false;
             exportRestaurantExcelBtn.disabled = false; exportRestaurantPdfBtn.disabled = false;
             exportTab3ExcelBtn.disabled = false; exportTab3PdfBtn.disabled = false;
+            exportBreadExcelBtn.disabled = false; exportManagersBreadExcelBtn.disabled = false; exportAllBreadExcelBtn.disabled = false;
             exportManagersExcelBtn.disabled = false; exportAllRestaurantsExcelBtn.disabled = false; exportAllRestaurantsPdfBtn.disabled = false;
             exportManagersExcelBtn3.disabled = false; exportAllRestaurantsExcelBtn3.disabled = false; exportAllRestaurantsPdfBtn3.disabled = false;
         }
@@ -1309,7 +1484,53 @@
             let factor = getConversionFactorFromName(exact);
             const periodDisplay = `${startDateInput.value || "غير محدد"} → ${endDateInput.value || "غير محدد"}`;
 
+            const shouldCombine = document.getElementById('combineDualPairsTab1')?.checked;
+            const pairedRestaurantsSet = new Set();
+
+            if (shouldCombine) {
+                for (const pairCfg of DUAL_DEVICE_PAIRS) {
+                    const r1 = allRestaurantsData.find(r => matchesPairTarget(r, pairCfg.first, pairCfg.enFirst));
+                    const r2 = allRestaurantsData.find(r => matchesPairTarget(r, pairCfg.second, pairCfg.enSecond));
+                    if (r1 || r2) {
+                        if (r1) pairedRestaurantsSet.add(r1);
+                        if (r2) pairedRestaurantsSet.add(r2);
+
+                        const f1 = r1 ? r1.items.find(it => it.itemName === exact) : null;
+                        const f2 = r2 ? r2.items.find(it => it.itemName === exact) : null;
+                        if (f1 || f2) {
+                            const sumRaw = {
+                                startQty: (f1 ? f1.startQty : 0) + (f2 ? f2.startQty : 0),
+                                recdQty: (f1 ? f1.recdQty : 0) + (f2 ? f2.recdQty : 0),
+                                tranInQty: (f1 ? f1.tranInQty : 0) + (f2 ? f2.tranInQty : 0),
+                                tranOutQty: (f1 ? f1.tranOutQty : 0) + (f2 ? f2.tranOutQty : 0),
+                                wastQty: (f1 ? f1.wastQty : 0) + (f2 ? f2.wastQty : 0),
+                                actUsage: (f1 ? f1.actUsage : 0) + (f2 ? f2.actUsage : 0),
+                                endQty: (f1 ? f1.endQty : 0) + (f2 ? f2.endQty : 0)
+                            };
+                            const { wast: newWast, usage: newUsage, endQty: newEnd } = applyShawarmaBonusAndRecalcEndQty(exact, sumRaw);
+                            const baseRest = r1 || r2;
+                            rows.push({
+                                restaurantCombined: `🔗 مجمع: ${pairCfg.combinedLabel}`,
+                                regionManager: baseRest.regionManager,
+                                opsManager: baseRest.opsManager,
+                                reportDate: periodDisplay,
+                                startQty: +sumRaw.startQty.toFixed(2),
+                                recdQty: +sumRaw.recdQty.toFixed(2),
+                                tranInQty: +sumRaw.tranInQty.toFixed(2),
+                                tranOutQty: +sumRaw.tranOutQty.toFixed(2),
+                                wastQty: newWast,
+                                actUsage: newUsage,
+                                endQty: newEnd,
+                                convertedEnd: factor !== null ? (newEnd * factor) : null,
+                                isCombinedRow: true
+                            });
+                        }
+                    }
+                }
+            }
+
             for (const rest of allRestaurantsData) {
+                if (shouldCombine && pairedRestaurantsSet.has(rest)) continue;
                 const found = rest.items.find(it => it.itemName === exact);
                 if (found) {
                     const { wast: newWast, usage: newUsage, endQty: newEnd } = applyShawarmaBonusAndRecalcEndQty(exact, found);
@@ -1327,7 +1548,7 @@
             } else {
                 let html = "";
                 for (const r of rows) {
-                    html += `<tr>
+                    html += `<tr style="${r.isCombinedRow ? 'background:#e3f0ff; font-weight:700;' : ''}">
                         <td style="text-align:right;">${escapeHtml(r.restaurantCombined)}</td>
                         <td>${escapeHtml(r.regionManager)}</td>
                         <td>${escapeHtml(r.opsManager)}</td>
@@ -1370,7 +1591,7 @@
                 worksheet.addImage(imageId, { tl: { col: 1, row: worksheet.rowCount + 2 }, ext: { width: 300 / 7.5, height: 50 / 7.5 }, editAs: 'absolute' });
 
                 const buffer = await workbook.xlsx.writeBuffer({ type: 'buffer' });
-                saveAs(new Blob([buffer]), `COGS_${currentSelectedItem.replace(/[\\/*:?"<>|[\]]/g, '_')}.xlsx`);
+                saveAs(new Blob([buffer]), `COGS_${currentSelectedItem.replace(/[\/*:?"<>|[\]]/g, '_')}.xlsx`);
             } catch (err) { alert("فشل تصدير Excel: " + err.message); }
         }
 
@@ -1380,24 +1601,51 @@
             try {
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
-                pdf.save(`COGS_${currentSelectedItem.replace(/[\\/*:?"<>|[\]]/g, '_')}.pdf`);
+                pdf.save(`COGS_${currentSelectedItem.replace(/[\/*:?"<>|[\]]/g, '_')}.pdf`);
             } catch (e) { alert("خطأ في PDF: " + e.message); } finally { exportPdfBtn.disabled = false; }
         }
 
         function populateRestaurantDatalist() {
-            const restaurants = allRestaurantsData.map(r => r.restaurantCombined).filter((v, i, a) => a.indexOf(v) === i);
+            const individualNames = allRestaurantsData.map(r => r.restaurantCombined).filter((v, i, a) => a.indexOf(v) === i).sort();
+            const combinedPairs = getCombinedPairsForList(allRestaurantsData);
+            const combinedNames = combinedPairs.map(c => c.restaurantCombined);
+            const allOptions = [...combinedNames, ...individualNames];
+
             restaurantDatalist.innerHTML = '';
-            for (const name of restaurants.sort()) {
+            for (const name of allOptions) {
                 const opt = document.createElement('option'); opt.value = name; restaurantDatalist.appendChild(opt);
             }
-            restaurantCountBadge.textContent = `${restaurants.length} مطعم متاح`;
-            restaurantCountBadge3.textContent = `${restaurants.length} مطعم متاح`;
+
+            ['combinedSelectTab2', 'combinedSelectTab3', 'combinedSelectTab4'].forEach(selId => {
+                const sel = document.getElementById(selId);
+                if (!sel) return;
+                sel.innerHTML = '<option value="">🔗 اختر مطعماً مجمعاً (جهازين)...</option>';
+                combinedPairs.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.restaurantCombined;
+                    opt.textContent = c.restaurantCombined;
+                    sel.appendChild(opt);
+                });
+                sel.disabled = combinedPairs.length === 0;
+            });
+
+            const countText = `${individualNames.length} مطعم + ${combinedNames.length} مجمع`;
+            restaurantCountBadge.textContent = countText;
+            restaurantCountBadge3.textContent = countText;
+            restaurantCountBadge4.textContent = countText;
+        }
+
+        function findRestaurantByCombinedName(selectedName) {
+            const direct = allRestaurantsData.find(r => r.restaurantCombined === selectedName);
+            if (direct) return direct;
+            const combinedPairs = getCombinedPairsForList(allRestaurantsData);
+            return combinedPairs.find(c => c.restaurantCombined === selectedName) || null;
         }
 
         function findMatchingItem(flatItem, restData) {
             if (flatItem.code) {
                 for (let it of restData.items) {
-                    if (it.itemCode && it.itemCode.trim() === flatItem.code) return it;
+                    if (it.itemCode && it.itemCode.trim().toLowerCase() === flatItem.code.trim().toLowerCase()) return it;
                 }
             }
             const arName = flatItem.ar.trim(), enName = flatItem.en.trim();
@@ -1440,14 +1688,15 @@
             return null;
         }
 
-        function getRestaurantItemRows(restData) {
+        function getRestaurantItemRows(restData, customFlatItems = null) {
+            const targetFlatItems = customFlatItems || FLAT_ITEMS;
             const rows = [];
             let currentGroup = -1;
             const days = calculateActualDays();
-            const excludedGroupIndices = [18];
+            const excludedGroupIndices = customFlatItems ? [] : [18];
 
             const groupSizeMap = {};
-            for (const it of FLAT_ITEMS) {
+            for (const it of targetFlatItems) {
                 if (!groupSizeMap[it.groupIdx]) groupSizeMap[it.groupIdx] = 0;
                 groupSizeMap[it.groupIdx]++;
             }
@@ -1456,7 +1705,7 @@
 
             function computeGroupTotals(groupIndex, groupItems) {
                 let totals = { start: 0, recd: 0, tranIn: 0, tranOut: 0, wast: 0, usage: 0, end: 0, convertedEnd: 0, stkTake: 0 };
-                if (groupIndex === 0) {
+                if (!customFlatItems && groupIndex === 0) {
                     groupItems.forEach((row) => {
                         const div = row.item.includes('فلفل') || row.item.includes('Spicy') ? 2 : 1;
                         if (row.found) {
@@ -1467,7 +1716,7 @@
                             totals.stkTake += (row.stkTake || 0) / div;
                         }
                     });
-                } else if (groupIndex === 3) {
+                } else if (!customFlatItems && groupIndex === 3) {
                     groupItems.forEach((row) => {
                         const div = row.item.includes('فلفل') || row.item.includes('Spicy') ? 2.5 : 1;
                         if (row.found) {
@@ -1518,8 +1767,8 @@
                 tempGroupRows = [];
             }
 
-            for (let idx = 0; idx < FLAT_ITEMS.length; idx++) {
-                const it = FLAT_ITEMS[idx];
+            for (let idx = 0; idx < targetFlatItems.length; idx++) {
+                const it = targetFlatItems[idx];
                 const groupIdx = it.groupIdx;
 
                 if (groupIdx !== currentGroup && currentGroup !== -1) { finalizeGroup(currentGroup); }
@@ -1527,7 +1776,7 @@
 
                 const found = findMatchingItem(it, restData);
                 const displayName = found ? found.itemName : `${it.ar} (${it.en})`;
-                const isShaw = isShawarmaItem(displayName);
+                const isShaw = !customFlatItems && isShawarmaItem(displayName);
 
                 let startQty = found ? found.startQty : 0, recdQty = found ? found.recdQty : 0, tranInQty = found ? found.tranInQty : 0;
                 let tranOutQty = found ? found.tranOutQty : 0, wastQty = found ? found.wastQty : 0, usageQty = found ? found.actUsage : 0, endQty = found ? found.endQty : 0;
@@ -1550,13 +1799,145 @@
             return rows;
         }
 
+        function buildCombinedRestaurantData(rest1, rest2, pairConfig, customFlatItems = null) {
+            const targetFlatItems = customFlatItems || [...FLAT_ITEMS, ...BREAD_FLAT_ITEMS];
+            const combinedItems = [];
+            const seenCodesOrNames = new Set();
+
+            for (const it of targetFlatItems) {
+                const uniqueKey = it.code || it.ar;
+                if (seenCodesOrNames.has(uniqueKey)) continue;
+                seenCodesOrNames.add(uniqueKey);
+
+                const f1 = rest1 ? findMatchingItem(it, rest1) : null;
+                const f2 = rest2 ? findMatchingItem(it, rest2) : null;
+                if (!f1 && !f2) continue;
+
+                const name = (f1 && f1.itemName) || (f2 && f2.itemName) || `${it.ar} (${it.en})`;
+                const code = (f1 && f1.itemCode) || (f2 && f2.itemCode) || it.code;
+
+                // تجميع الكميات الخام لكلا المطعمين (وسيتم تطبيق نسبة الشاورما مرة واحدة داخل getRestaurantItemRows)
+                combinedItems.push({
+                    itemName: name,
+                    itemCode: code,
+                    startQty: +((f1 ? f1.startQty : 0) + (f2 ? f2.startQty : 0)).toFixed(4),
+                    recdQty: +((f1 ? f1.recdQty : 0) + (f2 ? f2.recdQty : 0)).toFixed(4),
+                    tranInQty: +((f1 ? f1.tranInQty : 0) + (f2 ? f2.tranInQty : 0)).toFixed(4),
+                    tranOutQty: +((f1 ? f1.tranOutQty : 0) + (f2 ? f2.tranOutQty : 0)).toFixed(4),
+                    wastQty: +((f1 ? f1.wastQty : 0) + (f2 ? f2.wastQty : 0)).toFixed(4),
+                    actUsage: +((f1 ? f1.actUsage : 0) + (f2 ? f2.actUsage : 0)).toFixed(4),
+                    endQty: +((f1 ? f1.endQty : 0) + (f2 ? f2.endQty : 0)).toFixed(4),
+                    stkTakeQty: +((f1 ? (f1.stkTakeQty || 0) : 0) + (f2 ? (f2.stkTakeQty || 0) : 0)).toFixed(4)
+                });
+            }
+
+            const baseRest = rest1 || rest2;
+            return {
+                restaurantRaw: pairConfig.combinedLabel,
+                restaurantDisplay: pairConfig.combinedLabel,
+                restaurantCombined: `🔗 مجمع: ${pairConfig.combinedLabel}`,
+                regionManager: baseRest.regionManager,
+                opsManager: baseRest.opsManager,
+                periodString: baseRest.periodString,
+                startDateStr: baseRest.startDateStr,
+                endDateStr: baseRest.endDateStr,
+                isCombinedPair: true,
+                items: combinedItems
+            };
+        }
+
+        function getCombinedPairsForList(sourceList, customFlatItems = null) {
+            const list = [];
+            for (const pairCfg of DUAL_DEVICE_PAIRS) {
+                const r1 = sourceList.find(r => matchesPairTarget(r, pairCfg.first, pairCfg.enFirst));
+                const r2 = sourceList.find(r => matchesPairTarget(r, pairCfg.second, pairCfg.enSecond));
+                if (r1 || r2) {
+                    list.push(buildCombinedRestaurantData(r1, r2, pairCfg, customFlatItems));
+                }
+            }
+            return list;
+        }
+
+        // في تصدير مجموعات المشرفين لا ننشئ جدولاً مجمعاً إلا إذا كان الجهازان
+        // موجودين فعلياً داخل مجموعة المشرف نفسها؛ حتى لا يظهر مجموع ناقص لجهاز واحد.
+        function getCompleteCombinedPairsForList(sourceList, customFlatItems = null) {
+            const list = [];
+            for (const pairCfg of DUAL_DEVICE_PAIRS) {
+                const firstRest = sourceList.find(r => matchesPairTarget(r, pairCfg.first, pairCfg.enFirst));
+                const secondRest = sourceList.find(r => matchesPairTarget(r, pairCfg.second, pairCfg.enSecond));
+                if (!firstRest || !secondRest) continue;
+
+                const sameSupervisor = (firstRest.regionManager || "مشرف غير محدد") ===
+                    (secondRest.regionManager || "مشرف غير محدد");
+                if (!sameSupervisor) continue;
+
+                list.push(buildCombinedRestaurantData(firstRest, secondRest, pairCfg, customFlatItems));
+            }
+            return list;
+        }
+
+        function renderStandardRestaurantTable(allRows, tbodyEl, days, hasStkTake = false) {
+            const colCount = hasStkTake ? 14 : 13;
+            let html = `<tr style="height: 10px;"><td colspan="${colCount}"></td></tr>`;
+            let i = 0;
+            while (i < allRows.length) {
+                const groupIdx = allRows[i].groupIdx;
+                let groupRows = [];
+                while (i < allRows.length && allRows[i].groupIdx === groupIdx) {
+                    groupRows.push(allRows[i]); i++;
+                }
+                const rowSpan = groupRows.length;
+                const groupPercentStr = (groupRows[0] && groupRows[0].groupPercent !== null && groupRows[0].groupPercent !== undefined)
+                    ? formatPercent(groupRows[0].groupPercent) : '—';
+
+                for (let rIdx = 0; rIdx < groupRows.length; rIdx++) {
+                    const row = groupRows[rIdx];
+                    const isTotal = row.isTotal || false;
+                    const cls = isTotal ? 'total-row' : (row.found ? '' : 'item-missing');
+                    const shawIcon = row.isShaw ? ' 🔥' : '';
+
+                    let dailyReceived = '—', dailySales = '—', itemPercent = '—';
+                    if (!isTotal && row.found) {
+                        dailyReceived = formatZero((row.start + row.recd + row.tranIn - row.tranOut) / days);
+                        dailySales = formatZero((row.tranOut + row.wast + row.usage) / days);
+                        if (row.itemPercent !== null && row.itemPercent !== undefined) itemPercent = formatPercent(row.itemPercent);
+                    } else if (isTotal) {
+                        dailyReceived = formatZero((row.start + row.recd + row.tranIn - row.tranOut) / days);
+                        dailySales = formatZero((row.tranOut + row.wast + row.usage) / days);
+                    }
+
+                    html += `<tr class="${cls}">
+                        <td style="text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
+                        <td>${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
+                        <td>${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
+                        <td>${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
+                        <td>${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
+                        <td>${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
+                        <td>${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
+                        <td class="bold-end">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
+                        <td class="bold-end">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>`;
+
+                    if (hasStkTake) {
+                        html += `<td style="background:#fffde7; font-weight:bold; color:#1b5e20;">${isTotal ? '—' : (row.found ? formatZero(row.stkTake) : '—')}</td>`;
+                    }
+
+                    html += `<td>${isTotal ? '—' : itemPercent}</td>`;
+                    if (rIdx === 0) {
+                        html += `<td rowspan="${rowSpan}" class="group-percent-cell">${groupPercentStr}</td>`;
+                    }
+                    html += `<td>${dailyReceived}</td><td>${dailySales}</td></tr>`;
+                }
+            }
+            tbodyEl.innerHTML = html;
+        }
+
         function showRestaurantItems() {
             const selected = restaurantSearchInput.value.trim();
             if (!selected) return;
-            const restData = allRestaurantsData.find(r => r.restaurantCombined === selected);
+            const restData = findRestaurantByCombinedName(selected);
             if (!restData) return;
             currentRestaurantData = restData;
-            const allRows = getRestaurantItemRows(restData);
+            const allRows = getRestaurantItemRows(restData, null);
             currentRestaurantItems = allRows;
 
             const days = calculateActualDays();
@@ -1567,62 +1948,16 @@
             headerPeriod.textContent = restData.periodString || 'غير محدد';
             headerDaysCount.textContent = days + ' يوم';
 
-            let html = `<tr style="height: 10px;"><td colspan="13"></td></tr>`;
-            let i = 0;
-            while (i < allRows.length) {
-                const groupIdx = allRows[i].groupIdx;
-                let groupRows = [];
-                while (i < allRows.length && allRows[i].groupIdx === groupIdx) {
-                    groupRows.push(allRows[i]); i++;
-                }
-                const rowSpan = groupRows.length;
-                const groupPercentStr = (groupRows[0] && groupRows[0].groupPercent !== null && groupRows[0].groupPercent !== undefined)
-                    ? formatPercent(groupRows[0].groupPercent) : '—';
-
-                for (let rIdx = 0; rIdx < groupRows.length; rIdx++) {
-                    const row = groupRows[rIdx];
-                    const isTotal = row.isTotal || false;
-                    const cls = isTotal ? 'total-row' : (row.found ? '' : 'item-missing');
-                    const shawIcon = row.isShaw ? ' 🔥' : '';
-
-                    let dailyReceived = '—', dailySales = '—', itemPercent = '—';
-                    if (!isTotal && row.found) {
-                        dailyReceived = formatZero((row.start + row.recd + row.tranIn - row.tranOut) / days);
-                        dailySales = formatZero((row.tranOut + row.wast + row.usage) / days);
-                        if (row.itemPercent !== null && row.itemPercent !== undefined) itemPercent = formatPercent(row.itemPercent);
-                    } else if (isTotal) {
-                        dailyReceived = formatZero((row.start + row.recd + row.tranIn - row.tranOut) / days);
-                        dailySales = formatZero((row.tranOut + row.wast + row.usage) / days);
-                    }
-
-                    html += `<tr class="${cls}">
-                        <td style="text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
-                        <td>${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
-                        <td>${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
-                        <td>${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
-                        <td>${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
-                        <td>${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
-                        <td>${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
-                        <td class="bold-end">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
-                        <td class="bold-end">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
-                        <td>${isTotal ? '—' : itemPercent}</td>`;
-
-                    if (rIdx === 0) {
-                        html += `<td rowspan="${rowSpan}" class="group-percent-cell">${groupPercentStr}</td>`;
-                    }
-                    html += `<td>${dailyReceived}</td><td>${dailySales}</td></tr>`;
-                }
-            }
-            restaurantItemsBody.innerHTML = html;
+            renderStandardRestaurantTable(allRows, restaurantItemsBody, days, false);
         }
 
         function showRestaurantItemsTab3() {
             const selected = restaurantSearchInput3.value.trim();
             if (!selected) return;
-            const restData = allRestaurantsData.find(r => r.restaurantCombined === selected);
+            const restData = findRestaurantByCombinedName(selected);
             if (!restData) return;
             currentRestaurantData = restData;
-            const allRows = getRestaurantItemRows(restData);
+            const allRows = getRestaurantItemRows(restData, null);
             currentRestaurantItems3 = allRows;
 
             const days = calculateActualDays();
@@ -1633,190 +1968,183 @@
             headerPeriod3.textContent = restData.periodString || 'غير محدد';
             headerDaysCount3.textContent = days + ' يوم';
 
-            let html = `<tr style="height: 10px;"><td colspan="14"></td></tr>`;
-            let i = 0;
-            while (i < allRows.length) {
-                const groupIdx = allRows[i].groupIdx;
-                let groupRows = [];
-                while (i < allRows.length && allRows[i].groupIdx === groupIdx) {
-                    groupRows.push(allRows[i]); i++;
-                }
-                const rowSpan = groupRows.length;
-                const groupPercentStr = (groupRows[0] && groupRows[0].groupPercent !== null && groupRows[0].groupPercent !== undefined)
-                    ? formatPercent(groupRows[0].groupPercent) : '—';
+            renderStandardRestaurantTable(allRows, restaurantItemsBody3, days, true);
+        }
 
-                for (let rIdx = 0; rIdx < groupRows.length; rIdx++) {
-                    const row = groupRows[rIdx];
-                    const isTotal = row.isTotal || false;
-                    const cls = isTotal ? 'total-row' : (row.found ? '' : 'item-missing');
-                    const shawIcon = row.isShaw ? ' 🔥' : '';
+        function showRestaurantItemsTab4() {
+            const selected = restaurantSearchInput4.value.trim();
+            if (!selected) return;
+            const restData = findRestaurantByCombinedName(selected);
+            if (!restData) return;
+            currentRestaurantData = restData;
+            const allRows = getRestaurantItemRows(restData, BREAD_FLAT_ITEMS);
+            currentRestaurantItems4 = allRows;
 
-                    let dailyReceived = '—', dailySales = '—', itemPercent = '—';
-                    if (!isTotal && row.found) {
-                        dailyReceived = formatZero((row.start + row.recd + row.tranIn - row.tranOut) / days);
-                        dailySales = formatZero((row.tranOut + row.wast + row.usage) / days);
-                        if (row.itemPercent !== null && row.itemPercent !== undefined) itemPercent = formatPercent(row.itemPercent);
-                    } else if (isTotal) {
-                        dailyReceived = formatZero((row.start + row.recd + row.tranIn - row.tranOut) / days);
-                        dailySales = formatZero((row.tranOut + row.wast + row.usage) / days);
-                    }
+            const days = calculateActualDays();
+            restaurantInfoHeader4.style.display = 'flex';
+            headerRestaurantName4.textContent = restData.restaurantCombined;
+            headerRegionManager4.textContent = restData.regionManager;
+            headerOpsManager4.textContent = restData.opsManager;
+            headerPeriod4.textContent = restData.periodString || 'غير محدد';
+            headerDaysCount4.textContent = days + ' يوم';
 
-                    html += `<tr class="${cls}">
-                        <td style="text-align:${isTotal ? 'center' : 'right'};">${escapeHtml(row.item)}${shawIcon}</td>
-                        <td>${isTotal ? formatZero(row.start) : (row.found ? formatZero(row.start) : '—')}</td>
-                        <td>${isTotal ? formatZero(row.recd) : (row.found ? formatZero(row.recd) : '—')}</td>
-                        <td>${isTotal ? formatZero(row.tranIn) : (row.found ? formatZero(row.tranIn) : '—')}</td>
-                        <td>${isTotal ? formatZero(row.tranOut) : (row.found ? formatZero(row.tranOut) : '—')}</td>
-                        <td>${isTotal ? formatZero(row.wast) : (row.found ? formatZero(row.wast) : '—')}</td>
-                        <td>${isTotal ? formatZero(row.usage) : (row.found ? formatZero(row.usage) : '—')}</td>
-                        <td class="bold-end">${isTotal ? formatZero(row.end) : (row.found ? formatZero(row.end) : '—')}</td>
-                        <td class="bold-end">${isTotal ? formatZeroInt(row.convertedEnd) : (row.found && row.convertedEnd !== null ? formatZeroInt(row.convertedEnd) : '—')}</td>
-                        <td style="background:#fffde7; font-weight:bold; color:#1b5e20;">${isTotal ? '—' : (row.found ? formatZero(row.stkTake) : '—')}</td>
-                        <td>${isTotal ? '—' : itemPercent}</td>`;
+            renderStandardRestaurantTable(allRows, restaurantItemsBody4, days, false);
+        }
 
-                    if (rIdx === 0) {
-                        html += `<td rowspan="${rowSpan}" class="group-percent-cell">${groupPercentStr}</td>`;
-                    }
-                    html += `<td>${dailyReceived}</td><td>${dailySales}</td></tr>`;
+        function writeRestaurantBlockToSheet(worksheet, rest, rows, titleText, headerArabic, headerEnglish, days, includeStkTake) {
+            const totalCols = headerArabic.length;
+            worksheet.addRow(['شركة نايف للأغذية']);
+            worksheet.addRow([titleText]);
+            worksheet.addRow([`المطعم: ${rest.restaurantCombined}`]);
+            worksheet.addRow([`مدير المنطقة: ${rest.regionManager}`]);
+            worksheet.addRow([`مدير التشغيل: ${rest.opsManager}`]);
+            worksheet.addRow([`الفترة: ${rest.periodString || 'غير محدد'}`]);
+            worksheet.addRow([`عدد أيام الفترة: ${days} يوم`]);
+            worksheet.addRow([]);
+
+            const rowArabic = worksheet.addRow(headerArabic);
+            const rowEnglish = worksheet.addRow(headerEnglish);
+            worksheet.addRow([]);
+
+            const startHRow = rowArabic.number;
+            const endHRow = rowEnglish.number;
+            for (let r = startHRow; r <= endHRow; r++) {
+                const row = worksheet.getRow(r);
+                for (let c = 1; c <= totalCols; c++) {
+                    const cell = row.getCell(c);
+                    const isTop = (r === startHRow), isBottom = (r === endHRow), isLeft = (c === 1), isRight = (c === totalCols);
+                    cell.border = {
+                        top: isTop ? { style: 'thick', color: { argb: 'FF0000FF' } } : undefined,
+                        bottom: isBottom ? { style: 'thick', color: { argb: 'FF0000FF' } } : undefined,
+                        left: isLeft ? { style: 'thick', color: { argb: 'FF0000FF' } } : undefined,
+                        right: isRight ? { style: 'thick', color: { argb: 'FF0000FF' } } : undefined
+                    };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+                    cell.font = { bold: true };
+                    cell.alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
                 }
             }
-            restaurantItemsBody3.innerHTML = html;
+
+            worksheet.getColumn(1).width = 45;
+            worksheet.getColumn(1).alignment = { horizontal: 'right', readingOrder: 'rtl' };
+
+            let idx = 0;
+            while (idx < rows.length) {
+                const groupIdx = rows[idx].groupIdx;
+                let groupRows = [];
+                while (idx < rows.length && rows[idx].groupIdx === groupIdx) {
+                    groupRows.push(rows[idx]); idx++;
+                }
+
+                const groupStartRow = worksheet.rowCount + 1;
+
+                groupRows.forEach((rowData) => {
+                    const isTotal = rowData.isTotal || false;
+                    let dailyReceived = '', dailySales = '', itemPercent = '';
+                    let groupPercent = (rowData.groupPercent !== null && rowData.groupPercent !== undefined)
+                        ? (rowData.groupPercent * 100).toFixed(1) + '%' : '';
+
+                    if (!isTotal && rowData.found) {
+                        dailyReceived = ((rowData.start + rowData.recd + rowData.tranIn - rowData.tranOut) / days).toFixed(2);
+                        dailySales = ((rowData.tranOut + rowData.wast + rowData.usage) / days).toFixed(2);
+                        if (rowData.itemPercent !== null && rowData.itemPercent !== undefined) {
+                            itemPercent = (rowData.itemPercent * 100).toFixed(1) + '%';
+                        }
+                    } else if (isTotal) {
+                        dailyReceived = ((rowData.start + rowData.recd + rowData.tranIn - rowData.tranOut) / days).toFixed(2);
+                        dailySales = ((rowData.tranOut + rowData.wast + rowData.usage) / days).toFixed(2);
+                    }
+
+                    const rowValues = [
+                        rowData.item,
+                        isTotal ? rowData.start : (rowData.found ? rowData.start : ''),
+                        isTotal ? rowData.recd : (rowData.found ? rowData.recd : ''),
+                        isTotal ? rowData.tranIn : (rowData.found ? rowData.tranIn : ''),
+                        isTotal ? rowData.tranOut : (rowData.found ? rowData.tranOut : ''),
+                        isTotal ? rowData.wast : (rowData.found ? rowData.wast : ''),
+                        isTotal ? rowData.usage : (rowData.found ? rowData.usage : ''),
+                        isTotal ? rowData.end : (rowData.found ? rowData.end : ''),
+                        isTotal ? Math.round(rowData.convertedEnd) : (rowData.found && rowData.convertedEnd !== null ? Math.round(rowData.convertedEnd) : '')
+                    ];
+
+                    if (includeStkTake) {
+                        rowValues.push(isTotal ? '' : (rowData.found ? rowData.stkTake : ''));
+                    }
+
+                    rowValues.push(isTotal ? '' : itemPercent, groupPercent, dailyReceived, dailySales);
+
+                    const newRow = worksheet.addRow(rowValues);
+                    newRow.getCell(1).font = { bold: true };
+                });
+
+                const groupEndRow = worksheet.rowCount;
+
+                if (groupEndRow >= groupStartRow) {
+                    const mergeCol = includeStkTake ? 'L' : 'K';
+                    worksheet.mergeCells(`${mergeCol}${groupStartRow}:${mergeCol}${groupEndRow}`);
+                    const groupCell = worksheet.getCell(`${mergeCol}${groupStartRow}`);
+                    groupCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    groupCell.font = { size: 14, bold: true, color: { argb: 'FF0D47A1' } };
+                }
+
+                for (let r = groupStartRow; r <= groupEndRow; r++) {
+                    const row = worksheet.getRow(r);
+                    for (let c = 1; c <= totalCols; c++) {
+                        const cell = row.getCell(c);
+                        const isTop = (r === groupStartRow), isBottom = (r === groupEndRow), isLeft = (c === 1), isRight = (c === totalCols);
+                        cell.border = {
+                            top: isTop ? { style: 'thick', color: { argb: 'FFFF0000' } } : undefined,
+                            bottom: isBottom ? { style: 'thick', color: { argb: 'FFFF0000' } } : undefined,
+                            left: isLeft ? { style: 'thick', color: { argb: 'FFFF0000' } } : undefined,
+                            right: isRight ? { style: 'thick', color: { argb: 'FFFF0000' } } : undefined
+                        };
+                    }
+                }
+                worksheet.addRow([]);
+            }
+
+            worksheet.addRow([]);
+            worksheet.addRow([]);
+        }
+
+        async function exportSingleRestaurantGeneric(rowsData, restObj, sheetPrefix, filePrefix, includeStkTake = false) {
+            if (!rowsData || rowsData.length === 0 || !restObj) return;
+            try {
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet(`${sheetPrefix}_${restObj.restaurantCombined.substring(0, 22)}`);
+                worksheet.views = [{ rightToLeft: true }];
+                worksheet.pageSetup = { paperSize: 9, orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 };
+
+                let headerArabic = ["الصنف", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج", "التوالف", "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة", "% رصيد الصنف", "% المجموعة", "معدل الطلبية اليومي", "معدل البيع اليومي"];
+                let headerEnglish = ["Item", "Start Qty", "Received Qty", "Transfer In", "Transfer Out", "Waste", "Usage Qty", "End Qty", "End Qty (Pc)", "Item %", "Group %", "Daily Received Avg", "Daily Sales Avg"];
+                if (includeStkTake) {
+                    headerArabic.splice(9, 0, "رصيد الجرد Stk. Take");
+                    headerEnglish.splice(9, 0, "Stk. Take. Qty");
+                }
+
+                writeRestaurantBlockToSheet(worksheet, restObj, rowsData, `تقرير حركة أصناف المطعم (${sheetPrefix})`, headerArabic, headerEnglish, calculateActualDays(), includeStkTake);
+
+                const buffer = await workbook.xlsx.writeBuffer({ type: 'buffer' });
+                saveAs(new Blob([buffer]), `${filePrefix}_${restObj.restaurantCombined.substring(0, 30)}.xlsx`);
+            } catch (err) { alert("فشل تصدير Excel: " + err.message); }
         }
 
         async function exportRestaurantExcel() {
-            if (!currentRestaurantItems || currentRestaurantItems.length === 0) return;
-            try {
-                const workbook = new ExcelJS.Workbook();
-                const worksheet = workbook.addWorksheet(`حركة_${currentRestaurantData.restaurantCombined.substring(0, 25)}`);
-                worksheet.views = [{ rightToLeft: true }];
-                worksheet.pageSetup = { paperSize: 9, orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 };
-
-                const headerArabic = ["الصنف", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج", "التوالف", "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة", "% رصيد الصنف", "% المجموعة", "معدل الطلبية اليومي", "معدل البيع اليومي"];
-                const headerEnglish = ["Item", "Start Qty", "Received Qty", "Transfer In", "Transfer Out", "Waste", "Usage Qty", "End Qty", "End Qty (Pc)", "Item %", "Group %", "Daily Received Avg", "Daily Sales Avg"];
-
-                worksheet.addRow(['شركة نايف للأغذية']);
-                worksheet.addRow(['تقرير حركة أصناف المطعم (المحددة)']);
-                worksheet.addRow([`المطعم: ${currentRestaurantData.restaurantCombined}`]);
-                worksheet.addRow([`مدير المنطقة: ${currentRestaurantData.regionManager}`]);
-                worksheet.addRow([`مدير التشغيل: ${currentRestaurantData.opsManager}`]);
-                worksheet.addRow([`الفترة: ${currentRestaurantData.periodString || 'غير محدد'}`]);
-                worksheet.addRow([`عدد أيام الفترة: ${calculateActualDays()} يوم`]);
-                worksheet.addRow([]);
-
-                const rowArabic = worksheet.addRow(headerArabic);
-                const rowEnglish = worksheet.addRow(headerEnglish);
-                worksheet.addRow([]);
-
-                let idx = 0;
-                while (idx < currentRestaurantItems.length) {
-                    const groupIdx = currentRestaurantItems[idx].groupIdx;
-                    let groupRows = [];
-                    while (idx < currentRestaurantItems.length && currentRestaurantItems[idx].groupIdx === groupIdx) {
-                        groupRows.push(currentRestaurantItems[idx]); idx++;
-                    }
-                    const groupStartRow = worksheet.rowCount + 1;
-                    groupRows.forEach((rowData) => {
-                        const isTotal = rowData.isTotal || false;
-                        worksheet.addRow([
-                            rowData.item, isTotal ? rowData.start : (rowData.found ? rowData.start : ''),
-                            isTotal ? rowData.recd : (rowData.found ? rowData.recd : ''),
-                            isTotal ? rowData.tranIn : (rowData.found ? rowData.tranIn : ''),
-                            isTotal ? rowData.tranOut : (rowData.found ? rowData.tranOut : ''),
-                            isTotal ? rowData.wast : (rowData.found ? rowData.wast : ''),
-                            isTotal ? rowData.usage : (rowData.found ? rowData.usage : ''),
-                            isTotal ? rowData.end : (rowData.found ? rowData.end : ''),
-                            isTotal ? Math.round(rowData.convertedEnd) : (rowData.found && rowData.convertedEnd !== null ? Math.round(rowData.convertedEnd) : ''),
-                            isTotal ? '' : (rowData.itemPercent !== null ? (rowData.itemPercent * 100).toFixed(1) + '%' : ''),
-                            (rowData.groupPercent !== null ? (rowData.groupPercent * 100).toFixed(1) + '%' : ''),
-                            ((rowData.start + rowData.recd + rowData.tranIn - rowData.tranOut) / calculateActualDays()).toFixed(2),
-                            ((rowData.tranOut + rowData.wast + rowData.usage) / calculateActualDays()).toFixed(2)
-                        ]);
-                    });
-                    const groupEndRow = worksheet.rowCount;
-                    if (groupEndRow >= groupStartRow) {
-                        worksheet.mergeCells(`K${groupStartRow}:K${groupEndRow}`);
-                        const groupCell = worksheet.getCell(`K${groupStartRow}`);
-                        groupCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        groupCell.font = { size: 14, bold: true, color: { argb: 'FF0D47A1' } };
-                    }
-                    worksheet.addRow([]);
-                }
-
-                const buffer = await workbook.xlsx.writeBuffer({ type: 'buffer' });
-                saveAs(new Blob([buffer]), `Restaurant_Items_${currentRestaurantData.restaurantCombined.substring(0, 30)}.xlsx`);
-            } catch (err) { alert("فشل تصدير Excel: " + err.message); }
+            await exportSingleRestaurantGeneric(currentRestaurantItems, currentRestaurantData, "حركة", "Restaurant_Items", false);
         }
 
         async function exportTab3Excel() {
-            if (!currentRestaurantItems3 || currentRestaurantItems3.length === 0) return;
-            try {
-                const workbook = new ExcelJS.Workbook();
-                const worksheet = workbook.addWorksheet(`StkTake_${currentRestaurantData.restaurantCombined.substring(0, 20)}`);
-                worksheet.views = [{ rightToLeft: true }];
-                worksheet.pageSetup = { paperSize: 9, orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 };
+            await exportSingleRestaurantGeneric(currentRestaurantItems3, currentRestaurantData, "StkTake", "Restaurant_StkTake", true);
+        }
 
-                const headerArabic = ["الصنف", "رصيد أول", "الكمية المستلمة", "المحول للداخل", "المحول للخارج", "التوالف", "كمية الاستخدام", "رصيد آخر", "رصيد آخر بالقطعة", "رصيد الجرد Stk. Take", "% رصيد الصنف", "% المجموعة", "معدل الطلبية اليومي", "معدل البيع اليومي"];
-                const headerEnglish = ["Item", "Start Qty", "Received Qty", "Transfer In", "Transfer Out", "Waste", "Usage Qty", "End Qty", "End Qty (Pc)", "Stk. Take. Qty", "Item %", "Group %", "Daily Received Avg", "Daily Sales Avg"];
-
-                worksheet.addRow(['شركة نايف للأغذية']);
-                worksheet.addRow(['تقرير حركة أصناف المطعم (مع Stk. Take. Qty)']);
-                worksheet.addRow([`المطعم: ${currentRestaurantData.restaurantCombined}`]);
-                worksheet.addRow([`مدير المنطقة: ${currentRestaurantData.regionManager}`]);
-                worksheet.addRow([`مدير التشغيل: ${currentRestaurantData.opsManager}`]);
-                worksheet.addRow([`الفترة: ${currentRestaurantData.periodString || 'غير محدد'}`]);
-                worksheet.addRow([`عدد أيام الفترة: ${calculateActualDays()} يوم`]);
-                worksheet.addRow([]);
-
-                worksheet.addRow(headerArabic);
-                worksheet.addRow(headerEnglish);
-                worksheet.addRow([]);
-
-                let idx = 0;
-                while (idx < currentRestaurantItems3.length) {
-                    const groupIdx = currentRestaurantItems3[idx].groupIdx;
-                    let groupRows = [];
-                    while (idx < currentRestaurantItems3.length && currentRestaurantItems3[idx].groupIdx === groupIdx) {
-                        groupRows.push(currentRestaurantItems3[idx]); idx++;
-                    }
-                    const groupStartRow = worksheet.rowCount + 1;
-                    groupRows.forEach((rowData) => {
-                        const isTotal = rowData.isTotal || false;
-                        worksheet.addRow([
-                            rowData.item,
-                            isTotal ? rowData.start : (rowData.found ? rowData.start : ''),
-                            isTotal ? rowData.recd : (rowData.found ? rowData.recd : ''),
-                            isTotal ? rowData.tranIn : (rowData.found ? rowData.tranIn : ''),
-                            isTotal ? rowData.tranOut : (rowData.found ? rowData.tranOut : ''),
-                            isTotal ? rowData.wast : (rowData.found ? rowData.wast : ''),
-                            isTotal ? rowData.usage : (rowData.found ? rowData.usage : ''),
-                            isTotal ? rowData.end : (rowData.found ? rowData.end : ''),
-                            isTotal ? Math.round(rowData.convertedEnd) : (rowData.found && rowData.convertedEnd !== null ? Math.round(rowData.convertedEnd) : ''),
-                            isTotal ? '' : (rowData.found ? rowData.stkTake : ''),
-                            isTotal ? '' : (rowData.itemPercent !== null ? (rowData.itemPercent * 100).toFixed(1) + '%' : ''),
-                            (rowData.groupPercent !== null ? (rowData.groupPercent * 100).toFixed(1) + '%' : ''),
-                            ((rowData.start + rowData.recd + rowData.tranIn - rowData.tranOut) / calculateActualDays()).toFixed(2),
-                            ((rowData.tranOut + rowData.wast + rowData.usage) / calculateActualDays()).toFixed(2)
-                        ]);
-                    });
-                    const groupEndRow = worksheet.rowCount;
-                    if (groupEndRow >= groupStartRow) {
-                        worksheet.mergeCells(`L${groupStartRow}:L${groupEndRow}`);
-                        const groupCell = worksheet.getCell(`L${groupStartRow}`);
-                        groupCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        groupCell.font = { size: 14, bold: true, color: { argb: 'FF0D47A1' } };
-                    }
-                    worksheet.addRow([]);
-                }
-
-                const buffer = await workbook.xlsx.writeBuffer({ type: 'buffer' });
-                saveAs(new Blob([buffer]), `Restaurant_StkTake_${currentRestaurantData.restaurantCombined.substring(0, 25)}.xlsx`);
-            } catch (err) { alert("فشل تصدير Excel: " + err.message); }
+        async function exportBreadExcel() {
+            await exportSingleRestaurantGeneric(currentRestaurantItems4, currentRestaurantData, "الخبز", "Restaurant_Bread", false);
         }
 
         async function exportRestaurantPDF() { }
         async function exportTab3PDF() { }
 
-        async function exportManagersExcel(includeStkTake = false) {
+        async function exportManagersExcel(includeStkTake = false, isBread = false) {
             if (!allRestaurantsData || allRestaurantsData.length === 0) {
                 alert("⚠️ لا توجد بيانات مطاعم.");
                 return;
@@ -1831,8 +2159,9 @@
                     headerEnglish.splice(9, 0, "Stk. Take. Qty");
                 }
 
-                const totalCols = headerArabic.length;
                 const days = calculateActualDays();
+                const flatSource = isBread ? BREAD_FLAT_ITEMS : null;
+                const labelSuffix = isBread ? " - الخبز" : (includeStkTake ? " - Stk. Take" : "");
 
                 const watermarkBlob = await createWatermarkImage(WATERMARK_TEXT, WATERMARK_FONT_SIZE);
                 const imageBuffer = await watermarkBlob.arrayBuffer();
@@ -1845,7 +2174,7 @@
                 });
 
                 for (const [mgrName, restList] of managersMap.entries()) {
-                    const sheetName = mgrName.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 31);
+                    const sheetName = mgrName.replace(/[\/*:?"<>|[\]]/g, '_').substring(0, 31);
                     const worksheet = workbook.addWorksheet(sheetName);
                     worksheet.views = [{ rightToLeft: true }];
                     worksheet.pageSetup = {
@@ -1854,122 +2183,20 @@
                         fitToPage: true, fitToWidth: 1, fitToHeight: 0
                     };
 
+                    // عرض جميع مطاعم المجموعة (بما فيها المطاعم المتشابهة مثل الشرق والشرق -2) في شيت المشرف
                     for (let rIdx = 0; rIdx < restList.length; rIdx++) {
                         const rest = restList[rIdx];
-                        const rows = getRestaurantItemRows(rest);
-
-                        worksheet.addRow(['شركة نايف للأغذية']);
-                        worksheet.addRow([`تقرير حركة أصناف المطعم - مجموعة المشرف: ${mgrName}`]);
-                        worksheet.addRow([`المطعم: ${rest.restaurantCombined}`]);
-                        worksheet.addRow([`مدير المنطقة: ${rest.regionManager}`]);
-                        worksheet.addRow([`مدير التشغيل: ${rest.opsManager}`]);
-                        worksheet.addRow([`الفترة: ${rest.periodString || 'غير محدد'}`]);
-                        worksheet.addRow([`عدد أيام الفترة: ${days} يوم`]);
-                        worksheet.addRow([]);
-
-                        const rowArabic = worksheet.addRow(headerArabic);
-                        const rowEnglish = worksheet.addRow(headerEnglish);
-                        worksheet.addRow([]);
-
-                        const startHRow = rowArabic.number;
-                        const endHRow = rowEnglish.number;
-                        for (let r = startHRow; r <= endHRow; r++) {
-                            const row = worksheet.getRow(r);
-                            for (let c = 1; c <= totalCols; c++) {
-                                const cell = row.getCell(c);
-                                const isTop = (r === startHRow), isBottom = (r === endHRow), isLeft = (c === 1), isRight = (c === totalCols);
-                                cell.border = {
-                                    top: isTop ? { style: 'thick', color: { argb: 'FF0000FF' } } : undefined,
-                                    bottom: isBottom ? { style: 'thick', color: { argb: 'FF0000FF' } } : undefined,
-                                    left: isLeft ? { style: 'thick', color: { argb: 'FF0000FF' } } : undefined,
-                                    right: isRight ? { style: 'thick', color: { argb: 'FF0000FF' } } : undefined
-                                };
-                                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
-                                cell.font = { bold: true };
-                                cell.alignment = { wrapText: true, horizontal: 'center', vertical: 'middle' };
-                            }
-                        }
-
-                        worksheet.getColumn(1).width = 43;
-                        worksheet.getColumn(1).alignment = { horizontal: 'right', readingOrder: 'rtl' };
-
-                        let idx = 0;
-                        while (idx < rows.length) {
-                            const groupIdx = rows[idx].groupIdx;
-                            let groupRows = [];
-                            while (idx < rows.length && rows[idx].groupIdx === groupIdx) {
-                                groupRows.push(rows[idx]); idx++;
-                            }
-
-                            const groupStartRow = worksheet.rowCount + 1;
-
-                            groupRows.forEach((rowData) => {
-                                const isTotal = rowData.isTotal || false;
-                                let dailyReceived = '', dailySales = '', itemPercent = '';
-                                let groupPercent = (rowData.groupPercent !== null && rowData.groupPercent !== undefined)
-                                    ? (rowData.groupPercent * 100).toFixed(1) + '%' : '';
-
-                                if (!isTotal && rowData.found) {
-                                    dailyReceived = ((rowData.start + rowData.recd + rowData.tranIn - rowData.tranOut) / days).toFixed(2);
-                                    dailySales = ((rowData.tranOut + rowData.wast + rowData.usage) / days).toFixed(2);
-                                    if (rowData.itemPercent !== null && rowData.itemPercent !== undefined) {
-                                        itemPercent = (rowData.itemPercent * 100).toFixed(1) + '%';
-                                    }
-                                } else if (isTotal) {
-                                    dailyReceived = ((rowData.start + rowData.recd + rowData.tranIn - rowData.tranOut) / days).toFixed(2);
-                                    dailySales = ((rowData.tranOut + rowData.wast + rowData.usage) / days).toFixed(2);
-                                }
-
-                                const rowValues = [
-                                    rowData.item,
-                                    isTotal ? rowData.start : (rowData.found ? rowData.start : ''),
-                                    isTotal ? rowData.recd : (rowData.found ? rowData.recd : ''),
-                                    isTotal ? rowData.tranIn : (rowData.found ? rowData.tranIn : ''),
-                                    isTotal ? rowData.tranOut : (rowData.found ? rowData.tranOut : ''),
-                                    isTotal ? rowData.wast : (rowData.found ? rowData.wast : ''),
-                                    isTotal ? rowData.usage : (rowData.found ? rowData.usage : ''),
-                                    isTotal ? rowData.end : (rowData.found ? rowData.end : ''),
-                                    isTotal ? Math.round(rowData.convertedEnd) : (rowData.found && rowData.convertedEnd !== null ? Math.round(rowData.convertedEnd) : '')
-                                ];
-
-                                if (includeStkTake) {
-                                    rowValues.push(isTotal ? '' : (rowData.found ? rowData.stkTake : ''));
-                                }
-
-                                rowValues.push(isTotal ? '' : itemPercent, groupPercent, dailyReceived, dailySales);
-
-                                const newRow = worksheet.addRow(rowValues);
-                                newRow.getCell(1).font = { bold: true };
-                            });
-
-                            const groupEndRow = worksheet.rowCount;
-
-                            if (groupEndRow >= groupStartRow) {
-                                const mergeCol = includeStkTake ? 'L' : 'K';
-                                worksheet.mergeCells(`${mergeCol}${groupStartRow}:${mergeCol}${groupEndRow}`);
-                                const groupCell = worksheet.getCell(`${mergeCol}${groupStartRow}`);
-                                groupCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                                groupCell.font = { size: 14, bold: true, color: { argb: 'FF0D47A1' } };
-                            }
-
-                            for (let r = groupStartRow; r <= groupEndRow; r++) {
-                                const row = worksheet.getRow(r);
-                                for (let c = 1; c <= totalCols; c++) {
-                                    const cell = row.getCell(c);
-                                    const isTop = (r === groupStartRow), isBottom = (r === groupEndRow), isLeft = (c === 1), isRight = (c === totalCols);
-                                    cell.border = {
-                                        top: isTop ? { style: 'thick', color: { argb: 'FFFF0000' } } : undefined,
-                                        bottom: isBottom ? { style: 'thick', color: { argb: 'FFFF0000' } } : undefined,
-                                        left: isLeft ? { style: 'thick', color: { argb: 'FFFF0000' } } : undefined,
-                                        right: isRight ? { style: 'thick', color: { argb: 'FFFF0000' } } : undefined
-                                    };
-                                }
-                            }
-                            worksheet.addRow([]);
-                        }
-
-                        worksheet.addRow([]);
-                        worksheet.addRow([]);
+                        const rows = getRestaurantItemRows(rest, flatSource);
+                        writeRestaurantBlockToSheet(
+                            worksheet,
+                            rest,
+                            rows,
+                            `تقرير حركة أصناف المطعم${labelSuffix} - مجموعة المشرف: ${mgrName}`,
+                            headerArabic,
+                            headerEnglish,
+                            days,
+                            includeStkTake
+                        );
                     }
 
                     const imageId = workbook.addImage({ buffer: imageBuffer, extension: 'png' });
@@ -1977,14 +2204,53 @@
                         tl: { col: 1, row: worksheet.rowCount + 1 },
                         ext: { width: 300 / 7.5, height: 50 / 7.5 }, editAs: 'absolute'
                     });
+
+                    // إضافة شيت جديد يجمع كل مطعمين ذات جهازين في جدول مجمع لنفس مجموعة المشرف
+                    const combinedPairsForManager = getCompleteCombinedPairsForList(restList, flatSource).map(combinedRest => ({
+                        combinedRest,
+                        combinedRows: getRestaurantItemRows(combinedRest, flatSource)
+                    }));
+
+                    if (combinedPairsForManager.length > 0) {
+                        const combSheetName = `مجمع_${mgrName}`.replace(/[\/*:?"<>|[\]]/g, '_').substring(0, 31);
+                        const combWs = workbook.addWorksheet(combSheetName);
+                        combWs.views = [{ rightToLeft: true }];
+                        combWs.pageSetup = {
+                            paperSize: 9, orientation: 'landscape',
+                            margins: { top: 0.1, bottom: 0.1, left: 0.1, right: 0.1, header: 0.1, footer: 0.1 },
+                            fitToPage: true, fitToWidth: 1, fitToHeight: 0
+                        };
+
+                        for (const entry of combinedPairsForManager) {
+                            writeRestaurantBlockToSheet(
+                                combWs,
+                                entry.combinedRest,
+                                entry.combinedRows,
+                                `جدول مجمع (جهازين)${labelSuffix} - مجموعة المشرف: ${mgrName}`,
+                                headerArabic,
+                                headerEnglish,
+                                days,
+                                includeStkTake
+                            );
+                        }
+
+                        const combImgId = workbook.addImage({ buffer: imageBuffer, extension: 'png' });
+                        combWs.addImage(combImgId, {
+                            tl: { col: 1, row: combWs.rowCount + 1 },
+                            ext: { width: 300 / 7.5, height: 50 / 7.5 }, editAs: 'absolute'
+                        });
+                    }
                 }
 
                 const buffer = await workbook.xlsx.writeBuffer({ type: 'buffer' });
-                saveAs(new Blob([buffer]), `مجموعات_المشرفين_${includeStkTake ? 'StkTake_' : ''}تطبيق_COGS.xlsx`);
+                const fileName = isBread
+                    ? `مجموعات_المشرفين_الخبز_تطبيق_COGS.xlsx`
+                    : `مجموعات_المشرفين_${includeStkTake ? 'StkTake_' : ''}تطبيق_COGS.xlsx`;
+                saveAs(new Blob([buffer]), fileName);
             } catch (err) { alert("فشل تصدير Excel للمشرفين: " + err.message); }
         }
 
-        async function exportAllRestaurantsExcel(includeStkTake = false) {
+        async function exportAllRestaurantsExcel(includeStkTake = false, isBread = false) {
             if (!allRestaurantsData || allRestaurantsData.length === 0) {
                 alert("⚠️ لا توجد بيانات مطاعم.");
                 return;
@@ -1998,82 +2264,56 @@
                     headerArabic.splice(9, 0, "رصيد الجرد Stk. Take");
                     headerEnglish.splice(9, 0, "Stk. Take. Qty");
                 }
-                const totalCols = headerArabic.length;
                 const days = calculateActualDays();
+                const flatSource = isBread ? BREAD_FLAT_ITEMS : null;
+                const labelSuffix = isBread ? " (الخبز)" : (includeStkTake ? " (مع Stk. Take)" : "");
 
                 const watermarkBlob = await createWatermarkImage(WATERMARK_TEXT, WATERMARK_FONT_SIZE);
                 const imageBuffer = await watermarkBlob.arrayBuffer();
 
+                const allCombinedPairs = getCombinedPairsForList(allRestaurantsData, flatSource);
+                if (allCombinedPairs.length > 0) {
+                    const combAllSheetName = isBread ? 'المطاعم_المجمعة_الخبز' : (includeStkTake ? 'المطاعم_المجمعة_StkTake' : 'المطاعم_المجمعة');
+                    const combAllWs = workbook.addWorksheet(combAllSheetName.substring(0, 31));
+                    combAllWs.views = [{ rightToLeft: true }];
+                    combAllWs.pageSetup = { paperSize: 9, orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 };
+                    for (const combRest of allCombinedPairs) {
+                        const combRows = getRestaurantItemRows(combRest, flatSource);
+                        writeRestaurantBlockToSheet(
+                            combAllWs,
+                            combRest,
+                            combRows,
+                            `تقرير تجميع المطاعم ذات الجهازين${labelSuffix}`,
+                            headerArabic,
+                            headerEnglish,
+                            days,
+                            includeStkTake
+                        );
+                    }
+                    const combAllImgId = workbook.addImage({ buffer: imageBuffer, extension: 'png' });
+                    combAllWs.addImage(combAllImgId, {
+                        tl: { col: 1, row: combAllWs.rowCount + 1 },
+                        ext: { width: 300 / 7.5, height: 50 / 7.5 }, editAs: 'absolute'
+                    });
+                }
+
                 for (const rest of allRestaurantsData) {
-                    const sheetName = rest.restaurantCombined.replace(/[\\/*:?"<>|[\]]/g, '_').substring(0, 31);
+                    const sheetName = rest.restaurantCombined.replace(/[\/*:?"<>|[\]]/g, '_').substring(0, 31);
                     const worksheet = workbook.addWorksheet(sheetName);
                     worksheet.views = [{ rightToLeft: true }];
                     worksheet.pageSetup = { paperSize: 9, orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 };
 
-                    worksheet.addRow(['شركة نايف للأغذية']);
-                    worksheet.addRow([`تقرير حركة أصناف المطعم ${includeStkTake ? '(مع Stk. Take)' : ''}`]);
-                    worksheet.addRow([`المطعم: ${rest.restaurantCombined}`]);
-                    worksheet.addRow([`مدير المنطقة: ${rest.regionManager}`]);
-                    worksheet.addRow([`مدير التشغيل: ${rest.opsManager}`]);
-                    worksheet.addRow([`الفترة: ${rest.periodString || 'غير محدد'}`]);
-                    worksheet.addRow([`عدد أيام الفترة: ${days} يوم`]);
-                    worksheet.addRow([]);
-
-                    worksheet.addRow(headerArabic);
-                    worksheet.addRow(headerEnglish);
-                    worksheet.addRow([]);
-
-                    const rows = getRestaurantItemRows(rest);
-                    let idx = 0;
-                    while (idx < rows.length) {
-                        const groupIdx = rows[idx].groupIdx;
-                        let groupRows = [];
-                        while (idx < rows.length && rows[idx].groupIdx === groupIdx) {
-                            groupRows.push(rows[idx]); idx++;
-                        }
-                        const groupStartRow = worksheet.rowCount + 1;
-                        groupRows.forEach((rowData) => {
-                            const isTotal = rowData.isTotal || false;
-                            let dailyReceived = '', dailySales = '', itemPercent = '';
-                            let groupPercent = (rowData.groupPercent !== null && rowData.groupPercent !== undefined) ? (rowData.groupPercent * 100).toFixed(1) + '%' : '';
-
-                            if (!isTotal && rowData.found) {
-                                dailyReceived = ((rowData.start + rowData.recd + rowData.tranIn - rowData.tranOut) / days).toFixed(2);
-                                dailySales = ((rowData.tranOut + rowData.wast + rowData.usage) / days).toFixed(2);
-                                if (rowData.itemPercent !== null && rowData.itemPercent !== undefined) itemPercent = (rowData.itemPercent * 100).toFixed(1) + '%';
-                            } else if (isTotal) {
-                                dailyReceived = ((rowData.start + rowData.recd + rowData.tranIn - rowData.tranOut) / days).toFixed(2);
-                                dailySales = ((rowData.tranOut + rowData.wast + rowData.usage) / days).toFixed(2);
-                            }
-
-                            const rowValues = [
-                                rowData.item,
-                                isTotal ? rowData.start : (rowData.found ? rowData.start : ''),
-                                isTotal ? rowData.recd : (rowData.found ? rowData.recd : ''),
-                                isTotal ? rowData.tranIn : (rowData.found ? rowData.tranIn : ''),
-                                isTotal ? rowData.tranOut : (rowData.found ? rowData.tranOut : ''),
-                                isTotal ? rowData.wast : (rowData.found ? rowData.wast : ''),
-                                isTotal ? rowData.usage : (rowData.found ? rowData.usage : ''),
-                                isTotal ? rowData.end : (rowData.found ? rowData.end : ''),
-                                isTotal ? Math.round(rowData.convertedEnd) : (rowData.found && rowData.convertedEnd !== null ? Math.round(rowData.convertedEnd) : '')
-                            ];
-
-                            if (includeStkTake) {
-                                rowValues.push(isTotal ? '' : (rowData.found ? rowData.stkTake : ''));
-                            }
-                            rowValues.push(isTotal ? '' : itemPercent, groupPercent, dailyReceived, dailySales);
-                            worksheet.addRow(rowValues);
-                        });
-                        const groupEndRow = worksheet.rowCount;
-                        if (groupEndRow >= groupStartRow) {
-                            const mergeCol = includeStkTake ? 'L' : 'K';
-                            worksheet.mergeCells(`${mergeCol}${groupStartRow}:${mergeCol}${groupEndRow}`);
-                            const groupCell = worksheet.getCell(`${mergeCol}${groupStartRow}`);
-                            groupCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                            groupCell.font = { size: 14, bold: true, color: { argb: 'FF0D47A1' } };
-                        }
-                        worksheet.addRow([]);
-                    }
+                    const rows = getRestaurantItemRows(rest, flatSource);
+                    writeRestaurantBlockToSheet(
+                        worksheet,
+                        rest,
+                        rows,
+                        `تقرير حركة أصناف المطعم${labelSuffix}`,
+                        headerArabic,
+                        headerEnglish,
+                        days,
+                        includeStkTake
+                    );
 
                     const imageId = workbook.addImage({ buffer: imageBuffer, extension: 'png' });
                     worksheet.addImage(imageId, {
@@ -2083,7 +2323,10 @@
                 }
 
                 const buffer = await workbook.xlsx.writeBuffer({ type: 'buffer' });
-                saveAs(new Blob([buffer]), `جميع_المطاعم_${includeStkTake ? 'StkTake_' : ''}تطبيق_COGS.xlsx`);
+                const fileName = isBread
+                    ? `جميع_المطاعم_الخبز_تطبيق_COGS.xlsx`
+                    : `جميع_المطاعم_${includeStkTake ? 'StkTake_' : ''}تطبيق_COGS.xlsx`;
+                saveAs(new Blob([buffer]), fileName);
             } catch (err) { alert("فشل تصدير Excel لكل المطاعم: " + err.message); }
         }
 
@@ -2115,6 +2358,7 @@
             if (currentSelectedItem) generateReportForItem(currentSelectedItem);
         });
         itemSearch.addEventListener('input', refreshSearchTab1);
+        document.getElementById('combineDualPairsTab1')?.addEventListener('change', () => { if (currentSelectedItem) generateReportForItem(currentSelectedItem); });
         generateBtn.addEventListener('click', () => {
             const selected = itemSearch.value.trim();
             if (!selected) return;
@@ -2124,33 +2368,56 @@
         exportPdfBtn.addEventListener('click', exportToPDF);
 
         showRestaurantItemsBtn.addEventListener('click', showRestaurantItems);
+        document.getElementById('combinedSelectTab2')?.addEventListener('change', (e) => {
+            if (!e.target.value) return;
+            restaurantSearchInput.value = e.target.value;
+            showRestaurantItems();
+        });
+        document.getElementById('combinedSelectTab3')?.addEventListener('change', (e) => {
+            if (!e.target.value) return;
+            restaurantSearchInput3.value = e.target.value;
+            showRestaurantItemsTab3();
+        });
+        document.getElementById('combinedSelectTab4')?.addEventListener('change', (e) => {
+            if (!e.target.value) return;
+            restaurantSearchInput4.value = e.target.value;
+            showRestaurantItemsTab4();
+        });
         showRestaurantItemsBtn3.addEventListener('click', showRestaurantItemsTab3);
+        showRestaurantItemsBtn4.addEventListener('click', showRestaurantItemsTab4);
 
         exportRestaurantExcelBtn.addEventListener('click', exportRestaurantExcel);
         exportRestaurantPdfBtn.addEventListener('click', exportRestaurantPDF);
         exportTab3ExcelBtn.addEventListener('click', exportTab3Excel);
         exportTab3PdfBtn.addEventListener('click', exportTab3PDF);
+        exportBreadExcelBtn.addEventListener('click', exportBreadExcel);
 
-        exportManagersExcelBtn.addEventListener('click', () => exportManagersExcel(false));
-        exportAllRestaurantsExcelBtn.addEventListener('click', () => exportAllRestaurantsExcel(false));
+        exportManagersExcelBtn.addEventListener('click', () => exportManagersExcel(false, false));
+        exportAllRestaurantsExcelBtn.addEventListener('click', () => exportAllRestaurantsExcel(false, false));
         exportAllRestaurantsPdfBtn.addEventListener('click', exportAllRestaurantsPDF);
 
-        exportManagersExcelBtn3.addEventListener('click', () => exportManagersExcel(true));
-        exportAllRestaurantsExcelBtn3.addEventListener('click', () => exportAllRestaurantsExcel(true));
+        exportManagersExcelBtn3.addEventListener('click', () => exportManagersExcel(true, false));
+        exportAllRestaurantsExcelBtn3.addEventListener('click', () => exportAllRestaurantsExcel(true, false));
         exportAllRestaurantsPdfBtn3.addEventListener('click', exportAllRestaurantsPDF);
 
+        exportManagersBreadExcelBtn.addEventListener('click', () => exportManagersExcel(false, true));
+        exportAllBreadExcelBtn.addEventListener('click', () => exportAllRestaurantsExcel(false, true));
+
         itemSearch.disabled = true; generateBtn.disabled = true; exportExcelBtn.disabled = true; exportPdfBtn.disabled = true;
-        tab2Btn.disabled = true; tab3Btn.disabled = true;
+        tab2Btn.disabled = true; tab3Btn.disabled = true; tab4Btn.disabled = true;
         restaurantSearchInput.disabled = true; showRestaurantItemsBtn.disabled = true;
         restaurantSearchInput3.disabled = true; showRestaurantItemsBtn3.disabled = true;
+        restaurantSearchInput4.disabled = true; showRestaurantItemsBtn4.disabled = true;
         exportRestaurantExcelBtn.disabled = true; exportRestaurantPdfBtn.disabled = true;
         exportTab3ExcelBtn.disabled = true; exportTab3PdfBtn.disabled = true;
+        exportBreadExcelBtn.disabled = true; exportManagersBreadExcelBtn.disabled = true; exportAllBreadExcelBtn.disabled = true;
         exportManagersExcelBtn.disabled = true; exportAllRestaurantsExcelBtn.disabled = true; exportAllRestaurantsPdfBtn.disabled = true;
         exportManagersExcelBtn3.disabled = true; exportAllRestaurantsExcelBtn3.disabled = true; exportAllRestaurantsPdfBtn3.disabled = true;
         restaurantInfoHeader.style.display = 'none';
         restaurantInfoHeader3.style.display = 'none';
+        restaurantInfoHeader4.style.display = 'none';
 
-        console.log('✅ تم تكرار صفحة حركة المطعم بالكامل بجميع أزرار التصدير وقراءة عامود Stk. Take. Qty بنجاح.');
+        console.log('✅ تم إضافة صفحة حركة الخبز والتصدير لمجموعات المشرفين مع شيت تجميع المطاعم ذات الجهازين بنجاح.');
     </script>
 </body>
 </html>
